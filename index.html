@@ -2,637 +2,2307 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Propagandice">
-<title>Propagandice — Ministry of Chance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Emblems</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --void: #0b0a08;
-    --panel: #171310;
-    --panel-2: #211a13;
-    --line: #3a2f22;
-    --line-strong: #5c4a32;
-    --regime: #d4463a;
-    --regime-dim: #8f2f26;
-    --gold: #d4af37;
-    --gold-dim: #8f7423;
-    --bone: #d8d4c3;
-    --ash: #8a8072;
-    --glow-regime: rgba(212,70,58,0.45);
-    --glow-gold: rgba(212,175,55,0.4);
+    --box-blue-dark:#0c1a3a;
+    --box-blue-light:#3a5fa0;
+    --gold:#e8c468;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+    font-family:'Cinzel', serif;
+    transition:background 0.9s ease;
+  }
+  body.env-shrine{
+    background:linear-gradient(180deg, #2a2350 0%, #5a4a7a 45%, #e8a35c 78%, #f0b878 100%);
+  }
+  body.env-factory{
+    background:linear-gradient(180deg, #24262e 0%, #4a4a52 45%, #b9895a 78%, #d9a86e 100%);
+  }
+  body.env-alien{
+    background:linear-gradient(180deg, #06050f 0%, #201a38 40%, #4a3f66 72%, #6a5a8c 100%);
+  }
+  body.env-farm{
+    background:linear-gradient(180deg, #3a3f47 0%, #5c636b 45%, #8a94a0 80%, #a8b0b8 100%);
+  }
+  #canvas-wrap{position:fixed; inset:0;}
+  canvas{display:block; touch-action:none; cursor:grab;}
+  canvas.dragging{cursor:grabbing;}
+
+  #sunglow{
+    position:fixed; inset:0; pointer-events:none; z-index:2;
+    background:radial-gradient(circle at 72% 38%, rgba(255,214,150,0.35), transparent 45%);
+    transition:opacity 0.6s ease;
+  }
+  body.env-factory #sunglow{
+    background:radial-gradient(circle at 72% 38%, rgba(200,200,190,0.18), transparent 45%);
+  }
+  body.env-alien #sunglow{
+    background:radial-gradient(circle at 78% 28%, rgba(199,103,224,0.28), transparent 45%);
+  }
+  body.env-farm #sunglow{
+    background:radial-gradient(circle at 60% 25%, rgba(216,220,224,0.22), transparent 50%);
+  }
+  #vignette{
+    position:fixed; inset:0; pointer-events:none; z-index:5;
+    background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(5,5,15,0.55) 100%);
   }
 
-  * { box-sizing: border-box; }
-
-  html, body {
-    margin: 0;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    overscroll-behavior: none;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
-    background:
-      radial-gradient(ellipse 120% 60% at 50% -10%, #241a10 0%, transparent 55%),
-      radial-gradient(ellipse 100% 55% at 50% 115%, #2a0e0c 0%, transparent 52%),
-      var(--void);
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--bone);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  #lore{
+    position:fixed; left:24px; top:24px; z-index:10;
+    max-width:260px;
+    color:#f4ecd8;
+    text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  }
+  #lore .eyebrow{
+    font-family:'Press Start 2P', monospace;
+    font-size:8px; letter-spacing:0.12em; color:var(--gold);
+    margin-bottom:8px;
+  }
+  #lore h1{
+    font-size:22px; font-weight:700; margin:0 0 8px 0; letter-spacing:0.02em;
+  }
+  #lore p{
+    font-size:12px; line-height:1.6; margin:0; opacity:0.88;
   }
 
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px);
-    opacity: 0.45;
-    z-index: 5000;
+  #scene-btn{
+    position:fixed; right:24px; top:24px; z-index:10;
+    font-family:'Press Start 2P', monospace;
+    font-size:9px; letter-spacing:0.06em; color:#f4ecd8;
+    background:rgba(10,10,15,0.45);
+    border:2px solid rgba(232,196,104,0.55);
+    padding:10px 14px;
+    cursor:pointer;
+    text-shadow:0 2px 4px rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
+  }
+  #scene-btn:hover{ background:rgba(232,196,104,0.18); border-color:var(--gold); }
+  #scene-btn:active{ transform:translateY(2px); }
+
+  #turn-indicator{
+    position:fixed; top:24px; left:50%; transform:translateX(-50%);
+    z-index:10; text-align:center;
+    text-shadow:0 2px 6px rgba(0,0,0,0.7);
+    transition:opacity 0.3s ease;
+  }
+  #turn-indicator .ti-player{
+    font-family:'Press Start 2P', monospace;
+    font-size:9px; letter-spacing:0.14em; color:#f4ecd8; opacity:0.75;
+    margin-bottom:4px;
+  }
+  #turn-indicator .ti-faction{
+    font-family:'Press Start 2P', monospace;
+    font-size:13px; letter-spacing:0.08em; color:var(--gold);
   }
 
-  /* drifting embers — smoke of a ministry that never sleeps */
-  .embers { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-  .embers span {
-    position: absolute;
-    bottom: -20px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--regime);
-    opacity: 0;
-    filter: blur(1px);
-    box-shadow: 0 0 8px 2px rgba(212,70,58,0.35);
-    animation: emberRise linear infinite;
+  #scoreboard{
+    position:fixed; top:78px; left:50%; transform:translateX(-50%);
+    z-index:10; display:flex; align-items:center; gap:16px;
+    text-shadow:0 2px 6px rgba(0,0,0,0.75);
   }
-  @keyframes emberRise {
-    0%   { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
-    12%  { opacity: 0.55; }
-    85%  { opacity: 0.28; }
-    100% { transform: translateY(-105vh) translateX(var(--sway, 30px)) scale(1.1); opacity: 0; }
+  #scoreboard .sb-col{
+    background:rgba(6,6,12,0.4); border:1px solid rgba(232,196,104,0.3);
+    padding:6px 12px; min-width:110px; text-align:center;
+    transition:border-color 0.2s ease, background 0.2s ease;
   }
-  .embers span:nth-child(1)  { left: 8%;  animation-duration: 14s; animation-delay: 0s;   --sway: 40px;  width: 3px; height: 3px; }
-  .embers span:nth-child(2)  { left: 22%; animation-duration: 18s; animation-delay: 3s;   --sway: -30px; background: var(--gold); box-shadow: 0 0 8px 2px rgba(212,175,55,0.3); }
-  .embers span:nth-child(3)  { left: 35%; animation-duration: 12s; animation-delay: 6s;   --sway: 25px;  width: 3px; height: 3px; }
-  .embers span:nth-child(4)  { left: 48%; animation-duration: 20s; animation-delay: 1.5s; --sway: -45px; }
-  .embers span:nth-child(5)  { left: 61%; animation-duration: 15s; animation-delay: 8s;   --sway: 35px;  width: 5px; height: 5px; }
-  .embers span:nth-child(6)  { left: 73%; animation-duration: 17s; animation-delay: 4s;   --sway: -20px; width: 3px; height: 3px; background: var(--gold); box-shadow: 0 0 8px 2px rgba(212,175,55,0.3); }
-  .embers span:nth-child(7)  { left: 85%; animation-duration: 13s; animation-delay: 10s;  --sway: 30px; }
-  .embers span:nth-child(8)  { left: 93%; animation-duration: 19s; animation-delay: 2s;   --sway: -35px; width: 3px; height: 3px; }
-  .embers span:nth-child(9)  { left: 15%; animation-duration: 16s; animation-delay: 12s;  --sway: 20px; }
-  @media (prefers-reduced-motion: reduce) { .embers { display: none; } }
-
-  .console {
-    position: relative;
-    width: 100%;
-    max-width: 440px;
-    max-height: 100%;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(175deg, rgba(33,26,19,0.88) 0%, rgba(11,10,8,0.94) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--line-strong);
-    border-radius: 20px;
-    box-shadow:
-      0 0 0 1px rgba(0,0,0,0.7),
-      0 34px 80px rgba(0,0,0,0.8),
-      0 4px 16px rgba(0,0,0,0.5),
-      inset 0 1px 0 rgba(212,175,55,0.1),
-      inset 0 0 60px rgba(212,70,58,0.03);
-    padding: 18px 18px 20px;
-    gap: 16px;
-    overflow: hidden;
+  #scoreboard .sb-col.active{
+    border-color:var(--gold); background:rgba(232,196,104,0.12);
+  }
+  #scoreboard .sb-label{
+    font-family:'Press Start 2P', monospace; font-size:8px;
+    letter-spacing:0.14em; color:#9fb4e0; margin-bottom:3px;
+  }
+  #scoreboard .sb-row{
+    font-family:'Press Start 2P', monospace; font-size:9px;
+    color:#f4ecd8; letter-spacing:0.04em; line-height:1.7;
+  }
+  #scoreboard .sb-gdp b{ color:var(--gold); }
+  #scoreboard .sb-vs{
+    font-family:'Cinzel', serif; font-style:italic; font-size:12px;
+    color:#9fb4e0; opacity:0.7;
   }
 
-  /* creeping vines — the wild reclaiming the ministry */
-  .console::before, .console::after {
-    content: '';
-    position: absolute;
-    width: 130px;
-    height: 130px;
-    pointer-events: none;
-    opacity: 0.4;
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M2 2c30 4 38 20 40 44M2 2c16 26 8 40 26 58M2 2c44-2 60 12 66 34' fill='none' stroke='%235c4a32' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M42 46c5-2 9 1 9 6-6 2-9-1-9-6zM28 60c5 0 8 4 6 9-6 0-8-4-6-9zM68 36c5-1 9 2 8 7-6 1-9-2-8-7z' fill='%238f7423'/%3E%3C/svg%3E");
+  #hint{
+    position:fixed; bottom:34px; left:50%; transform:translateX(-50%);
+    z-index:10; font-family:'Press Start 2P', monospace;
+    font-size:8px; letter-spacing:0.14em; color:#f4ecd8;
+    text-shadow:0 2px 4px rgba(0,0,0,0.7);
+    opacity:0.85; transition:opacity 0.6s ease; text-align:center;
   }
-  .console::before { top: -6px; left: -6px; }
-  .console::after { bottom: -6px; right: -6px; transform: rotate(180deg); }
+  #hint.fade{opacity:0;}
 
-  /* ---------- Header ---------- */
-  .head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    position: relative;
-    z-index: 2;
+  #roll-counter{
+    position:fixed; top:148px; left:50%; transform:translateX(-50%);
+    z-index:10; font-family:'Press Start 2P', monospace;
+    font-size:9px; letter-spacing:0.12em; color:var(--gold);
+    text-shadow:0 2px 4px rgba(0,0,0,0.8);
+    opacity:0.95; transition:opacity 0.3s ease, transform 0.2s ease;
   }
-  .head-id { min-width: 0; }
-  .head-eyebrow {
-    font-size: 10px;
-    letter-spacing: 2.5px;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-    margin-bottom: 3px;
-  }
-  .head-title {
-    font-family: 'Chakra Petch', sans-serif;
-    font-weight: 700;
-    font-size: 30px;
-    line-height: 1;
-    letter-spacing: 1.5px;
-    color: var(--regime);
-    text-shadow:
-      0 1px 0 #8f2f26,
-      0 2px 0 #7a2620,
-      0 3px 0 #631d18,
-      0 4px 0 #4c1611,
-      0 5px 0 #350f0b,
-      0 7px 10px rgba(0,0,0,0.7),
-      0 0 26px var(--glow-regime);
-    text-transform: uppercase;
-    transform: rotate(-1.2deg);
-    transform-origin: left bottom;
-    margin: 0;
-  }
-  .head-sub {
-    font-size: 10px;
-    letter-spacing: 1.4px;
-    color: var(--ash);
-    text-transform: uppercase;
-    margin-top: 5px;
-  }
-  .head-btns { display: flex; flex-direction: column; gap: 7px; flex: 0 0 auto; align-items: stretch; }
+  #roll-counter.pulse{ transform:translateX(-50%) scale(1.15); }
 
-  .chip-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-height: 38px;
-    min-width: 46px;
-    padding: 8px 12px;
-    background: linear-gradient(180deg, #2e2114 0%, #1c140c 100%);
-    border: 1px solid var(--line-strong);
-    border-radius: 10px;
-    color: var(--bone);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    cursor: pointer;
-    box-shadow: 0 3px 0 #060504, 0 5px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,175,55,0.14);
-    transition: border-color .15s, box-shadow .12s, transform .1s, filter .15s;
+  /* Zelda-style dialogue box */
+  #textbox{
+    position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
+    z-index:15; width:min(560px, 88vw);
+    background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
+    border:3px solid var(--box-blue-light);
+    box-shadow:0 0 0 2px #0a1430, 0 10px 30px rgba(0,0,0,0.6), inset 0 0 20px rgba(80,110,200,0.25);
+    padding:16px 20px;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.4s ease, transform 0.4s ease;
   }
-  .chip-btn:hover { border-color: var(--gold-dim); filter: brightness(1.12); }
-  .chip-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #060504, 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,175,55,0.1);
+  #textbox.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  #textbox .tb-title{
+    font-family:'Press Start 2P', monospace;
+    font-size:11px; color:var(--gold); letter-spacing:0.06em;
+    margin-bottom:10px;
   }
+  #textbox .tb-body{
+    font-family:'Press Start 2P', monospace;
+    font-size:9px; color:#f4ecd8; line-height:2;
+    min-height:20px;
+  }
+  #textbox .tb-syms{
+    margin-top:10px; font-size:8px; letter-spacing:0.08em; color:#9fb4e0;
+    font-family:'Press Start 2P', monospace;
+  }
+  #textbox .tb-bonus{
+    margin-top:10px; font-size:9px; letter-spacing:0.05em; color:#ff9a6b;
+    font-family:'Press Start 2P', monospace; line-height:1.7;
+    min-height:0;
+  }
+  #textbox .cursor{
+    display:inline-block; width:6px; height:10px; background:#f4ecd8;
+    animation:blink 0.7s steps(1) infinite; margin-left:2px; vertical-align:-1px;
+  }
+  @keyframes blink{50%{opacity:0;}}
 
-  /* ---------- Containment window ---------- */
-  .containment {
-    position: relative;
-    z-index: 2;
-    border: 1px solid var(--line-strong);
-    border-radius: 12px;
-    background:
-      radial-gradient(ellipse 90% 120% at 50% 0%, rgba(212,70,58,0.06) 0%, transparent 55%),
-      #0e0b08;
-    padding: 22px 12px 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    overflow: hidden;
+  #choice-prompt{
+    display:none; gap:10px; margin-top:14px;
   }
-  .containment::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, rgba(212,175,55,0.025) 0 2px, transparent 2px 5px);
-    pointer-events: none;
+  #choice-prompt.show{ display:flex; }
+  #choice-prompt button{
+    flex:1; font-family:'Press Start 2P', monospace; font-size:9px;
+    letter-spacing:0.04em; color:#f4ecd8; padding:10px 8px;
+    background:rgba(232,196,104,0.12); border:2px solid var(--gold);
+    cursor:pointer; transition:background 0.15s ease, transform 0.08s ease;
   }
-  .containment .bracket {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--gold-dim);
-    opacity: 0.85;
-  }
-  .bracket.tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
-  .bracket.tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
-  .bracket.bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
-  .bracket.br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+  #choice-prompt button:hover{ background:rgba(232,196,104,0.28); transform:translateY(-1px); }
 
-  .directive-label {
-    font-size: 9px;
-    letter-spacing: 2.5px;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-    text-align: center;
+  #gameover-overlay{
+    position:fixed; inset:0; z-index:26;
+    background:rgba(6,6,10,0.78);
+    backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center;
   }
+  #gameover-overlay.show{ display:flex; }
+  #gameover-card{
+    width:min(480px, 90vw);
+    background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
+    border:3px solid var(--box-blue-light);
+    box-shadow:0 0 0 2px #0a1430, 0 10px 40px rgba(0,0,0,0.7);
+    padding:30px 26px; text-align:center;
+  }
+  #gameover-card h2{
+    font-family:'Cinzel', serif; font-weight:700; font-size:24px;
+    color:var(--gold); margin:0 0 10px 0;
+  }
+  #gameover-card p{
+    font-family:'Cinzel', serif; font-size:13px; color:#9fb4e0;
+    margin:0 0 22px 0;
+  }
+  #playagain-btn{
+    font-family:'Press Start 2P', monospace; font-size:10px;
+    letter-spacing:0.06em; color:#0a0a0b; padding:12px 20px;
+    background:var(--gold); border:2px solid #8a6a2e; cursor:pointer;
+    transition:transform 0.08s ease;
+  }
+  #playagain-btn:hover{ transform:translateY(-2px); }
 
-  /* ---------- 3D dice ---------- */
-  .dice-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 14px 12px;
-    padding: 6px 4px 12px;
+  #setup-overlay{
+    position:fixed; inset:0; z-index:25;
+    background:rgba(6,6,10,0.72);
+    backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center;
+    transition:opacity 0.4s ease;
   }
-  .die-scene {
-    --hs: 27px;
-    width: 54px;
-    height: 54px;
-    position: relative;
-    perspective: 800px;
+  #setup-overlay.hidden{ opacity:0; pointer-events:none; }
+  #setup-card{
+    width:min(560px, 90vw);
+    background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
+    border:3px solid var(--box-blue-light);
+    box-shadow:0 0 0 2px #0a1430, 0 10px 40px rgba(0,0,0,0.7);
+    padding:28px 26px;
+    text-align:center;
   }
-  .die-scene::after {
-    content: '';
-    position: absolute;
-    left: 8%;
-    right: 8%;
-    bottom: -9px;
-    height: 8px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 70%);
-    transform: translateZ(-40px);
+  .setup-eyebrow{
+    font-family:'Press Start 2P', monospace;
+    font-size:9px; letter-spacing:0.2em; color:var(--gold);
+    margin-bottom:10px;
   }
-  .die-cube {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    transform: rotateX(-10deg) rotateY(14deg);
+  #setup-card h2{
+    font-family:'Cinzel', serif; font-weight:700;
+    font-size:22px; color:#f4ecd8; margin:0 0 22px 0;
   }
-  .cube-face {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(155deg, #2c2013 0%, #1a130b 55%, #0e0b08 100%);
-    border: 1px solid var(--line-strong);
-    border-radius: 9px;
-    box-shadow: inset 0 1px 0 rgba(212,175,55,0.14), inset 0 -6px 12px rgba(0,0,0,0.45);
-    overflow: hidden;
+  #faction-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
   }
-  .cube-face::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(115deg, rgba(255,255,255,0.08) 0%, transparent 38%);
-    pointer-events: none;
+  .faction-btn{
+    display:flex; flex-direction:column; gap:6px;
+    background:rgba(255,255,255,0.04);
+    border:2px solid rgba(232,196,104,0.35);
+    padding:16px 12px;
+    cursor:pointer;
+    transition:background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
   }
-  .cube-face.equip-face { background: linear-gradient(155deg, #3a1712 0%, #200e0b 55%, #0e0b08 100%); }
-  .f-front  { transform: translateZ(var(--hs)); }
-  .f-back   { transform: rotateY(180deg) translateZ(var(--hs)); }
-  .f-right  { transform: rotateY(90deg) translateZ(var(--hs)); filter: brightness(0.75); }
-  .f-left   { transform: rotateY(-90deg) translateZ(var(--hs)); filter: brightness(0.6); }
-  .f-top    { transform: rotateX(90deg) translateZ(var(--hs)); filter: brightness(1.15); }
-  .f-bottom { transform: rotateX(-90deg) translateZ(var(--hs)); filter: brightness(0.45); }
-  .die-sym { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 21px; color: var(--gold); text-shadow: 0 0 8px rgba(212,175,55,0.35); }
-  .die-x { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 22px; color: var(--regime); }
-  .die-ring { width: 16px; height: 16px; border: 3px solid var(--bone); border-radius: 50%; opacity: .7; }
-  .pip-face { position: relative; width: 100%; height: 100%; }
-  .pip { position: absolute; width: 7px; height: 7px; background: var(--bone); border-radius: 50%; }
-  .p-c  { left: 50%; top: 50%; transform: translate(-50%,-50%); }
-  .p-tl { left: 24%; top: 24%; }
-  .p-br { right: 24%; bottom: 24%; }
-
-  .die-scene.empty { border: 1px dashed var(--line); border-radius: 10px; }
-  .die-scene.empty::after { display: none; }
-
-  /* ---------- Dice animations ---------- */
-  @keyframes cubeSpin {
-    0%   { transform: rotateX(-10deg) rotateY(14deg) translateY(0); }
-    25%  { transform: rotateX(120deg) rotateY(200deg) translateY(-16px); }
-    50%  { transform: rotateX(240deg) rotateY(380deg) translateY(-4px); }
-    75%  { transform: rotateX(300deg) rotateY(560deg) translateY(-14px); }
-    100% { transform: rotateX(350deg) rotateY(734deg) translateY(0); }
+  .faction-btn:hover{ background:rgba(232,196,104,0.14); border-color:var(--gold); transform:translateY(-2px); }
+  .faction-btn:disabled{
+    opacity:0.3; cursor:default; filter:grayscale(1);
   }
-  .die-cube.tumbling { animation: cubeSpin 0.6s linear infinite; }
-
-  @keyframes landSettle {
-    0%   { transform: rotateX(140deg) rotateY(230deg) translateY(-22px) scale(0.85); }
-    60%  { transform: rotateX(-24deg) rotateY(4deg) translateY(3px) scale(1.08); }
-    80%  { transform: rotateX(-4deg) rotateY(18deg) translateY(-2px) scale(0.98); }
-    100% { transform: rotateX(-10deg) rotateY(14deg) translateY(0) scale(1); }
+  .faction-btn:disabled:hover{ transform:none; background:rgba(255,255,255,0.04); border-color:rgba(232,196,104,0.35); }
+  .faction-btn .fb-name{
+    font-family:'Press Start 2P', monospace;
+    font-size:11px; letter-spacing:0.04em; color:#f4ecd8;
   }
-  .die-cube.settling { animation: landSettle 0.5s cubic-bezier(.3,1.2,.4,1) both; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .die-cube.tumbling, .die-cube.settling { animation: none; }
+  .faction-btn .fb-sub{
+    font-family:'Cinzel', serif; font-size:11px; color:#9fb4e0;
   }
 
-  .game-result {
-    min-height: 20px;
-    text-align: center;
-    font-family: 'Chakra Petch', sans-serif;
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: 0.8px;
-    color: var(--regime);
-    text-shadow: 0 0 12px var(--glow-regime);
+  #loading{
+    position:fixed; inset:0; z-index:30;
+    background:#12102a;
+    display:flex; align-items:center; justify-content:center;
+    color:#f4ecd8; font-family:'Press Start 2P', monospace; font-size:11px;
+    letter-spacing:0.08em; text-align:center;
+    transition:opacity 0.8s ease;
   }
-
-  /* ---------- Actions ---------- */
-  .game-actions { display: flex; gap: 12px; position: relative; z-index: 2; }
-  .action-btn {
-    flex: 1;
-    min-height: 54px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 14px;
-    background: linear-gradient(180deg, #3a2416 0%, #24160e 45%, #170e09 100%);
-    border: 1px solid #5c4a32;
-    border-radius: 13px;
-    color: var(--bone);
-    font-family: 'Chakra Petch', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    box-shadow:
-      0 5px 0 #060504,
-      0 9px 20px rgba(0,0,0,0.6),
-      inset 0 1px 0 rgba(212,175,55,0.22),
-      inset 0 -8px 14px rgba(0,0,0,0.35);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
-    transition: border-color .15s, box-shadow .12s, transform .1s, color .15s, filter .15s;
-  }
-  .action-btn:hover { border-color: var(--gold-dim); color: var(--gold); filter: brightness(1.12); }
-  .action-btn:active {
-    transform: translateY(4px);
-    box-shadow:
-      0 1px 0 #060504,
-      0 3px 8px rgba(0,0,0,0.5),
-      inset 0 1px 0 rgba(212,175,55,0.18),
-      inset 0 -4px 10px rgba(0,0,0,0.4);
-  }
-  .action-btn:disabled {
-    opacity: 0.4; cursor: default; transform: none; filter: none;
-    color: var(--bone); border-color: var(--line-strong);
-    box-shadow: 0 3px 0 #060504, inset 0 1px 0 rgba(212,175,55,0.08);
-  }
-  @keyframes pulseRegime {
-    0%, 100% { box-shadow: 0 5px 0 #060504, 0 9px 20px rgba(0,0,0,0.6), 0 0 0 0 var(--glow-regime), inset 0 1px 0 rgba(212,175,55,0.22); }
-    50% { box-shadow: 0 5px 0 #060504, 0 9px 20px rgba(0,0,0,0.6), 0 0 22px 5px var(--glow-regime), inset 0 1px 0 rgba(212,175,55,0.22); }
-  }
-  .action-btn.pulse { animation: pulseRegime 1.1s ease-in-out infinite; border-color: var(--regime); color: var(--regime); }
 </style>
 </head>
-<body>
+<body class="env-shrine">
 
-<div class="embers">
-  <span></span><span></span><span></span><span></span><span></span>
-  <span></span><span></span><span></span><span></span>
+<div id="loading">ENTERING THE VALLEY&hellip;</div>
+<div id="canvas-wrap"></div>
+<div id="sunglow"></div>
+<div id="vignette"></div>
+
+<div id="lore">
+  <div class="eyebrow" id="lore-eyebrow">◆ THE SHRINE ◆</div>
+  <h1 id="lore-title">Three Emblems</h1>
 </div>
 
-<div class="console">
-  <div class="head">
-    <div class="head-id">
-      <div class="head-eyebrow">Ministry of Chance</div>
-      <h1 class="head-title">Propagandice</h1>
-      <div class="head-sub">The regime rolls, the regime decides</div>
-    </div>
-    <div class="head-btns">
-      <button class="chip-btn" id="addBtn" title="Add die">+</button>
-      <button class="chip-btn" id="removeBtn" title="Remove die">&minus;</button>
-    </div>
-  </div>
+<button id="scene-btn">⟳ NEW GAME</button>
 
-  <div class="containment" id="containment">
-    <span class="bracket tl"></span><span class="bracket tr"></span>
-    <span class="bracket bl"></span><span class="bracket br"></span>
-    <div class="directive-label">Cast the directive dice</div>
-    <div class="dice-row" id="diceRow"></div>
-    <div class="game-result" id="resultCaption"></div>
-  </div>
+<div id="turn-indicator">
+  <div class="ti-player" id="ti-player">PLAYER 1</div>
+  <div class="ti-faction" id="ti-faction">CHOOSING&hellip;</div>
+</div>
 
-  <div class="game-actions">
-    <button class="action-btn pulse" id="shakeBtn">Roll the Dice</button>
+<div id="scoreboard">
+  <div class="sb-col" id="sb-p1">
+    <div class="sb-label">P1</div>
+    <div class="sb-row sb-gdp">GDP <b id="p1-gdp">20</b></div>
+    <div class="sb-row">ATK <b id="p1-atk">0</b> &nbsp;DEF <b id="p1-def">0</b></div>
+  </div>
+  <div class="sb-vs">VS</div>
+  <div class="sb-col" id="sb-p2">
+    <div class="sb-label">P2</div>
+    <div class="sb-row sb-gdp">GDP <b id="p2-gdp">20</b></div>
+    <div class="sb-row">ATK <b id="p2-atk">0</b> &nbsp;DEF <b id="p2-def">0</b></div>
   </div>
 </div>
 
+<div id="roll-counter">ROLL 0 / 3</div>
+<div id="hint">TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL</div>
+
+<div id="textbox">
+  <div class="tb-title">▶ THE FACTION IS COMING TOGETHER&hellip;</div>
+  <div class="tb-body" id="tb-body"><span class="cursor"></span></div>
+  <div class="tb-syms" id="tb-syms"></div>
+  <div class="tb-bonus" id="tb-bonus"></div>
+  <div id="choice-prompt">
+    <button id="choice-attack">⚔ ATTACK EQUIP</button>
+    <button id="choice-defense">🛡 DEFENSE EQUIP</button>
+  </div>
+</div>
+
+<div id="gameover-overlay">
+  <div id="gameover-card">
+    <div class="setup-eyebrow">◆ GAME OVER ◆</div>
+    <h2 id="gameover-title">Player 1 Wins</h2>
+    <p id="gameover-sub">Their GDP fell to zero.</p>
+    <button id="playagain-btn">PLAY AGAIN</button>
+  </div>
+</div>
+
+<div id="setup-overlay">
+  <div id="setup-card">
+    <div class="setup-eyebrow" id="setup-player-label">PLAYER 1</div>
+    <h2 id="setup-title">Choose Your Faction</h2>
+    <div id="faction-grid">
+      <button class="faction-btn" data-key="PARTY BOSS">
+        <span class="fb-name">Party Boss</span>
+        <span class="fb-sub">The Communist · Work Camp No. 7</span>
+      </button>
+      <button class="faction-btn" data-key="INDUSTRY CAPTAIN">
+        <span class="fb-name">Industry Captain</span>
+        <span class="fb-sub">The Capitalist · The Combine Works</span>
+      </button>
+      <button class="faction-btn" data-key="KNIGHT">
+        <span class="fb-name">Knight</span>
+        <span class="fb-sub">The Shrine-Keeper · Three Emblems</span>
+      </button>
+      <button class="faction-btn" data-key="PREFECT ZORB">
+        <span class="fb-name">Prefect Zorb</span>
+        <span class="fb-sub">The Alien · A Moon of Saturn</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-  var diceRow = document.getElementById('diceRow');
-  var resultCaption = document.getElementById('resultCaption');
-  var shakeBtn = document.getElementById('shakeBtn');
-  var addBtn = document.getElementById('addBtn');
-  var removeBtn = document.getElementById('removeBtn');
-
-  var FACES = [
-    { key:'hammer', sym:'T',      label:'HAMMER', faction:'communist' },
-    { key:'sickle', sym:'\u104E', label:'SICKLE', faction:'communist' },
-    { key:'plane',  sym:'\u2708', label:'PLANE',  faction:'capitalist' },
-    { key:'gun',    sym:'\u2310', label:'GUN',    faction:'capitalist' },
-    { key:'sword',  sym:'M',      label:'SWORD',  faction:'knight' },
-    { key:'ufo',    sym:'\u108E', label:'UFO',    faction:'alien' },
+  const wrap = document.getElementById('canvas-wrap');
+  const loading = document.getElementById('loading');
+  const hint = document.getElementById('hint');
+  const textbox = document.getElementById('textbox');
+  const tbBody = document.getElementById('tb-body');
+  const tbSyms = document.getElementById('tb-syms');
+  const sceneBtn = document.getElementById('scene-btn');
+  const loreEyebrow = document.getElementById('lore-eyebrow');
+  const loreTitle = document.getElementById('lore-title');
+  const rollCounterEl = document.getElementById('roll-counter');
+  const turnIndicator = document.getElementById('turn-indicator');
+  const tiPlayer = document.getElementById('ti-player');
+  const tiFaction = document.getElementById('ti-faction');
+  const setupOverlay = document.getElementById('setup-overlay');
+  const setupPlayerLabel = document.getElementById('setup-player-label');
+  const setupTitle = document.getElementById('setup-title');
+  const factionButtons = Array.from(document.querySelectorAll('.faction-btn'));
+  const tbBonus = document.getElementById('tb-bonus');
+  const choicePrompt = document.getElementById('choice-prompt');
+  const choiceAttackBtn = document.getElementById('choice-attack');
+  const choiceDefenseBtn = document.getElementById('choice-defense');
+  const gameoverOverlay = document.getElementById('gameover-overlay');
+  const gameoverTitle = document.getElementById('gameover-title');
+  const gameoverSub = document.getElementById('gameover-sub');
+  const playAgainBtn = document.getElementById('playagain-btn');
+  const sbCols = [document.getElementById('sb-p1'), document.getElementById('sb-p2')];
+  const statEls = [
+    { gdp: document.getElementById('p1-gdp'), atk: document.getElementById('p1-atk'), def: document.getElementById('p1-def') },
+    { gdp: document.getElementById('p2-gdp'), atk: document.getElementById('p2-atk'), def: document.getElementById('p2-def') }
   ];
-  var FACTIONS = {
-    communist:  'COMMUNIST',
-    capitalist: 'CAPITALIST',
-    knight:     'MERCENARY',
-    alien:      'ALIEN'
-  };
-  var EQUIP_FACES = [
-    {type:'equip', val:1}, {type:'equip', val:1}, {type:'equip', val:2},
-    {type:'noaction'}, {type:'noaction'}, {type:'endturn'}
-  ];
-  var CUBE_FACES = ['f-front','f-back','f-right','f-left','f-top','f-bottom'];
 
-  var AC;
-  function getAC(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
-  function beep(f,d,v,t){ try{ var ac=getAC(), o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.type=t||'square'; o.frequency.value=f; g.gain.setValueAtTime(v||0.1, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+d); o.start(); o.stop(ac.currentTime+d); }catch(e){} }
-  function sfxRoll(){ [0,60,120].forEach(function(t){ setTimeout(function(){ beep(70+Math.random()*40,0.04,0.07,'sawtooth'); }, t); }); }
-  function sfxLand(i){ setTimeout(function(){ beep(220+i*70,0.05,0.09); }, i*90); }
-  function sfxBtn(){ beep(760,0.04,0.06); }
+  // ---------- Renderer / Scene ----------
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xdf9a5c, 12, 34);
 
-  function randFace(){ return Math.floor(Math.random()*6); }
+  const camera = new THREE.PerspectiveCamera(48, window.innerWidth/window.innerHeight, 0.1, 100);
 
-  function symbolFaceHTML(idx){
-    return '<span class="die-sym">'+FACES[idx].sym+'</span>';
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+  wrap.appendChild(renderer.domElement);
+  const canvas = renderer.domElement;
+
+  // ---------- Lighting (flat, N64-era: no dynamic shadows, blob shadows instead) ----------
+  const hemi = new THREE.HemisphereLight(0x8fa0d8, 0x33301c, 0.85);
+  scene.add(hemi);
+
+  const sun = new THREE.DirectionalLight(0xffc98a, 1.05);
+  sun.position.set(10, 9, -5);
+  scene.add(sun);
+
+  const fillCool = new THREE.DirectionalLight(0x6a7fc0, 0.25);
+  fillCool.position.set(-8, 4, 8);
+  scene.add(fillCool);
+
+  // ---------- Blob shadow helper ----------
+  function makeBlobTexture(){
+    const c = document.createElement('canvas'); c.width=64; c.height=64;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0,'rgba(10,10,15,0.55)');
+    g.addColorStop(1,'rgba(10,10,15,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
   }
-  function equipFaceHTML(idx){
-    var ef = EQUIP_FACES[idx];
-    if (ef.type === 'endturn') return '<span class="die-x">\u2715</span>';
-    if (ef.type === 'noaction') return '<span class="die-ring"></span>';
-    var pips = '';
-    if (ef.val === 1) pips = '<i class="pip p-c"></i>';
-    else if (ef.val === 2) pips = '<i class="pip p-tl"></i><i class="pip p-br"></i>';
-    else pips = '<i class="pip p-tl"></i><i class="pip p-c"></i><i class="pip p-br"></i>';
-    return '<div class="pip-face">'+pips+'</div>';
+  const blobTex = makeBlobTexture();
+  function addBlob(x,z,scale,parent){
+    const mat = new THREE.MeshBasicMaterial({map:blobTex, transparent:true, depthWrite:false});
+    const geo = new THREE.PlaneGeometry(scale, scale);
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = -Math.PI/2;
+    m.position.set(x, 0.015, z);
+    parent.add(m);
+    return m;
   }
-  function faceHTML(isEquip, idx){ return isEquip ? equipFaceHTML(idx) : symbolFaceHTML(idx); }
 
-  function dieCubeHTML(isEquip, idx){
-    var inner = '';
-    for (var i=0;i<CUBE_FACES.length;i++){
-      inner += '<div class="cube-face'+(isEquip?' equip-face':'')+' '+CUBE_FACES[i]+'">'+faceHTML(isEquip, idx)+'</div>';
+  function makeSmokeTexture(){
+    const c = document.createElement('canvas'); c.width=64; c.height=64;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(32,32,2,32,32,32);
+    g.addColorStop(0,'rgba(150,148,145,0.55)');
+    g.addColorStop(1,'rgba(150,148,145,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
+  }
+  const smokeTex = makeSmokeTexture();
+
+  // ---------- Platform constants (shared by both environments so dice math stays fixed) ----------
+  const PLATFORM_TOP_Y = 0.47;
+  const PLATFORM_OUTER_R = 2.5;
+
+  // =====================================================================
+  // SHRINE ENVIRONMENT
+  // =====================================================================
+  function buildShrineEnvironment(){
+    const group = new THREE.Group();
+    const lights = [];
+
+    function terrainHeight(x,z){
+      const d = Math.sqrt(x*x+z*z);
+      const falloff = Math.min(1, Math.max(0, (d-3.4)/3.0));
+      const h = Math.sin(x*0.16)*0.55 + Math.cos(z*0.19)*0.5 + Math.sin((x+z)*0.09)*0.75;
+      return h * falloff;
     }
-    return '<div class="die-cube">'+inner+'</div>';
-  }
-  function setCubeFaces(scene, isEquip, idx){
-    var faces = scene.querySelectorAll('.cube-face');
-    for (var i=0;i<faces.length;i++) faces[i].innerHTML = faceHTML(isEquip, idx);
-  }
 
-  var nDice = 3; // symbol dice; an equip/directive die is always added
-  var diceState = []; // { isEquip, face, sceneEl }
-  var lastResults = [];
-  var shaking = false;
-
-  function buildDice(){
-    diceRow.innerHTML = '';
-    diceState = [];
-    var total = nDice + 1;
-    for (var i=0;i<total;i++){
-      var isEquip = (i === total-1);
-      var face = randFace();
-      var scene = document.createElement('div');
-      scene.className = 'die-scene';
-      scene.innerHTML = dieCubeHTML(isEquip, face);
-      diceRow.appendChild(scene);
-      var d = { isEquip: isEquip, face: face, sceneEl: scene };
-      d.sceneEl.addEventListener('pointerdown', (function(die){
-        return function(e){ e.stopPropagation(); rerollDie(die); };
-      })(d));
-      diceState.push(d);
+    const groundSize = 64, segs = 44;
+    const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize, segs, segs);
+    const posAttr = groundGeo.attributes.position;
+    const colors = [];
+    const cLow = new THREE.Color(0x2d4a2e);
+    const cMid = new THREE.Color(0x4f7a3e);
+    const cHigh = new THREE.Color(0x8fae4e);
+    for(let i=0;i<posAttr.count;i++){
+      const x = posAttr.getX(i), y = posAttr.getY(i);
+      const h = terrainHeight(x,y);
+      posAttr.setZ(i, h);
+      const t = Math.max(0, Math.min(1, (h+0.2)/1.6));
+      const col = t<0.5 ? cLow.clone().lerp(cMid, t/0.5) : cMid.clone().lerp(cHigh, (t-0.5)/0.5);
+      colors.push(col.r, col.g, col.b);
     }
+    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    groundGeo.computeVertexNormals();
+    const groundMat = new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    group.add(ground);
+
+    const mountainMat = new THREE.MeshPhongMaterial({ color:0x4b3b63, flatShading:true, shininess:0 });
+    const mountainMat2 = new THREE.MeshPhongMaterial({ color:0x5c4a78, flatShading:true, shininess:0 });
+    const mountainCount = 22;
+    for(let i=0;i<mountainCount;i++){
+      const ang = (i/mountainCount)*Math.PI*2 + Math.random()*0.15;
+      const dist = 27 + Math.random()*7;
+      const h = 6 + Math.random()*9;
+      const r = 4 + Math.random()*4;
+      const geo = new THREE.ConeGeometry(r, h, 5);
+      const m = new THREE.Mesh(geo, Math.random()>0.5?mountainMat:mountainMat2);
+      m.position.set(Math.cos(ang)*dist, h/2 - 1.5, Math.sin(ang)*dist);
+      m.rotation.y = Math.random()*Math.PI;
+      group.add(m);
+    }
+
+    const leafMats = [
+      new THREE.MeshPhongMaterial({color:0x3f6b34, flatShading:true, shininess:0}),
+      new THREE.MeshPhongMaterial({color:0x4f7d3a, flatShading:true, shininess:0}),
+      new THREE.MeshPhongMaterial({color:0x376130, flatShading:true, shininess:0})
+    ];
+    const trunkMat = new THREE.MeshPhongMaterial({color:0x5a4128, flatShading:true, shininess:0});
+    const leafGeo = new THREE.ConeGeometry(1, 2.2, 6);
+    const leafGeo2 = new THREE.ConeGeometry(0.75, 1.7, 6);
+    const trunkGeo = new THREE.CylinderGeometry(0.15, 0.2, 1.1, 6);
+
+    function placeTree(x,z){
+      const h = terrainHeight(x,z);
+      const tg = new THREE.Group();
+      const scale = 0.85 + Math.random()*0.5;
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      trunk.position.y = 0.55*scale;
+      trunk.scale.set(scale,scale,scale);
+      tg.add(trunk);
+      const mat = leafMats[Math.floor(Math.random()*leafMats.length)];
+      const leaf1 = new THREE.Mesh(leafGeo, mat);
+      leaf1.position.y = 1.7*scale;
+      leaf1.scale.set(scale,scale,scale);
+      tg.add(leaf1);
+      const leaf2 = new THREE.Mesh(leafGeo2, mat);
+      leaf2.position.y = 2.5*scale;
+      leaf2.scale.set(scale,scale,scale);
+      tg.add(leaf2);
+      tg.position.set(x, h, z);
+      tg.rotation.y = Math.random()*Math.PI*2;
+      group.add(tg);
+      addBlob(x, z, 1.6*scale, group);
+    }
+
+    const treeCount = 34;
+    let placed = 0, attempts = 0;
+    while(placed < treeCount && attempts < 400){
+      attempts++;
+      const ang = Math.random()*Math.PI*2;
+      const dist = 6 + Math.random()*22;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+      placeTree(x,z);
+      placed++;
+    }
+
+    const rockMat = new THREE.MeshPhongMaterial({color:0x6c6a72, flatShading:true, shininess:0});
+    for(let i=0;i<14;i++){
+      const ang = Math.random()*Math.PI*2;
+      const dist = 4.5 + Math.random()*20;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+      const s = 0.25 + Math.random()*0.4;
+      const geo = new THREE.DodecahedronGeometry(s, 0);
+      const m = new THREE.Mesh(geo, rockMat);
+      m.position.set(x, terrainHeight(x,z)+s*0.4, z);
+      m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      group.add(m);
+      addBlob(x,z,s*2.4,group);
+    }
+
+    const stoneMat = new THREE.MeshPhongMaterial({color:0x817a86, flatShading:true, shininess:0});
+    const stoneMatDark = new THREE.MeshPhongMaterial({color:0x625d68, flatShading:true, shininess:0});
+
+    const dais = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.2, PLATFORM_OUTER_R, 0.35, 8), stoneMat);
+    dais.position.y = 0.175;
+    group.add(dais);
+    const daisRim = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.15, PLATFORM_OUTER_R-0.15, 0.12, 8), stoneMatDark);
+    daisRim.position.y = 0.41;
+    group.add(daisRim);
+
+    const pillarGeo = new THREE.BoxGeometry(0.35, 1.5, 0.35);
+    const pillarCount = 7;
+    for(let i=0;i<pillarCount;i++){
+      const ang = (i/pillarCount)*Math.PI*2;
+      const r = 2.9;
+      const p = new THREE.Mesh(pillarGeo, stoneMatDark);
+      p.position.set(Math.cos(ang)*r, 0.75, Math.sin(ang)*r);
+      p.rotation.y = ang;
+      p.rotation.z = (Math.random()-0.5)*0.12;
+      p.rotation.x = (Math.random()-0.5)*0.12;
+      group.add(p);
+      addBlob(Math.cos(ang)*r, Math.sin(ang)*r, 1.0, group);
+    }
+
+    function makeTorch(x,z){
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.3,6), trunkMat);
+      pole.position.y = 0.65;
+      g.add(pole);
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.1,0.18,6), stoneMatDark);
+      bowl.position.y = 1.32;
+      g.add(bowl);
+      const flameMat = new THREE.MeshBasicMaterial({color:0xffa93f});
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.13,0.36,6), flameMat);
+      flame.position.y = 1.58;
+      g.add(flame);
+      const light = new THREE.PointLight(0xffa550, 1.4, 6, 2);
+      light.position.y = 1.6;
+      g.add(light);
+      g.position.set(x,0,z);
+      group.add(g);
+      lights.push({flame, light, baseIntensity:1.3});
+    }
+    makeTorch(1.7, 2.1);
+    makeTorch(-1.7, 2.1);
+
+    return {
+      group, lights, smoke: [], precip: [],
+      fog:{color:0xdf9a5c, near:12, far:34},
+      hemi:{sky:0x8fa0d8, ground:0x33301c, intensity:0.85},
+      sun:{color:0xffc98a, intensity:1.05},
+      fillCool:{color:0x6a7fc0, intensity:0.25},
+      bodyClass:'env-shrine',
+      lore:{
+        eyebrow:'◆ THE SHRINE ◆',
+        title:'Three Emblems',
+        desc:'Cast the faction dice upon the old dais. Two matching emblems reveal which banner claims your fate.'
+      }
+    };
   }
 
-  function detectFaction(){
-    if (shaking || lastResults.length < 1) return null;
-    var counts = {communist:0, capitalist:0, knight:0, alien:0};
-    lastResults.forEach(function(i){
-      var fk = FACES[i].faction;
-      if (fk) counts[fk]++;
+  // =====================================================================
+  // FACTORY ENVIRONMENT — symbol of the capitalist, all smoke and steel
+  // =====================================================================
+  function buildFactoryEnvironment(){
+    const group = new THREE.Group();
+    const lights = [];
+    const smoke = [];
+
+    function groundJitter(x,z){
+      return Math.sin(x*1.4)*0.01 + Math.cos(z*1.7)*0.01;
+    }
+
+    const groundSize = 64, segs = 44;
+    const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize, segs, segs);
+    const posAttr = groundGeo.attributes.position;
+    const colors = [];
+    const cA = new THREE.Color(0x4c4c50);
+    const cB = new THREE.Color(0x37373b);
+    for(let i=0;i<posAttr.count;i++){
+      const x = posAttr.getX(i), y = posAttr.getY(i);
+      posAttr.setZ(i, groundJitter(x,y));
+      const n = Math.abs(Math.sin(x*0.4)*Math.cos(y*0.35));
+      const col = cA.clone().lerp(cB, n);
+      colors.push(col.r, col.g, col.b);
+    }
+    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    groundGeo.computeVertexNormals();
+    const groundMat = new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    group.add(ground);
+
+    // hazard ring painted around the platform
+    function makeHazardTexture(){
+      const c = document.createElement('canvas'); c.width=256; c.height=32;
+      const ctx = c.getContext('2d');
+      const stripeW = 24;
+      for(let x=-stripeW; x<c.width+stripeW; x+=stripeW*2){
+        ctx.fillStyle = '#c9a227';
+        ctx.fillRect(x,0,stripeW,c.height);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(x+stripeW,0,stripeW,c.height);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.repeat.set(10,1);
+      return tex;
+    }
+    const ringGeo = new THREE.RingGeometry(3.0, 3.3, 64);
+    const ringMat = new THREE.MeshBasicMaterial({ map: makeHazardTexture(), side:THREE.DoubleSide, transparent:true, opacity:0.85 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI/2;
+    ring.position.y = 0.006;
+    group.add(ring);
+
+    // distant skyline: warehouse blocks
+    const bldgMatA = new THREE.MeshPhongMaterial({color:0x35373f, flatShading:true, shininess:0});
+    const bldgMatB = new THREE.MeshPhongMaterial({color:0x40424a, flatShading:true, shininess:0});
+    const skylineCount = 16;
+    for(let i=0;i<skylineCount;i++){
+      const ang = (i/skylineCount)*Math.PI*2 + Math.random()*0.2;
+      const dist = 26 + Math.random()*8;
+      const w = 3+Math.random()*3, d = 3+Math.random()*3, h = 5+Math.random()*10;
+      const geo = new THREE.BoxGeometry(w,h,d);
+      const m = new THREE.Mesh(geo, Math.random()>0.5?bldgMatA:bldgMatB);
+      m.position.set(Math.cos(ang)*dist, h/2-1.2, Math.sin(ang)*dist);
+      m.rotation.y = Math.random()*Math.PI;
+      group.add(m);
+    }
+
+    // smokestacks (closer, with rising smoke)
+    const stackMat = new THREE.MeshPhongMaterial({color:0x5b3f38, flatShading:true, shininess:0});
+    const capMat = new THREE.MeshPhongMaterial({color:0x2e2a2c, flatShading:true, shininess:0});
+    function makeSmokeStack(x,z,h){
+      const g = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.65,1.0,8), stackMat);
+      base.position.y = 0.5; g.add(base);
+      const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.42,h,8), stackMat);
+      stack.position.y = 1.0+h/2; g.add(stack);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.32,0.3,8), capMat);
+      cap.position.y = 1.0+h+0.15; g.add(cap);
+      g.position.set(x,0,z);
+      group.add(g);
+      addBlob(x,z,2.0,group);
+
+      const topY = 1.0+h+0.35;
+      for(let i=0;i<4;i++){
+        const mat = new THREE.SpriteMaterial({map:smokeTex, transparent:true, opacity:0.45, depthWrite:false});
+        const spr = new THREE.Sprite(mat);
+        spr.position.set(0, topY, 0);
+        spr.scale.set(0.8,0.8,1);
+        g.add(spr);
+        smoke.push({sprite:spr, baseY:topY, phase:i/4 + Math.random()*0.1});
+      }
+    }
+    makeSmokeStack(-4.5, -6.5, 5.5);
+    makeSmokeStack(-7.5, -4.0, 7.5);
+    makeSmokeStack(5.5, -7.0, 6.5);
+
+    // crates & barrels
+    const crateMat = new THREE.MeshPhongMaterial({color:0x8a6a3e, flatShading:true, shininess:0});
+    const crateMat2 = new THREE.MeshPhongMaterial({color:0x6e5330, flatShading:true, shininess:0});
+    const barrelMat = new THREE.MeshPhongMaterial({color:0x8a3a28, flatShading:true, shininess:0});
+    const barrelMat2 = new THREE.MeshPhongMaterial({color:0x5c6a6e, flatShading:true, shininess:0});
+
+    function placeCrate(x,z){
+      const s = 0.55 + Math.random()*0.35;
+      const m = new THREE.Mesh(new THREE.BoxGeometry(s,s,s), Math.random()>0.5?crateMat:crateMat2);
+      m.position.set(x, s/2, z);
+      m.rotation.y = Math.random()*Math.PI*2;
+      group.add(m);
+      addBlob(x,z,s*1.8,group);
+    }
+    function placeBarrel(x,z){
+      const r = 0.28 + Math.random()*0.1, h = 0.6 + Math.random()*0.2;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,10), Math.random()>0.5?barrelMat:barrelMat2);
+      m.position.set(x, h/2, z);
+      m.rotation.y = Math.random()*Math.PI*2;
+      group.add(m);
+      addBlob(x,z,r*3.2,group);
+    }
+
+    let placed=0, attempts=0;
+    while(placed<16 && attempts<300){
+      attempts++;
+      const ang = Math.random()*Math.PI*2;
+      const dist = 4 + Math.random()*18;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+      if(Math.random()>0.5) placeCrate(x,z); else placeBarrel(x,z);
+      placed++;
+    }
+
+    // industrial platform (same footprint as the shrine dais)
+    const steelMat = new THREE.MeshPhongMaterial({color:0x3a3d42, flatShading:true, shininess:0});
+    const steelMatDark = new THREE.MeshPhongMaterial({color:0x2a2c30, flatShading:true, shininess:0});
+    const hazardMat = new THREE.MeshPhongMaterial({color:0xc9a227, flatShading:true, shininess:0});
+
+    const dais = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.2, PLATFORM_OUTER_R, 0.35, 8), steelMat);
+    dais.position.y = 0.175;
+    group.add(dais);
+    const daisRim = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.15, PLATFORM_OUTER_R-0.15, 0.12, 8), hazardMat);
+    daisRim.position.y = 0.41;
+    group.add(daisRim);
+
+    // rivets around the rim
+    for(let i=0;i<16;i++){
+      const ang = (i/16)*Math.PI*2;
+      const r = PLATFORM_OUTER_R-0.15;
+      const rivet = new THREE.Mesh(new THREE.SphereGeometry(0.035,6,6), steelMatDark);
+      rivet.position.set(Math.cos(ang)*r, 0.41, Math.sin(ang)*r);
+      group.add(rivet);
+    }
+
+    // lamp posts at the platform corners
+    function makeLamp(x,z){
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,1.5,6), steelMatDark);
+      pole.position.y = 0.75;
+      g.add(pole);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.14,0.24), steelMat);
+      head.position.y = 1.53;
+      g.add(head);
+      const bulbMat = new THREE.MeshBasicMaterial({color:0xffcf6b});
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,8), bulbMat);
+      bulb.position.y = 1.42;
+      g.add(bulb);
+      const light = new THREE.PointLight(0xffb84d, 1.2, 6, 2);
+      light.position.y = 1.42;
+      g.add(light);
+      g.position.set(x,0,z);
+      group.add(g);
+      addBlob(x,z,1.0,group);
+      lights.push({flame: bulb, light, baseIntensity:1.15});
+    }
+    makeLamp(1.9, 2.0);
+    makeLamp(-1.9, 2.0);
+
+    return {
+      group, lights, smoke, precip: [],
+      fog:{color:0x8f8a80, near:9, far:28},
+      hemi:{sky:0x6a6f7a, ground:0x1c1a18, intensity:0.75},
+      sun:{color:0xcfd0c8, intensity:0.55},
+      fillCool:{color:0xffb84d, intensity:0.25},
+      bodyClass:'env-factory',
+      lore:{
+        eyebrow:'◆ THE COMBINE ◆',
+        title:'The Factory Floor',
+        desc:'Smoke, steel, and ledgers. Cast the dice upon the line — two matching emblems declare which faction owns the profit.'
+      }
+    };
+  }
+
+  // =====================================================================
+  // ALIEN MOON ENVIRONMENT — a moon of Saturn, home of the Prefect Zorb
+  // =====================================================================
+  function buildAlienEnvironment(){
+    const group = new THREE.Group();
+    const lights = [];
+    const smoke = [];
+
+    const craters = [];
+    for(let i=0;i<9;i++){
+      const ang = Math.random()*Math.PI*2;
+      const dist = 5 + Math.random()*20;
+      craters.push({ x:Math.cos(ang)*dist, z:Math.sin(ang)*dist, r:1.0+Math.random()*1.8, depth:0.35+Math.random()*0.35 });
+    }
+    function terrainHeight(x,z){
+      const d = Math.sqrt(x*x+z*z);
+      const falloff = Math.min(1, Math.max(0, (d-3.4)/3.0));
+      let h = (Math.sin(x*0.13)*0.4 + Math.cos(z*0.17)*0.35 + Math.sin((x+z)*0.07)*0.5) * falloff;
+      craters.forEach(c=>{
+        const cd = Math.sqrt((x-c.x)*(x-c.x)+(z-c.z)*(z-c.z));
+        if(cd < c.r){
+          const rim = Math.exp(-Math.pow((cd-c.r*0.82)/(c.r*0.22),2)) * c.depth*0.6;
+          const bowl = -c.depth * (1 - Math.pow(cd/c.r, 2));
+          h += bowl + rim;
+        }
+      });
+      return h;
+    }
+
+    const groundSize = 64, segs = 48;
+    const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize, segs, segs);
+    const posAttr = groundGeo.attributes.position;
+    const colors = [];
+    const cLow = new THREE.Color(0x352a44);
+    const cMid = new THREE.Color(0x564a68);
+    const cHigh = new THREE.Color(0x8577a0);
+    for(let i=0;i<posAttr.count;i++){
+      const x = posAttr.getX(i), y = posAttr.getY(i);
+      const h = terrainHeight(x,y);
+      posAttr.setZ(i, h);
+      const t = Math.max(0, Math.min(1, (h+0.5)/1.2));
+      const col = t<0.5 ? cLow.clone().lerp(cMid, t/0.5) : cMid.clone().lerp(cHigh, (t-0.5)/0.5);
+      colors.push(col.r, col.g, col.b);
+    }
+    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    groundGeo.computeVertexNormals();
+    const groundMat = new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    group.add(ground);
+
+    // distant crystal spires, standing in for the shrine's mountains
+    const crystalMat = new THREE.MeshPhongMaterial({ color:0x6a4fa0, emissive:0x2a1a55, flatShading:true, shininess:10 });
+    const crystalMat2 = new THREE.MeshPhongMaterial({ color:0x3fa0a0, emissive:0x0f4a4a, flatShading:true, shininess:10 });
+    const spireCount = 20;
+    for(let i=0;i<spireCount;i++){
+      const ang = (i/spireCount)*Math.PI*2 + Math.random()*0.15;
+      const dist = 25 + Math.random()*8;
+      const h = 5 + Math.random()*10;
+      const r = 1.2 + Math.random()*1.6;
+      const geo = new THREE.ConeGeometry(r, h, 5);
+      const m = new THREE.Mesh(geo, Math.random()>0.5?crystalMat:crystalMat2);
+      m.position.set(Math.cos(ang)*dist, h/2 - 1.5, Math.sin(ang)*dist);
+      m.rotation.y = Math.random()*Math.PI;
+      group.add(m);
+    }
+
+    // bioluminescent crystal clusters, standing in for trees
+    const clusterMats = [
+      new THREE.MeshPhongMaterial({color:0x5fd4d4, emissive:0x1a6a6a, flatShading:true, shininess:20}),
+      new THREE.MeshPhongMaterial({color:0xc767e0, emissive:0x5a1a6a, flatShading:true, shininess:20}),
+      new THREE.MeshPhongMaterial({color:0x7a8fe0, emissive:0x24296a, flatShading:true, shininess:20})
+    ];
+    const stalkMat = new THREE.MeshPhongMaterial({color:0x2a2136, flatShading:true, shininess:0});
+    const crystalGeo = new THREE.IcosahedronGeometry(0.5, 0);
+    const crystalGeoSmall = new THREE.IcosahedronGeometry(0.3, 0);
+    const stalkGeo = new THREE.CylinderGeometry(0.06,0.09,0.7,5);
+
+    function placeCluster(x,z){
+      const h = terrainHeight(x,z);
+      const cg = new THREE.Group();
+      const scale = 0.7 + Math.random()*0.6;
+      const mat = clusterMats[Math.floor(Math.random()*clusterMats.length)];
+      const stalk = new THREE.Mesh(stalkGeo, stalkMat);
+      stalk.position.y = 0.35*scale;
+      stalk.scale.set(scale,scale,scale);
+      cg.add(stalk);
+      const crystal = new THREE.Mesh(crystalGeo, mat);
+      crystal.position.y = 0.85*scale;
+      crystal.scale.set(scale,scale*1.3,scale);
+      crystal.rotation.y = Math.random()*Math.PI;
+      cg.add(crystal);
+      const crystal2 = new THREE.Mesh(crystalGeoSmall, mat);
+      crystal2.position.set(0.25*scale, 0.55*scale, 0.1*scale);
+      crystal2.rotation.y = Math.random()*Math.PI;
+      cg.add(crystal2);
+      cg.position.set(x, h, z);
+      cg.rotation.y = Math.random()*Math.PI*2;
+      group.add(cg);
+      addBlob(x, z, 1.3*scale, group);
+
+      const light = new THREE.PointLight(mat.color.getHex(), 0.5, 2.2, 2);
+      light.position.set(x, h+0.85*scale, z);
+      group.add(light);
+      lights.push({ flame:{scale:null}, light, baseIntensity:0.5 });
+    }
+
+    let placed = 0, attempts = 0;
+    while(placed < 26 && attempts < 400){
+      attempts++;
+      const ang = Math.random()*Math.PI*2;
+      const dist = 6 + Math.random()*20;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+      placeCluster(x,z);
+      placed++;
+    }
+
+    // alien boulders
+    const rockMat = new THREE.MeshPhongMaterial({color:0x4a4258, flatShading:true, shininess:5});
+    for(let i=0;i<14;i++){
+      const ang = Math.random()*Math.PI*2;
+      const dist = 4.5 + Math.random()*20;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+      const s = 0.25 + Math.random()*0.4;
+      const geo = new THREE.DodecahedronGeometry(s, 0);
+      const m = new THREE.Mesh(geo, rockMat);
+      m.position.set(x, terrainHeight(x,z)+s*0.4, z);
+      m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      group.add(m);
+      addBlob(x,z,s*2.4,group);
+    }
+
+    // starfield
+    const starCount = 500;
+    const starPos = new Float32Array(starCount*3);
+    for(let i=0;i<starCount;i++){
+      const theta = Math.random()*Math.PI*2;
+      const phi = Math.random()*Math.PI*0.5;
+      const r = 68 + Math.random()*10;
+      starPos[i*3]   = Math.cos(theta)*Math.sin(phi+0.15)*r;
+      starPos[i*3+1] = Math.cos(phi+0.15)*r*0.9 + 8;
+      starPos[i*3+2] = Math.sin(theta)*Math.sin(phi+0.15)*r - 20;
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const starMat = new THREE.PointsMaterial({ color:0xffffff, size:0.45, sizeAttenuation:true, fog:false, transparent:true, opacity:0.85 });
+    const stars = new THREE.Points(starGeo, starMat);
+    group.add(stars);
+
+    // Saturn, hanging distant in the sky — exempt from fog so it always reads clearly
+    function makeRingTexture(){
+      const c = document.createElement('canvas'); c.width=256; c.height=32;
+      const ctx = c.getContext('2d');
+      const bands = [
+        [0,0.20,'rgba(196,178,140,0)'],
+        [0.20,0.30,'rgba(196,178,140,0.55)'],
+        [0.30,0.42,'rgba(150,130,100,0.75)'],
+        [0.42,0.50,'rgba(196,178,140,0.35)'],
+        [0.50,0.65,'rgba(120,105,85,0.7)'],
+        [0.65,0.78,'rgba(196,178,140,0.5)'],
+        [0.78,0.86,'rgba(150,130,100,0.65)'],
+        [0.86,1.0,'rgba(196,178,140,0)']
+      ];
+      bands.forEach(([a,b,col])=>{
+        ctx.fillStyle = col;
+        ctx.fillRect(a*c.width, 0, (b-a)*c.width, c.height);
+      });
+      return new THREE.CanvasTexture(c);
+    }
+    const saturnGroup = new THREE.Group();
+    const saturnMat = new THREE.MeshPhongMaterial({ color:0xd9c69c, flatShading:true, shininess:5, fog:false });
+    const saturnBody = new THREE.Mesh(new THREE.IcosahedronGeometry(7, 1), saturnMat);
+    saturnGroup.add(saturnBody);
+    const ringMat = new THREE.MeshBasicMaterial({ map:makeRingTexture(), side:THREE.DoubleSide, transparent:true, fog:false });
+    const ring = new THREE.Mesh(new THREE.RingGeometry(9.5, 15.5, 64), ringMat);
+    ring.rotation.x = Math.PI*0.5 - 0.45;
+    saturnGroup.add(ring);
+    saturnGroup.position.set(26, 20, -48);
+    saturnGroup.rotation.z = 0.35;
+    group.add(saturnGroup);
+
+    // alien obelisk landing pad — same footprint as the shrine dais
+    const obsidianMat = new THREE.MeshPhongMaterial({color:0x241a33, flatShading:true, shininess:30});
+    const obsidianMatDark = new THREE.MeshPhongMaterial({color:0x140e1e, flatShading:true, shininess:30});
+    const glowRingMat = new THREE.MeshBasicMaterial({color:0x5fe0e0});
+
+    const dais = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.2, PLATFORM_OUTER_R, 0.35, 8), obsidianMat);
+    dais.position.y = 0.175;
+    group.add(dais);
+    const daisRim = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.15, PLATFORM_OUTER_R-0.15, 0.12, 8), obsidianMatDark);
+    daisRim.position.y = 0.41;
+    group.add(daisRim);
+    const glowRing = new THREE.Mesh(new THREE.TorusGeometry(PLATFORM_OUTER_R-0.15, 0.025, 8, 32), glowRingMat);
+    glowRing.rotation.x = Math.PI/2;
+    glowRing.position.y = 0.475;
+    group.add(glowRing);
+
+    // hovering glow orbs, standing in for torches
+    function makeOrb(x,z){
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.1,6), obsidianMatDark);
+      pole.position.y = 0.55;
+      g.add(pole);
+      const orbMat = new THREE.MeshBasicMaterial({color:0xc767e0});
+      const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16,1), orbMat);
+      orb.position.y = 1.25;
+      g.add(orb);
+      const light = new THREE.PointLight(0xc767e0, 1.3, 6, 2);
+      light.position.y = 1.25;
+      g.add(light);
+      g.position.set(x,0,z);
+      group.add(g);
+      lights.push({flame:orb, light, baseIntensity:1.2});
+    }
+    makeOrb(1.7, 2.1);
+    makeOrb(-1.7, 2.1);
+
+    return {
+      group, lights, smoke, precip: [],
+      fog:{color:0x4a3f66, near:10, far:30},
+      hemi:{sky:0x6a5a9c, ground:0x1a1522, intensity:0.7},
+      sun:{color:0xb8c8ff, intensity:0.75},
+      fillCool:{color:0xc767e0, intensity:0.3},
+      bodyClass:'env-alien',
+      lore:{
+        eyebrow:'◆ THE RINGWORLD ◆',
+        title:'A Moon of Saturn',
+        desc:'Past the rings, the dust still remembers dice. Two matching emblems summon the faction from beyond.'
+      }
+    };
+  }
+
+  // =====================================================================
+  // FARM ENVIRONMENT — an agrarian collective, home of the Party Boss
+  // =====================================================================
+  function buildFarmEnvironment(){
+    const group = new THREE.Group();
+    const lights = [];
+    const smoke = [];
+    const precip = [];
+
+    function terrainHeight(x,z){
+      const d = Math.sqrt(x*x+z*z);
+      const falloff = Math.min(1, Math.max(0, (d-3.4)/3.0));
+      return (Math.sin(x*0.1)*0.15 + Math.cos(z*0.12)*0.13) * falloff;
+    }
+
+    const groundSize = 64, segs = 44;
+    const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize, segs, segs);
+    const posAttr = groundGeo.attributes.position;
+    const colors = [];
+    const cNear = new THREE.Color(0x3a3a38);
+    const cMid = new THREE.Color(0xc4c8ca);
+    const cFar = new THREE.Color(0xdfe4e6);
+    for(let i=0;i<posAttr.count;i++){
+      const x = posAttr.getX(i), y = posAttr.getY(i);
+      const h = terrainHeight(x,y);
+      posAttr.setZ(i, h);
+      const d = Math.sqrt(x*x+y*y);
+      const t = Math.max(0, Math.min(1, (d-3.0)/6.0));
+      const t2 = Math.max(0, Math.min(1, (d-12)/16));
+      const col = cNear.clone().lerp(cMid, t).lerp(cFar, t2*0.6);
+      colors.push(col.r, col.g, col.b);
+    }
+    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    groundGeo.computeVertexNormals();
+    const groundMat = new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    group.add(ground);
+
+    // perimeter fence line — barbed wire posts, with the odd watchtower
+    const postMat = new THREE.MeshPhongMaterial({color:0x2e2b28, flatShading:true, shininess:0});
+    const towerMat = new THREE.MeshPhongMaterial({color:0x38352f, flatShading:true, shininess:0});
+    const towerRoofMat = new THREE.MeshPhongMaterial({color:0x201e1a, flatShading:true, shininess:0});
+    const wireMat = new THREE.MeshPhongMaterial({color:0x18171a, flatShading:true, shininess:20});
+    const skylineCount = 26;
+    for(let i=0;i<skylineCount;i++){
+      const ang = (i/skylineCount)*Math.PI*2 + Math.random()*0.06;
+      const dist = 25 + Math.random()*6;
+      if(i%6===3){
+        const h = 4.4+Math.random()*1.0;
+        const tg = new THREE.Group();
+        [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]].forEach(([lx,lz])=>{
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,h,5), towerMat);
+          leg.position.set(lx,h/2,lz);
+          leg.rotation.x = lz*0.05; leg.rotation.z = -lx*0.05;
+          tg.add(leg);
+        });
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.3,1.0,1.3), towerMat);
+        cabin.position.y = h+0.5;
+        tg.add(cabin);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(1.05,0.55,4), towerRoofMat);
+        roof.rotation.y = Math.PI/4;
+        roof.position.y = h+1.28;
+        tg.add(roof);
+        const beamLight = new THREE.PointLight(0xcfd8e0, 0.9, 5, 2);
+        beamLight.position.set(0,h+0.2,0);
+        tg.add(beamLight);
+        lights.push({flame:{scale:null}, light:beamLight, baseIntensity:0.9});
+        tg.position.set(Math.cos(ang)*dist, 0, Math.sin(ang)*dist);
+        tg.rotation.y = -ang;
+        group.add(tg);
+      } else {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.5,5), postMat);
+        post.position.set(Math.cos(ang)*dist, 0.75, Math.sin(ang)*dist);
+        group.add(post);
+        for(let w=0; w<3; w++){
+          const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,1.05,4), wireMat);
+          wire.position.set(Math.cos(ang)*dist, 0.55+w*0.32, Math.sin(ang)*dist);
+          wire.rotation.y = -ang + Math.PI/2;
+          wire.rotation.z = Math.PI/2;
+          group.add(wire);
+        }
+      }
+    }
+
+    // sparse taiga: bare birches and snow-capped pines, standing in for trees
+    const birchTrunkMat = new THREE.MeshPhongMaterial({color:0xc8c6be, flatShading:true, shininess:0});
+    const birchBranchMat = new THREE.MeshPhongMaterial({color:0x2a2825, flatShading:true, shininess:0});
+    const pineMat = new THREE.MeshPhongMaterial({color:0x2e4234, flatShading:true, shininess:0});
+    const pineSnowMat = new THREE.MeshPhongMaterial({color:0xe4e8ea, flatShading:true, shininess:0});
+    const trunkGeo = new THREE.CylinderGeometry(0.06,0.09,2.2,5);
+
+    function placeBirch(x,z){
+      const h = terrainHeight(x,z);
+      const tg = new THREE.Group();
+      const scale = 0.8 + Math.random()*0.5;
+      const trunk = new THREE.Mesh(trunkGeo, birchTrunkMat);
+      trunk.position.y = 1.1*scale;
+      trunk.scale.set(scale,scale,scale);
+      tg.add(trunk);
+      for(let b=0;b<4;b++){
+        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.03,0.55*scale,4), birchBranchMat);
+        branch.position.set(0, (1.6+b*0.16)*scale, 0);
+        branch.rotation.z = (Math.random()>0.5?1:-1) * (0.7+Math.random()*0.4);
+        branch.rotation.y = Math.random()*Math.PI;
+        tg.add(branch);
+      }
+      tg.position.set(x, h, z);
+      tg.rotation.y = Math.random()*Math.PI*2;
+      group.add(tg);
+      addBlob(x, z, 0.7*scale, group);
+    }
+
+    function placePine(x,z){
+      const h = terrainHeight(x,z);
+      const scale = 0.8 + Math.random()*0.6;
+      const pg = new THREE.Group();
+      const c1 = new THREE.Mesh(new THREE.ConeGeometry(0.55,1.1,6), pineMat);
+      c1.position.y = 0.75*scale; c1.scale.set(scale,scale,scale);
+      pg.add(c1);
+      const c2 = new THREE.Mesh(new THREE.ConeGeometry(0.4,0.85,6), pineMat);
+      c2.position.y = 1.35*scale; c2.scale.set(scale,scale,scale);
+      pg.add(c2);
+      const snow1 = new THREE.Mesh(new THREE.ConeGeometry(0.5,0.14,6), pineSnowMat);
+      snow1.position.y = 1.02*scale; snow1.scale.set(scale,scale,scale);
+      pg.add(snow1);
+      const snow2 = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.14,6), pineSnowMat);
+      snow2.position.y = 1.75*scale; snow2.scale.set(scale,scale,scale);
+      pg.add(snow2);
+      pg.position.set(x, h, z);
+      pg.rotation.y = Math.random()*Math.PI*2;
+      group.add(pg);
+      addBlob(x, z, 0.85*scale, group);
+    }
+
+    let placed=0, attempts=0;
+    while(placed < 24 && attempts < 400){
+      attempts++;
+      const ang = Math.random()*Math.PI*2;
+      const dist = 6.5 + Math.random()*17;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+      if(Math.random()>0.5) placeBirch(x,z); else placePine(x,z);
+      placed++;
+    }
+
+    // log piles and snow-dusted boulders, standing in for rocks
+    const logMat = new THREE.MeshPhongMaterial({color:0x4a3a28, flatShading:true, shininess:0});
+    const logEndMat = new THREE.MeshPhongMaterial({color:0xc9b891, flatShading:true, shininess:0});
+    const boulderMat = new THREE.MeshPhongMaterial({color:0x6a6d70, flatShading:true, shininess:0});
+    const boulderSnowMat = new THREE.MeshPhongMaterial({color:0xe8ecec, flatShading:true, shininess:0});
+
+    function placeLogPile(x,z){
+      const g = new THREE.Group();
+      const logGeo = new THREE.CylinderGeometry(0.14,0.14,1.1,8);
+      const rows = [[0,0],[0.24,0],[0.12,0.21],[-0.24,0],[-0.12,0.21]];
+      rows.forEach(([ox,oy])=>{
+        const log = new THREE.Mesh(logGeo, logMat);
+        log.rotation.z = Math.PI/2;
+        log.position.set(0, 0.14+oy, ox);
+        g.add(log);
+        [ -0.56, 0.56 ].forEach(ex=>{
+          const cap = new THREE.Mesh(new THREE.CircleGeometry(0.14,8), logEndMat);
+          cap.rotation.y = Math.PI/2;
+          cap.position.set(ex, 0.14+oy, ox);
+          g.add(cap);
+        });
+      });
+      const h = terrainHeight(x,z);
+      g.position.set(x,h,z);
+      g.rotation.y = Math.random()*Math.PI*2;
+      group.add(g);
+      addBlob(x,z,1.4,group);
+    }
+    function placeBoulder(x,z){
+      const s = 0.25 + Math.random()*0.4;
+      const m = new THREE.Mesh(new THREE.DodecahedronGeometry(s,0), boulderMat);
+      const h = terrainHeight(x,z);
+      m.position.set(x, h+s*0.4, z);
+      m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      group.add(m);
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(s*0.75,s*0.4,6), boulderSnowMat);
+      cap.position.set(x, h+s*0.85, z);
+      group.add(cap);
+      addBlob(x,z,s*2.4,group);
+    }
+
+    for(let i=0;i<7;i++){
+      const ang = Math.random()*Math.PI*2;
+      const dist = 4.5 + Math.random()*17;
+      placeLogPile(Math.cos(ang)*dist, Math.sin(ang)*dist);
+    }
+    for(let i=0;i<10;i++){
+      const ang = Math.random()*Math.PI*2;
+      const dist = 4.5 + Math.random()*17;
+      placeBoulder(Math.cos(ang)*dist, Math.sin(ang)*dist);
+    }
+
+    // barracks, muster bell — a fixed camp vignette for composition
+    const barracksMat = new THREE.MeshPhongMaterial({color:0x4a4844, flatShading:true, shininess:0});
+    const barracksRoofMat = new THREE.MeshPhongMaterial({color:0x2a2926, flatShading:true, shininess:0});
+    const barracksTrimMat = new THREE.MeshPhongMaterial({color:0x1e1c1a, flatShading:true, shininess:0});
+    const snowCapMat = new THREE.MeshPhongMaterial({color:0xe8ecec, flatShading:true, shininess:0});
+
+    const camp = new THREE.Group();
+    const barracksBody = new THREE.Mesh(new THREE.BoxGeometry(4.2,1.7,2.4), barracksMat);
+    barracksBody.position.y = 0.85;
+    camp.add(barracksBody);
+    const barracksRoof = new THREE.Mesh(new THREE.BoxGeometry(4.4,0.16,2.7), barracksRoofMat);
+    barracksRoof.position.y = 1.78;
+    camp.add(barracksRoof);
+    const roofSnow = new THREE.Mesh(new THREE.BoxGeometry(4.4,0.08,2.7), snowCapMat);
+    roofSnow.position.y = 1.87;
+    camp.add(roofSnow);
+    for(let w=0; w<3; w++){
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.06), barracksTrimMat);
+      win.position.set(-1.4+w*1.4, 1.0, 1.23);
+      camp.add(win);
+    }
+    const door = new THREE.Mesh(new THREE.BoxGeometry(0.68,1.15,0.08), barracksTrimMat);
+    door.position.set(1.9,0.58,1.23);
+    camp.add(door);
+
+    // muster bell
+    const bellPostMat = new THREE.MeshPhongMaterial({color:0x2e2b28, flatShading:true, shininess:0});
+    const bellMat = new THREE.MeshPhongMaterial({color:0x5a4a30, flatShading:true, shininess:30});
+    const bellFrame = new THREE.Group();
+    [-0.5,0.5].forEach(lx=>{
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.06,1.7,6), bellPostMat);
+      post.position.set(lx,0.85,0);
+      post.rotation.z = -lx*0.18;
+      bellFrame.add(post);
     });
-    var order = ['communist','capitalist','knight','alien'];
-    for (var j=0;j<order.length;j++){
-      if (counts[order[j]] >= 2) return order[j];
+    const crossbeam = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.15,6), bellPostMat);
+    crossbeam.rotation.z = Math.PI/2;
+    crossbeam.position.y = 1.62;
+    bellFrame.add(crossbeam);
+    const bell = new THREE.Mesh(new THREE.ConeGeometry(0.2,0.28,10,1,true), bellMat);
+    bell.position.y = 1.4;
+    bellFrame.add(bell);
+    bellFrame.position.set(3.6, 0, 2.6);
+    camp.add(bellFrame);
+    addBlob(3.6,2.6,0.9,camp);
+
+    addBlob(0,0.2,3.4,camp);
+    camp.position.set(-9, 0, -7);
+    camp.rotation.y = 0.5;
+    group.add(camp);
+
+    // roll-call platform — same footprint as the shrine dais
+    const woodMat = new THREE.MeshPhongMaterial({color:0x4a4642, flatShading:true, shininess:0});
+    const redRimMat = new THREE.MeshPhongMaterial({color:0x6a1f1f, flatShading:true, shininess:0});
+
+    const dais = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.2, PLATFORM_OUTER_R, 0.35, 8), woodMat);
+    dais.position.y = 0.175;
+    group.add(dais);
+    const daisRim = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_OUTER_R-0.15, PLATFORM_OUTER_R-0.15, 0.12, 8), redRimMat);
+    daisRim.position.y = 0.41;
+    group.add(daisRim);
+
+    // weathered banner posts flanking the platform
+    function makeBanner(x,z){
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.06,1.7,6), postMat);
+      pole.position.y = 0.85;
+      g.add(pole);
+      const flagMat = new THREE.MeshPhongMaterial({color:0x7a2020, flatShading:true, shininess:0, side:THREE.DoubleSide});
+      const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.36), flagMat);
+      flag.position.set(0.27,1.38,0);
+      g.add(flag);
+      const finial = new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8), new THREE.MeshPhongMaterial({color:0x8a7550, flatShading:true, shininess:20}));
+      finial.position.y = 1.72;
+      g.add(finial);
+      g.position.set(x,0,z);
+      group.add(g);
+    }
+    makeBanner(1.7, 2.1);
+    makeBanner(-1.7, 2.1);
+
+    // falling snow
+    function makeSnowTexture(){
+      const c = document.createElement('canvas'); c.width=32; c.height=32;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(16,16,0,16,16,16);
+      g.addColorStop(0,'rgba(255,255,255,0.95)');
+      g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,32,32);
+      return new THREE.CanvasTexture(c);
+    }
+    const snowTex = makeSnowTexture();
+    const snowCount = 160;
+    for(let i=0;i<snowCount;i++){
+      const mat = new THREE.SpriteMaterial({ map:snowTex, transparent:true, opacity:0.7, depthWrite:false });
+      const spr = new THREE.Sprite(mat);
+      const startY = 2 + Math.random()*16;
+      spr.position.set((Math.random()-0.5)*40, startY, (Math.random()-0.5)*40);
+      const sc = 0.08 + Math.random()*0.1;
+      spr.scale.set(sc,sc,1);
+      group.add(spr);
+      precip.push({ sprite:spr, speed:0.8+Math.random()*0.8, driftPhase:Math.random()*10, startY:startY, topY:18 });
+    }
+
+    return {
+      group, lights, smoke, precip,
+      fog:{color:0xaab4bc, near:9, far:24},
+      hemi:{sky:0x8a96a0, ground:0x3a3833, intensity:0.75},
+      sun:{color:0xd8dce0, intensity:0.6},
+      fillCool:{color:0x6a80a0, intensity:0.3},
+      bodyClass:'env-farm',
+      lore:{
+        eyebrow:'◆ THE QUOTA ◆',
+        title:'Work Camp No. 7',
+        desc:'Snow, wire, and quotas. Cast the dice at roll call — two matching emblems name the faction that owns your labor.'
+      }
+    };
+  }
+
+  // ---------- Environments ----------
+  const shrineEnv = buildShrineEnvironment();
+  const factoryEnv = buildFactoryEnvironment();
+  const alienEnv = buildAlienEnvironment();
+  const farmEnv = buildFarmEnvironment();
+
+  const FACTIONS = [
+    { key:'PARTY BOSS',        env:farmEnv },
+    { key:'INDUSTRY CAPTAIN',  env:factoryEnv },
+    { key:'KNIGHT',            env:shrineEnv },
+    { key:'PREFECT ZORB',      env:alienEnv }
+  ];
+  function factionByKey(key){ return FACTIONS.find(f=>f.key===key); }
+
+  let currentEnv = shrineEnv;
+  scene.add(currentEnv.group);
+
+  function applyEnvironment(env){
+    scene.fog.color.setHex(env.fog.color);
+    scene.fog.near = env.fog.near;
+    scene.fog.far = env.fog.far;
+    hemi.color.setHex(env.hemi.sky);
+    hemi.groundColor.setHex(env.hemi.ground);
+    hemi.intensity = env.hemi.intensity;
+    sun.color.setHex(env.sun.color);
+    sun.intensity = env.sun.intensity;
+    fillCool.color.setHex(env.fillCool.color);
+    fillCool.intensity = env.fillCool.intensity;
+    document.body.classList.remove('env-shrine','env-factory','env-alien','env-farm');
+    document.body.classList.add(env.bodyClass);
+    loreEyebrow.textContent = env.lore.eyebrow;
+    loreTitle.textContent = env.lore.title;
+  }
+  applyEnvironment(currentEnv);
+
+  function switchToEnv(env){
+    if(env === currentEnv) return;
+    scene.remove(currentEnv.group);
+    scene.add(env.group);
+    applyEnvironment(env);
+    currentEnv = env;
+    textbox.classList.remove('show');
+  }
+
+  // ---------- Two-player faction setup ----------
+  const players = [
+    { faction:null, gdp:20, atk:0, def:0 },
+    { faction:null, gdp:20, atk:0, def:0 }
+  ];
+  let currentPlayer = 0;
+  let setupStep = 0;
+  let gameStarted = false;
+  let gameOver = false;
+
+  const GDP_MAX = 20;
+
+  function updateTurnIndicator(){
+    tiPlayer.textContent = 'PLAYER ' + (currentPlayer+1);
+    tiFaction.textContent = players[currentPlayer].faction || 'CHOOSING…';
+  }
+
+  function updateScoreboard(){
+    players.forEach((p,i)=>{
+      statEls[i].gdp.textContent = p.gdp;
+      statEls[i].atk.textContent = p.atk;
+      statEls[i].def.textContent = p.def;
+      sbCols[i].classList.toggle('active', gameStarted && !gameOver && currentPlayer===i);
+    });
+  }
+
+  function resetStats(){
+    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; });
+    updateScoreboard();
+  }
+
+  // A hit first drains the target's DEF stat, then spills over into GDP.
+  function applyDamage(attackerIdx, amount){
+    if(amount<=0 || gameOver) return;
+    const targetIdx = 1 - attackerIdx;
+    const target = players[targetIdx];
+    const absorbed = Math.min(target.def, amount);
+    target.def -= absorbed;
+    let remaining = amount - absorbed;
+    if(remaining > 0){
+      target.gdp = Math.max(0, target.gdp - remaining);
+    }
+    updateScoreboard();
+    checkWin(targetIdx);
+  }
+
+  function checkWin(defeatedIdx){
+    if(players[defeatedIdx].gdp <= 0){
+      gameOver = true;
+      const winnerIdx = 1 - defeatedIdx;
+      gameoverTitle.textContent = 'Player ' + (winnerIdx+1) + ' Wins';
+      gameoverSub.textContent = 'Player ' + (defeatedIdx+1) + "'s GDP fell to zero.";
+      gameoverOverlay.classList.add('show');
+    }
+  }
+
+  function beginSetup(){
+    gameStarted = false;
+    gameOver = false;
+    awaitingTurnEnd = false;
+    gameoverOverlay.classList.remove('show');
+    players[0].faction = null;
+    players[1].faction = null;
+    setupStep = 0;
+    currentPlayer = 0;
+    rollCount = 0;
+    dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
+    applyDiceColorsForPlayer(0);
+    updateRollCounter();
+    updateTurnIndicator();
+    resetStats();
+    choicePrompt.classList.remove('show');
+    tbBonus.textContent = '';
+    factionButtons.forEach(btn=>{ btn.disabled=false; });
+    setupPlayerLabel.textContent = 'PLAYER 1';
+    setupTitle.textContent = 'Choose Your Faction';
+    setupOverlay.classList.remove('hidden');
+    textbox.classList.remove('show');
+    hint.textContent = 'TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL';
+    hint.classList.remove('fade');
+    hintFaded = false;
+  }
+
+  function selectFaction(key){
+    players[setupStep].faction = key;
+    switchToEnv(factionByKey(key).env);
+
+    if(setupStep === 0){
+      setupStep = 1;
+      setupPlayerLabel.textContent = 'PLAYER 2';
+      setupTitle.textContent = 'Choose Your Faction';
+      factionButtons.forEach(btn=>{ btn.disabled = (btn.dataset.key === key); });
+    } else {
+      setupOverlay.classList.add('hidden');
+      gameStarted = true;
+      gameOver = false;
+      currentPlayer = 0;
+      rollCount = 0;
+      dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
+      applyDiceColorsForPlayer(0);
+      updateRollCounter();
+      resetStats();
+      switchToEnv(factionByKey(players[0].faction).env);
+      updateTurnIndicator();
+      hintFaded = false;
+      hint.classList.remove('fade');
+    }
+  }
+
+  factionButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=> selectFaction(btn.dataset.key));
+  });
+
+  sceneBtn.addEventListener('click', beginSetup);
+  playAgainBtn.addEventListener('click', beginSetup);
+
+  function endTurn(){
+    if(gameOver) return;
+    awaitingTurnEnd = false;
+    currentPlayer = 1 - currentPlayer;
+    rollCount = 0;
+    dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
+    applyDiceColorsForPlayer(currentPlayer);
+    updateRollCounter();
+    switchToEnv(factionByKey(players[currentPlayer].faction).env);
+    updateTurnIndicator();
+    updateScoreboard();
+    hint.textContent = 'TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL';
+    hint.classList.remove('fade');
+    hintFaded = false;
+  }
+
+  // ---------- Combat bonus rules (based on the 3 faction dice) ----------
+  // SICKLE/HAMMER = defense symbols, GUN/PLANE = attack symbols,
+  // SWORD = knight, UFO = ufo — matching the existing faction grouping.
+  const SYMBOL_CATEGORY = {
+    SICKLE:'defense', HAMMER:'defense',
+    GUN:'attack', PLANE:'attack',
+    SWORD:'knight', UFO:'ufo'
+  };
+
+  function matchBonusPattern(a,d,k,u){
+    if(a===3) return { type:'triple-attack' };
+    if(d===3) return { type:'triple-defense' };
+    if(a===1 && d===1 && k===1) return { type:'equip', awards:['attack'] };
+    if(a===1 && d===1 && u===1) return { type:'choice' };
+    if(a===2 && d===1) return { type:'equip', awards:['attack'] };
+    if(d===2 && a===1) return { type:'equip', awards:['defense'] };
+    if(a===2 && (k===1 || u===1)) return { type:'equip', awards:['attack','attack'] };
+    if(d===2 && k===1) return { type:'equip', awards:['attack','defense'] };
+    if(d===2 && u===1) return { type:'equip', awards:['defense','defense'] };
+    return { type:'none' };
+  }
+
+  const EQUIP_VALUE = { pip1:1, pip2:2, pip3:3, circle:0 };
+
+  function applyEquipAwards(awards, equipValue, playerIdx){
+    let atkGain = 0, defGain = 0;
+    awards.forEach(kind=>{
+      if(kind==='attack') atkGain += equipValue;
+      else defGain += equipValue;
+    });
+    if(atkGain>0){
+      players[playerIdx].atk += atkGain;
+      applyDamage(playerIdx, atkGain);
+    }
+    if(defGain>0){
+      players[playerIdx].def += defGain;
+    }
+    updateScoreboard();
+    return { atkGain, defGain };
+  }
+
+  let pendingChoice = null;
+
+  choiceAttackBtn.addEventListener('click', ()=> resolveChoice('attack'));
+  choiceDefenseBtn.addEventListener('click', ()=> resolveChoice('defense'));
+
+  function resolveChoice(kind){
+    if(!pendingChoice) return;
+    const { equipValue, playerIdx } = pendingChoice;
+    pendingChoice = null;
+    choicePrompt.classList.remove('show');
+    const { atkGain, defGain } = applyEquipAwards([kind], equipValue, playerIdx);
+    tbBonus.textContent = kind==='attack'
+      ? '⚔ EQUIPPED ATTACK — ATK +' + atkGain + (atkGain>0 ? ' (dealt to opponent)' : '')
+      : '🛡 EQUIPPED DEFENSE — DEF +' + defGain;
+    concludeRollResolution();
+  }
+
+  let awaitingTurnEnd = false;
+
+  function requestTurnEnd(){
+    awaitingTurnEnd = true;
+    hint.classList.remove('fade');
+    hint.textContent = 'TAP ANYWHERE TO END TURN';
+  }
+
+  function concludeRollResolution(){
+    if(gameOver) return;
+    if(rollCount >= MAX_ROLLS){
+      requestTurnEnd();
+    }
+  }
+
+
+  const FACE_ORDER = ['sickle','hammer','sidearm','aircraft','saucer','blade'];
+  const FACE_LABELS = ['SICKLE','HAMMER','GUN','PLANE','UFO','SWORD'];
+  const FACE_NORMALS = [
+    new THREE.Vector3(1,0,0), new THREE.Vector3(-1,0,0),
+    new THREE.Vector3(0,1,0), new THREE.Vector3(0,-1,0),
+    new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,-1)
+  ];
+
+  // Vector icon paths — matched to the original shaker's symbols
+  let INK = '#2b2018';
+  let INK_SOFT = '#4a3826';
+  let BODY = '#d8c9a3';
+
+  function drawSickle(ctx){
+    const outerC=[0,-0.05], outerR=0.60;
+    const innerC=[0.22,-0.18], innerR=0.32;
+    const start=Math.PI*1.02, end=-Math.PI*0.12;
+    const steps=28;
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const t = start+(end-start)*(i/steps);
+      const x = outerC[0]+Math.cos(t)*outerR, y = outerC[1]+Math.sin(t)*outerR;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    for(let i=steps;i>=0;i--){
+      const t = start+(end-start)*(i/steps);
+      const x = innerC[0]+Math.cos(t)*innerR, y = innerC[1]+Math.sin(t)*innerR;
+      ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(-0.34, -0.10);
+    ctx.rotate(-0.95);
+    ctx.fillRect(-0.075, 0, 0.15, 0.62);
+    ctx.fillRect(-0.13, -0.02, 0.26, 0.09);
+    ctx.restore();
+  }
+
+  function drawHammer(ctx){
+    ctx.fillStyle = INK;
+    const headW=0.56, headH=0.40, handleW=0.16;
+    ctx.beginPath();
+    ctx.moveTo(-headW,-0.72);
+    ctx.lineTo(headW,-0.72);
+    ctx.lineTo(headW, -0.72+headH);
+    ctx.lineTo(handleW, -0.72+headH);
+    ctx.lineTo(handleW, 0.78);
+    ctx.lineTo(-handleW, 0.78);
+    ctx.lineTo(-handleW, -0.72+headH);
+    ctx.lineTo(-headW, -0.72+headH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = INK_SOFT; ctx.lineWidth = 0.03;
+    ctx.beginPath(); ctx.moveTo(-headW,-0.72+headH*0.5); ctx.lineTo(headW,-0.72+headH*0.5); ctx.stroke();
+  }
+
+  function drawSidearm(ctx){
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.moveTo(-0.05,-0.30);
+    ctx.lineTo(0.80,-0.30);
+    ctx.lineTo(0.88,-0.22);
+    ctx.lineTo(0.80,-0.14);
+    ctx.lineTo(-0.05,-0.14);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-0.32,-0.30);
+    ctx.lineTo(-0.05,-0.30);
+    ctx.lineTo(-0.05,-0.14);
+    ctx.lineTo(-0.20,-0.14);
+    ctx.lineTo(-0.36,-0.22);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillRect(-0.36, -0.14, 0.52, 0.22);
+
+    ctx.beginPath();
+    ctx.moveTo(-0.36, 0.02);
+    ctx.lineTo(-0.07, 0.02);
+    ctx.lineTo(-0.01, 0.66);
+    ctx.lineTo(-0.42, 0.66);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = BODY;
+    ctx.beginPath();
+    ctx.ellipse(-0.08, 0.17, 0.11, 0.13, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = INK;
+    ctx.fillRect(-0.10, 0.05, 0.04, 0.14);
+  }
+
+  function drawAircraft(ctx){
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.moveTo(0,-0.88);
+    ctx.lineTo(0.18,-0.16);
+    ctx.lineTo(0.86, 0.54);
+    ctx.lineTo(0.16, 0.24);
+    ctx.lineTo(0.24, 0.86);
+    ctx.lineTo(0, 0.56);
+    ctx.lineTo(-0.24, 0.86);
+    ctx.lineTo(-0.16, 0.24);
+    ctx.lineTo(-0.86, 0.54);
+    ctx.lineTo(-0.18,-0.16);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawSaucer(ctx){
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.ellipse(0,-0.34, 0.34, 0.24, 0, Math.PI, 0, false);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0,-0.06, 0.80, 0.25, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = INK_SOFT;
+    ctx.beginPath();
+    ctx.ellipse(0,-0.34, 0.21, 0.13, 0, Math.PI, 0, false);
+    ctx.fill();
+    ctx.fillStyle = BODY;
+    [-0.42,-0.14,0.14,0.42].forEach(x=>{
+      ctx.beginPath();
+      ctx.ellipse(x,-0.02, 0.055, 0.05, 0, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  function drawBlade(ctx){
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.moveTo(0,-0.92);
+    ctx.lineTo(0.10,-0.18);
+    ctx.lineTo(0.10, 0.06);
+    ctx.lineTo(0.44, 0.06);
+    ctx.lineTo(0.44, 0.18);
+    ctx.lineTo(0.10, 0.18);
+    ctx.lineTo(0.10, 0.72);
+    ctx.lineTo(0.17, 0.72);
+    ctx.lineTo(0.17, 0.88);
+    ctx.lineTo(-0.17, 0.88);
+    ctx.lineTo(-0.17, 0.72);
+    ctx.lineTo(-0.10, 0.72);
+    ctx.lineTo(-0.10, 0.18);
+    ctx.lineTo(-0.44, 0.18);
+    ctx.lineTo(-0.44, 0.06);
+    ctx.lineTo(-0.10, 0.06);
+    ctx.lineTo(-0.10,-0.18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = INK_SOFT; ctx.lineWidth = 0.025;
+    ctx.beginPath(); ctx.moveTo(0,-0.85); ctx.lineTo(0,0.06); ctx.stroke();
+  }
+
+  const ICON_DRAWERS = {
+    sickle: drawSickle,
+    hammer: drawHammer,
+    sidearm: drawSidearm,
+    aircraft: drawAircraft,
+    saucer: drawSaucer,
+    blade: drawBlade
+  };
+
+  function makeIconTexture(key, scheme){
+    const TEX = 512;
+    const c = document.createElement('canvas');
+    c.width = TEX; c.height = TEX;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+
+    ctx.fillStyle = scheme.body;
+    ctx.fillRect(0,0,TEX,TEX);
+
+    const b = TEX*0.055;
+    ctx.fillStyle = scheme.frame;
+    ctx.fillRect(0,0,TEX,b);
+    ctx.fillRect(0,TEX-b,TEX,b);
+    ctx.fillRect(0,0,b,TEX);
+    ctx.fillRect(TEX-b,0,b,TEX);
+    ctx.strokeStyle = scheme.border;
+    ctx.lineWidth = TEX*0.012;
+    ctx.strokeRect(b*1.6, b*1.6, TEX-b*3.2, TEX-b*3.2);
+
+    const prevInk = INK, prevInkSoft = INK_SOFT, prevBody = BODY;
+    INK = scheme.ink; INK_SOFT = scheme.inkSoft; BODY = scheme.body;
+    ctx.save();
+    ctx.translate(TEX/2, TEX/2);
+    ctx.scale(TEX*0.36, TEX*0.36);
+    ICON_DRAWERS[key](ctx);
+    ctx.restore();
+    INK = prevInk; INK_SOFT = prevInkSoft; BODY = prevBody;
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.magFilter = THREE.LinearFilter;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.generateMipmaps = true;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return tex;
+  }
+
+  // ---------- Equip die: two 1-pip, one 2-pip, one 3-pip, one X (ends turn), one circle (blank, rolls continue) ----------
+  const EQUIP_FACE_TYPES = ['pip1','pip1','pip2','pip3','x','circle'];
+  const EQUIP_DISPLAY = { pip1:'I', pip2:'II', pip3:'III', x:'X', circle:'O' };
+
+  function makeEquipIconTexture(type, scheme){
+    const TEX = 512;
+    const c = document.createElement('canvas');
+    c.width = TEX; c.height = TEX;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+
+    ctx.fillStyle = scheme.body;
+    ctx.fillRect(0,0,TEX,TEX);
+
+    const b = TEX*0.055;
+    ctx.fillStyle = scheme.frame;
+    ctx.fillRect(0,0,TEX,b);
+    ctx.fillRect(0,TEX-b,TEX,b);
+    ctx.fillRect(0,0,b,TEX);
+    ctx.fillRect(TEX-b,0,b,TEX);
+    ctx.strokeStyle = scheme.border;
+    ctx.lineWidth = TEX*0.012;
+    ctx.strokeRect(b*1.6, b*1.6, TEX-b*3.2, TEX-b*3.2);
+
+    ctx.save();
+    ctx.translate(TEX/2, TEX/2);
+    ctx.scale(TEX*0.36, TEX*0.36);
+    ctx.fillStyle = scheme.ink;
+    if(type==='pip1'){
+      ctx.beginPath(); ctx.arc(0,0,0.30,0,Math.PI*2); ctx.fill();
+    } else if(type==='pip2'){
+      ctx.beginPath(); ctx.arc(-0.42,-0.42,0.24,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0.42,0.42,0.24,0,Math.PI*2); ctx.fill();
+    } else if(type==='pip3'){
+      ctx.beginPath(); ctx.arc(-0.44,-0.44,0.20,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0,0,0.20,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0.44,0.44,0.20,0,Math.PI*2); ctx.fill();
+    } else if(type==='x'){
+      ctx.save();
+      ctx.rotate(Math.PI/4);
+      ctx.fillRect(-0.60,-0.14,1.20,0.28);
+      ctx.fillRect(-0.14,-0.60,0.28,1.20);
+      ctx.restore();
+    } else if(type==='circle'){
+      ctx.lineWidth = 0.24;
+      ctx.strokeStyle = scheme.ink;
+      ctx.beginPath(); ctx.arc(0,0,0.42,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.magFilter = THREE.LinearFilter;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.generateMipmaps = true;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return tex;
+  }
+
+  // ---------- Per-player dice colorways: P1 white body/gold symbols, P2 gold body/white symbols ----------
+  const DICE_SCHEMES = [
+    { body:'#f5f0e6', frame:'#8a6a2e', border:'#c9a227', ink:'#b8860b', inkSoft:'#8a6a2e' },
+    { body:'#d9b23a', frame:'#5a4018', border:'#8a6a2e', ink:'#f5f0e6', inkSoft:'#e8ddc6' }
+  ];
+
+  function buildMaterialSetForScheme(scheme){
+    const faction = FACE_ORDER.map(key => new THREE.MeshPhongMaterial({ map: makeIconTexture(key, scheme), flatShading:true, shininess:0 }));
+    const equip = EQUIP_FACE_TYPES.map(type => new THREE.MeshPhongMaterial({ map: makeEquipIconTexture(type, scheme), flatShading:true, shininess:0 }));
+    return { faction, equip };
+  }
+
+  const PLAYER_DICE_MATERIALS = DICE_SCHEMES.map(buildMaterialSetForScheme);
+
+  const dieSize = 0.62;
+  const dieGeo = new THREE.BoxGeometry(dieSize, dieSize, dieSize);
+
+  const restPositions = [
+    new THREE.Vector3(-0.55, PLATFORM_TOP_Y+dieSize/2, 0.35),
+    new THREE.Vector3(0.55, PLATFORM_TOP_Y+dieSize/2, 0.35),
+    new THREE.Vector3(-0.55, PLATFORM_TOP_Y+dieSize/2, -0.45),
+    new THREE.Vector3(0.55, PLATFORM_TOP_Y+dieSize/2, -0.45)
+  ];
+  const groundY = PLATFORM_TOP_Y + dieSize/2;
+
+  const lockRingMat = new THREE.MeshBasicMaterial({ color:0xffd700, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false });
+
+  const dice = [];
+  const DICE_COUNT = 4;
+  for(let i=0;i<DICE_COUNT;i++){
+    const isEquip = i === 3;
+    const mesh = new THREE.Mesh(dieGeo, isEquip ? PLAYER_DICE_MATERIALS[0].equip : PLAYER_DICE_MATERIALS[0].faction);
+    mesh.position.copy(restPositions[i]);
+    mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    scene.add(mesh);
+    addBlob(mesh.position.x, mesh.position.z, dieSize*2.1, scene);
+
+    const lockRing = new THREE.Mesh(new THREE.RingGeometry(dieSize*0.66, dieSize*0.82, 24), lockRingMat);
+    lockRing.rotation.x = -Math.PI/2;
+    lockRing.position.set(restPositions[i].x, groundY - dieSize/2 + 0.02, restPositions[i].z);
+    lockRing.visible = false;
+    scene.add(lockRing);
+
+    dice.push({
+      mesh, isEquip, resultIndex: 0, active:false, startTime:0, duration:1600,
+      startPos:new THREE.Vector3(), targetPos:restPositions[i].clone(),
+      spinAxis:new THREE.Vector3(1,0,0), spinSpeed:0,
+      targetQuat:new THREE.Quaternion(), settled:true,
+      locked:false, lockRing
+    });
+  }
+
+  function applyDiceColorsForPlayer(playerIdx){
+    const set = PLAYER_DICE_MATERIALS[playerIdx];
+    dice.forEach(d=>{
+      d.mesh.material = d.isEquip ? set.equip : set.faction;
+    });
+  }
+
+  // ---------- Audio ----------
+  let AC;
+  function getAC(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
+  function beep(f,d,v,type){
+    try{
+      const ac=getAC(), o=ac.createOscillator(), g=ac.createGain();
+      o.connect(g); g.connect(ac.destination);
+      o.type = type||'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(v||0.08, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+d);
+      o.start(); o.stop(ac.currentTime+d);
+    }catch(e){}
+  }
+  function sfxThud(){ beep(90+Math.random()*30, 0.09, 0.14, 'sine'); }
+  function sfxChime(i){ setTimeout(()=>beep(520+i*140, 0.25, 0.08, 'triangle'), i*90); }
+
+  // ---------- Roll logic ----------
+  let rolling = false;
+  let rollCount = 0;
+  const MAX_ROLLS = 3;
+
+  function getFaction(labels){
+    const count = l => labels.filter(x=>x===l).length;
+    const ufos=count('UFO'), swords=count('SWORD'), planes=count('PLANE'),
+          guns=count('GUN'), sickles=count('SICKLE'), hammers=count('HAMMER');
+    if(ufos>=2) return 'PREFECT ZORB';
+    if(swords>=2) return 'KNIGHT';
+    if(planes>=2 || guns>=2 || (planes>=1 && guns>=1)) return 'INDUSTRY CAPTAIN';
+    if(sickles>=2 || hammers>=2 || (sickles>=1 && hammers>=1)) return 'PARTY BOSS';
+    return null;
+  }
+
+  let typeInterval = null;
+  function typeText(el, text, cb){
+    if(typeInterval) clearInterval(typeInterval);
+    el.innerHTML = '';
+    let i = 0;
+    typeInterval = setInterval(()=>{
+      el.textContent = text.slice(0, i+1);
+      i++;
+      if(i>=text.length){
+        clearInterval(typeInterval);
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        el.appendChild(cursor);
+        if(cb) cb();
+      }
+    }, 38);
+  }
+
+  function toggleLock(d){
+    if(!gameStarted || gameOver || rolling || pendingChoice || awaitingTurnEnd) return;
+    d.locked = !d.locked;
+    d.lockRing.visible = d.locked;
+    beep(d.locked ? 880 : 440, 0.05, 0.05, 'square');
+  }
+
+  function updateRollCounter(){
+    rollCounterEl.textContent = 'ROLL ' + rollCount + ' / ' + MAX_ROLLS;
+    rollCounterEl.classList.add('pulse');
+    setTimeout(()=>rollCounterEl.classList.remove('pulse'), 200);
+  }
+
+  function rollDice(){
+    if(!gameStarted || gameOver || rolling || pendingChoice || awaitingTurnEnd) return;
+    rolling = true;
+    textbox.classList.remove('show');
+    hint.classList.add('fade');
+
+    try{ getAC().resume(); }catch(e){}
+    beep(660,0.06,0.06,'square');
+
+    const now = performance.now();
+    dice.forEach((d, i)=>{
+      if(d.locked) return;
+      const ang = Math.random()*Math.PI*2;
+      const dist = 2.0 + Math.random()*0.8;
+      d.startPos.set(Math.cos(ang)*dist, 3.0+Math.random()*0.7, Math.sin(ang)*dist);
+      d.mesh.position.copy(d.startPos);
+
+      const resultIndex = Math.floor(Math.random()*6);
+      d.resultIndex = resultIndex;
+
+      const align = new THREE.Quaternion().setFromUnitVectors(FACE_NORMALS[resultIndex].clone().normalize(), new THREE.Vector3(0,1,0));
+      const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), Math.random()*Math.PI*2);
+      d.targetQuat.copy(spin).multiply(align);
+
+      d.spinAxis.set(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
+      d.spinSpeed = 16 + Math.random()*8;
+      d.startTime = now + i*90;
+      d.duration = 1500 + i*160;
+      d.active = true;
+      d.settled = false;
+    });
+
+    rollCount++;
+    updateRollCounter();
+
+    checkAllSettled();
+  }
+
+  function checkAllSettled(){
+    const poll = setInterval(()=>{
+      if(dice.every(d=>d.settled)){
+        clearInterval(poll);
+        finishRoll();
+      }
+    }, 100);
+  }
+
+  function finishRoll(){
+    rolling = false;
+    const factionDice = dice.slice(0,3);
+    const equipDie = dice[3];
+    const labels = factionDice.map(d=>FACE_LABELS[d.resultIndex]);
+    const faction = getFaction(labels);
+    const equipType = EQUIP_FACE_TYPES[equipDie.resultIndex];
+    const equipLabel = EQUIP_DISPLAY[equipType];
+    tbSyms.textContent = labels.join('  ·  ') + '   |   EQUIP: ' + equipLabel;
+    textbox.classList.add('show');
+    tbBonus.textContent = '';
+    choicePrompt.classList.remove('show');
+
+    if(faction){
+      typeText(tbBody, 'YOU HAVE SUCCEEDED IN FORMING A FACTION: ' + faction);
+      sfxChime(0); sfxChime(1); sfxChime(2);
+    } else {
+      typeText(tbBody, 'THE OMENS ARE UNCLEAR. ROLL AGAIN.');
+    }
+
+    // The X face busts the turn outright, regardless of the faction dice.
+    if(equipType === 'x'){
+      tbBonus.textContent = '💥 EQUIP ROLLED X — TURN ENDS';
+      beep(140, 0.25, 0.1, 'sawtooth');
+      requestTurnEnd();
+      return;
+    }
+
+    const cats = labels.map(l=>SYMBOL_CATEGORY[l]);
+    const a = cats.filter(c=>c==='attack').length;
+    const d = cats.filter(c=>c==='defense').length;
+    const k = cats.filter(c=>c==='knight').length;
+    const u = cats.filter(c=>c==='ufo').length;
+    const pattern = matchBonusPattern(a,d,k,u);
+    const equipValue = EQUIP_VALUE[equipType];
+
+    if(pattern.type === 'triple-attack'){
+      players[currentPlayer].atk += 1;
+      applyDamage(currentPlayer, 1);
+      tbBonus.textContent = '⚔ TRIPLE ATTACK — ATK +1';
+    } else if(pattern.type === 'triple-defense'){
+      const p = players[currentPlayer];
+      const before = p.gdp;
+      p.gdp = Math.min(GDP_MAX, p.gdp + 3);
+      updateScoreboard();
+      tbBonus.textContent = '🛡 TRIPLE DEFENSE — GDP +' + (p.gdp-before);
+    } else if(pattern.type === 'equip'){
+      const { atkGain, defGain } = applyEquipAwards(pattern.awards, equipValue, currentPlayer);
+      const parts = [];
+      if(atkGain>0) parts.push('ATK +'+atkGain);
+      if(defGain>0) parts.push('DEF +'+defGain);
+      tbBonus.textContent = parts.length ? ('⚙ EQUIP — ' + parts.join('  ')) : '⚙ EQUIP TRIGGERED — BLANK ROLL';
+    } else if(pattern.type === 'choice'){
+      pendingChoice = { equipValue, playerIdx: currentPlayer };
+      tbBonus.textContent = '⚙ CHOOSE YOUR EQUIP TYPE';
+      choicePrompt.classList.add('show');
+      return; // wait for the player's choice before continuing the turn
+    }
+
+    concludeRollResolution();
+  }
+
+  // ---------- Camera orbit controls ----------
+  const target = new THREE.Vector3(0, 1.0, 0);
+  let radius = 9.5;
+  let theta = Math.PI * 0.22;
+  let phi = Math.PI * 0.36;
+  const minPhi = 0.16, maxPhi = Math.PI/2 - 0.03;
+  const minRadius = 4.5, maxRadius = 18;
+
+  function updateCamera(){
+    const sinPhi = Math.sin(phi);
+    camera.position.x = target.x + radius * sinPhi * Math.sin(theta);
+    camera.position.z = target.z + radius * sinPhi * Math.cos(theta);
+    camera.position.y = target.y + radius * Math.cos(phi);
+    camera.lookAt(target);
+  }
+  updateCamera();
+
+  let isDragging = false, lastX=0, lastY=0, hintFaded=false;
+  let downTime=0, dragDistance=0;
+  const TAP_MAX_DIST = 8, TAP_MAX_TIME = 350;
+  function fadeHint(){ if(!hintFaded){ hint.classList.add('fade'); hintFaded=true; } }
+
+  const raycaster = new THREE.Raycaster();
+  const mouseNDC = new THREE.Vector2();
+  function pickDie(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    mouseNDC.x = ((clientX-rect.left)/rect.width)*2-1;
+    mouseNDC.y = -((clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouseNDC, camera);
+    const meshes = dice.map(d=>d.mesh);
+    const hits = raycaster.intersectObjects(meshes, false);
+    if(hits.length){
+      return dice.find(d=>d.mesh===hits[0].object) || null;
     }
     return null;
   }
-  function updateCaption(){
-    var fk = detectFaction();
-    resultCaption.textContent = fk ? ('DECLARED FACTION: ' + FACTIONS[fk]) : (lastResults.length ? 'NO FACTION — THE MINISTRY WAITS' : '');
-  }
 
-  function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  let activePointerIsCanvas = false;
 
-  function animateRoll(done){
-    shaking = true;
-    shakeBtn.disabled = true;
-    shakeBtn.classList.remove('pulse');
-    resultCaption.textContent = '';
-    lastResults = [];
-
-    var scenes = diceState.map(function(d){ return d.sceneEl; });
-    scenes.forEach(function(s){
-      var cube = s.querySelector('.die-cube');
-      cube.classList.remove('settling');
-      cube.classList.add('tumbling');
-    });
-
-    var flicker = setInterval(function(){
-      diceState.forEach(function(d){
-        var cube = d.sceneEl.querySelector('.die-cube');
-        if (cube.classList.contains('tumbling')) setCubeFaces(d.sceneEl, d.isEquip, randFace());
-      });
-    }, 85);
-
-    sfxRoll();
-    diceState.forEach(function(d, i){
-      var finalFace = randFace();
-      d.face = finalFace;
-      if (!d.isEquip) lastResults.push(finalFace);
-      setTimeout(function(){
-        var cube = d.sceneEl.querySelector('.die-cube');
-        cube.classList.remove('tumbling');
-        setCubeFaces(d.sceneEl, d.isEquip, finalFace);
-        cube.classList.add('settling');
-        sfxLand(i);
-      }, 460 + i*140);
-    });
-
-    setTimeout(function(){
-      clearInterval(flicker);
-      shaking = false;
-      shakeBtn.disabled = false;
-      done();
-    }, 460 + diceState.length*140 + 220);
-  }
-
-  function rerollDie(d){
-    if (shaking) return;
-    try{ getAC().resume(); }catch(e){}
-    sfxBtn();
-    var cube = d.sceneEl.querySelector('.die-cube');
-    cube.classList.remove('settling');
-    cube.classList.add('tumbling');
-    var flicker = setInterval(function(){
-      setCubeFaces(d.sceneEl, d.isEquip, randFace());
-    }, 70);
-    setTimeout(function(){
-      clearInterval(flicker);
-      var finalFace = randFace();
-      if (!d.isEquip){
-        var oldIdx = lastResults.indexOf(d.face);
-        if (oldIdx>=0) lastResults[oldIdx] = finalFace; else lastResults.push(finalFace);
+  canvas.addEventListener('pointerdown', (e)=>{
+    activePointerIsCanvas = true;
+    isDragging = true;
+    canvas.classList.add('dragging');
+    lastX = e.clientX; lastY = e.clientY;
+    downTime = performance.now();
+    dragDistance = 0;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', (e)=>{
+    if(!isDragging) return;
+    const dx = e.clientX-lastX, dy = e.clientY-lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    dragDistance += Math.abs(dx) + Math.abs(dy);
+    theta -= dx*0.0062;
+    phi   -= dy*0.0062;
+    phi = Math.max(minPhi, Math.min(maxPhi, phi));
+    if(dragDistance > TAP_MAX_DIST) fadeHint();
+  });
+  window.addEventListener('pointerup', (e)=>{
+    isDragging = false;
+    canvas.classList.remove('dragging');
+    if(!activePointerIsCanvas) return; // ignore clicks on UI buttons (New Game, faction picks, etc.)
+    activePointerIsCanvas = false;
+    const elapsed = performance.now() - downTime;
+    if(dragDistance <= TAP_MAX_DIST && elapsed <= TAP_MAX_TIME){
+      fadeHint();
+      if(awaitingTurnEnd){
+        awaitingTurnEnd = false;
+        endTurn();
+        return;
       }
-      d.face = finalFace;
-      cube.classList.remove('tumbling');
-      setCubeFaces(d.sceneEl, d.isEquip, finalFace);
-      cube.classList.add('settling');
-      sfxLand(0);
-      updateCaption();
-    }, 340);
+      const hitDie = rolling ? null : pickDie(e.clientX, e.clientY);
+      if(hitDie){
+        toggleLock(hitDie);
+      } else {
+        rollDice();
+      }
+    }
+  });
+
+  canvas.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    radius += e.deltaY*0.0065;
+    radius = Math.max(minRadius, Math.min(maxRadius, radius));
+    fadeHint();
+  }, {passive:false});
+
+  let pinchDist = null;
+  canvas.addEventListener('touchstart', (e)=>{
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
+      pinchDist = Math.sqrt(dx*dx+dy*dy);
+    }
+  }, {passive:true});
+  canvas.addEventListener('touchmove', (e)=>{
+    if(e.touches.length===2 && pinchDist!==null){
+      const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      radius += (pinchDist-d)*0.014;
+      radius = Math.max(minRadius, Math.min(maxRadius, radius));
+      pinchDist = d;
+    }
+  }, {passive:true});
+  canvas.addEventListener('touchend', ()=>{ pinchDist=null; });
+
+  window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // ---------- Animate ----------
+  const clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const now = performance.now();
+
+    currentEnv.lights.forEach((t,i)=>{
+      const flick = 0.85 + Math.sin(now*0.012 + i*3.1)*0.1 + Math.random()*0.08;
+      t.light.intensity = t.baseIntensity*flick;
+      if(t.flame.scale) t.flame.scale.y = 0.9 + Math.sin(now*0.02+i)*0.1;
+    });
+
+    currentEnv.smoke.forEach(p=>{
+      const t = ((now*0.00035) + p.phase) % 1;
+      p.sprite.position.y = p.baseY + t*2.4;
+      p.sprite.position.x = Math.sin(t*6+p.phase*10)*0.18;
+      const sc = 0.6+t*1.2;
+      p.sprite.scale.set(sc,sc,1);
+      p.sprite.material.opacity = (1-t)*0.42;
+    });
+
+    currentEnv.precip.forEach(p=>{
+      p.sprite.position.y -= p.speed*dt;
+      p.sprite.position.x += Math.sin(now*0.001+p.driftPhase)*0.004;
+      if(p.sprite.position.y < 0){
+        p.sprite.position.y = p.topY;
+      }
+    });
+
+    dice.forEach(d=>{
+      if(d.locked){
+        d.lockRing.rotation.z += dt*0.6;
+        d.lockRing.material.opacity = 0.65 + Math.sin(now*0.006)*0.2;
+      }
+    });
+
+    dice.forEach((d, i)=>{
+      if(!d.active) return;
+      const t = Math.min(1, (now - d.startTime)/d.duration);
+      if(t<0){ return; }
+
+      const easedT = 1 - Math.pow(1-t, 3);
+      d.mesh.position.x = THREE.MathUtils.lerp(d.startPos.x, d.targetPos.x, easedT);
+      d.mesh.position.z = THREE.MathUtils.lerp(d.startPos.z, d.targetPos.z, easedT);
+
+      const amp = (d.startPos.y - groundY) * Math.exp(-4.2*t);
+      d.mesh.position.y = groundY + Math.abs(Math.sin(t*15.5)) * amp;
+
+      if(t < 0.78){
+        const decay = 1 - t/0.78;
+        d.mesh.rotateOnAxis(d.spinAxis, d.spinSpeed*decay*dt);
+      } else {
+        d.mesh.quaternion.slerp(d.targetQuat, 0.18);
+      }
+
+      if(t>=1){
+        d.active = false;
+        d.settled = true;
+        d.mesh.position.copy(d.targetPos);
+        d.mesh.quaternion.copy(d.targetQuat);
+        sfxThud();
+      }
+    });
+
+    updateCamera();
+    renderer.render(scene, camera);
   }
+  animate();
 
-  shakeBtn.addEventListener('click', function(){
-    if (shaking) return;
-    try{ getAC().resume(); }catch(e){}
-    sfxBtn();
-    animateRoll(updateCaption);
-  });
-  addBtn.addEventListener('click', function(){
-    if (shaking) return;
-    if (nDice >= 5){ sfxBtn(); return; }
-    sfxBtn(); nDice++; buildDice();
-  });
-  removeBtn.addEventListener('click', function(){
-    if (shaking) return;
-    if (nDice <= 1){ sfxBtn(); return; }
-    sfxBtn(); nDice--; buildDice();
-  });
+  setTimeout(()=>{
+    loading.style.opacity='0';
+    setTimeout(()=>{ loading.style.display='none'; }, 850);
+  }, 400);
 
-  document.addEventListener('keydown', function(e){
-    if (e.key===' '||e.key==='Enter'){ try{getAC().resume();}catch(ex){} shakeBtn.click(); }
-    if (e.key==='+'||e.key==='=') addBtn.click();
-    if (e.key==='-') removeBtn.click();
-  });
-
-  buildDice();
+  setTimeout(fadeHint, 7000);
 })();
 </script>
 </body>
