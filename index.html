@@ -106,6 +106,8 @@
   #skip-btn:disabled{ opacity:0.35; cursor:default; }
   #skip-btn:disabled:hover{ background:rgba(10,10,15,0.45); border-color:rgba(159,180,224,0.55); }
 
+  .pregame-hidden{ display:none !important; }
+
   #turn-indicator{
     position:fixed; top:calc(24px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; text-align:center;
@@ -130,6 +132,7 @@
   #scoreboard .sb-col{
     background:rgba(6,6,12,0.4); border:1px solid rgba(232,196,104,0.3);
     padding:6px 12px; min-width:110px; text-align:center;
+    flex-shrink:0; white-space:nowrap;
     transition:border-color 0.2s ease, background 0.2s ease;
   }
   #scoreboard .sb-col.active{
@@ -138,10 +141,12 @@
   #scoreboard .sb-label{
     font-family:'Press Start 2P', monospace; font-size:8px;
     letter-spacing:0.14em; color:#9fb4e0; margin-bottom:3px;
+    white-space:nowrap;
   }
   #scoreboard .sb-row{
     font-family:'Press Start 2P', monospace; font-size:9px;
     color:#f4ecd8; letter-spacing:0.04em; line-height:1.7;
+    white-space:nowrap;
   }
   #scoreboard .sb-gdp b{ color:var(--gold); }
   #scoreboard .sb-vs{
@@ -250,10 +255,9 @@
     position:fixed; inset:0; z-index:25;
     background:rgba(6,6,10,0.72);
     backdrop-filter:blur(3px);
-    display:flex; align-items:center; justify-content:center;
-    transition:opacity 0.4s ease;
+    display:none; align-items:center; justify-content:center;
   }
-  #setup-overlay.hidden{ opacity:0; pointer-events:none; }
+  #setup-overlay.show{ display:flex; }
   #setup-card{
     width:min(560px, 90vw);
     background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
@@ -298,16 +302,17 @@
   /* Title screen */
   #title-overlay{
     position:fixed; inset:0; z-index:27;
-    display:flex; align-items:center; justify-content:center;
+    display:none; align-items:center; justify-content:center;
     background:radial-gradient(ellipse at center, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.58) 100%);
-    transition:opacity 0.5s ease;
+    pointer-events:none;
   }
-  #title-overlay.hidden{ opacity:0; pointer-events:none; }
+  #title-overlay.show{ display:flex; }
   #title-card{
     text-align:center; padding:38px 46px;
     background:rgba(6,6,12,0.55);
     border:2px solid rgba(232,196,104,0.4);
     backdrop-filter:blur(2px);
+    pointer-events:auto;
   }
   #title-card h1{
     font-family:'Cinzel', serif; font-weight:700; font-size:44px;
@@ -457,12 +462,12 @@
 <button id="scene-btn">⟳ NEW GAME</button>
 <button id="skip-btn" disabled>⏭ SKIP ROLLS</button>
 
-<div id="turn-indicator">
+<div id="turn-indicator" class="pregame-hidden">
   <div class="ti-player" id="ti-player">PLAYER 1</div>
   <div class="ti-faction" id="ti-faction">CHOOSING&hellip;</div>
 </div>
 
-<div id="scoreboard">
+<div id="scoreboard" class="pregame-hidden">
   <div class="sb-col" id="sb-p1">
     <div class="sb-label">P1</div>
     <div class="sb-row sb-gdp">GDP <b id="p1-gdp">20</b></div>
@@ -476,7 +481,7 @@
   </div>
 </div>
 
-<div id="roll-counter">ROLL 0 / 3</div>
+<div id="roll-counter" class="pregame-hidden">ROLL 0 / 3</div>
 <div id="hint">TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL</div>
 
 <div id="textbox">
@@ -485,8 +490,8 @@
   <div class="tb-syms" id="tb-syms"></div>
   <div class="tb-bonus" id="tb-bonus"></div>
   <div id="choice-prompt">
-    <button id="choice-attack">⚔ ATTACK EQUIP</button>
-    <button id="choice-defense">🛡 DEFENSE EQUIP</button>
+    <button id="choice-attack">⚔ CALL IT ATTACK</button>
+    <button id="choice-defense">🛡 CALL IT DEFENSE</button>
   </div>
 </div>
 
@@ -499,7 +504,7 @@
   </div>
 </div>
 
-<div id="setup-overlay" class="hidden">
+<div id="setup-overlay">
   <div id="setup-card">
     <div class="setup-eyebrow" id="setup-player-label">PLAYER 1</div>
     <h2 id="setup-title">Choose Your Faction</h2>
@@ -524,7 +529,7 @@
   </div>
 </div>
 
-<div id="title-overlay">
+<div id="title-overlay" class="show">
   <div id="title-card">
     <div class="setup-eyebrow">◆ TONIGHT'S MAIN EVENT ◆</div>
     <h1>PropaganDICE</h1>
@@ -545,29 +550,24 @@
     <p>Every roll uses four dice: three <b>faction dice</b> and one <b>equip die</b>.</p>
     <ul>
       <li>Sickle / Hammer = Defense symbols</li>
-      <li>Gun / Plane = Attack symbols</li>
-      <li>Sword = Knight</li>
-      <li>UFO = Alien</li>
+      <li>Gun / Plane / Sword = Attack symbols</li>
+      <li>UFO = your choice, Attack or Defense (asked each time one shows up)</li>
     </ul>
 
     <h3>◆ YOUR TURN</h3>
     <p>Tap a die to lock it before your next roll. Tap anywhere else to roll the unlocked dice. You get 3 rolls per turn — after the 3rd roll (or if the equip die shows an X), tap anywhere to end your turn.</p>
 
     <h3>◆ BONUS PATTERNS</h3>
+    <p>Once you've established a faction, count up Attack vs. Defense symbols on your 3 faction dice each roll:</p>
     <ul>
-      <li>Triple Attack → ATK +1</li>
-      <li>Triple Defense → GDP +3 (capped at 20)</li>
-      <li>1 Attack + 1 Defense + 1 Knight → 1 Attack Equip</li>
-      <li>1 Attack + 1 Defense + 1 UFO → 1 Attack or Defense Equip (your choice)</li>
-      <li>2 Attack + 1 Defense → 1 Attack Equip</li>
-      <li>2 Defense + 1 Attack → 1 Defense Equip</li>
-      <li>2 Attack + (Knight or UFO) → 2 Attack Equip</li>
-      <li>2 Defense + Knight → 1 Attack Equip &amp; 1 Defense Equip</li>
-      <li>2 Defense + UFO → 2 Defense Equip</li>
+      <li>3 Attack → ATK +1</li>
+      <li>3 Defense → GDP +3 (capped at 20)</li>
+      <li>2 Attack → 1 Attack Equip</li>
+      <li>2 Defense → 1 Defense Equip</li>
     </ul>
 
     <h3>◆ THE EQUIP DIE</h3>
-    <p>Its face sets how many points your equip awards are worth this roll: I = 1, II = 2, III = 3, O = blank (no points, but rolling continues), X = your turn ends immediately.</p>
+    <p>Its face sets how many points your equip award is worth this roll: I = 1, II = 2, III = 3, O = blank (no points, but rolling continues), X = your turn ends immediately.</p>
 
     <h3>◆ COMBAT</h3>
     <p>Attack points hit your opponent right away — draining their DEF first, then their GDP. Defense points build a shield that absorbs future attacks. Reduce your opponent's GDP to zero to win.</p>
@@ -591,6 +591,7 @@
   const loreTitle = document.getElementById('lore-title');
   const rollCounterEl = document.getElementById('roll-counter');
   const turnIndicator = document.getElementById('turn-indicator');
+  const scoreboardEl = document.getElementById('scoreboard');
   const tiPlayer = document.getElementById('ti-player');
   const tiFaction = document.getElementById('ti-faction');
   const setupOverlay = document.getElementById('setup-overlay');
@@ -652,14 +653,42 @@
     return new THREE.CanvasTexture(c);
   }
   const blobTex = makeBlobTexture();
+  const blobBatches = new Map();
   function addBlob(x,z,scale,parent){
-    const mat = new THREE.MeshBasicMaterial({map:blobTex, transparent:true, depthWrite:false});
-    const geo = new THREE.PlaneGeometry(scale, scale);
-    const m = new THREE.Mesh(geo, mat);
-    m.rotation.x = -Math.PI/2;
-    m.position.set(x, 0.015, z);
-    parent.add(m);
-    return m;
+    if(!blobBatches.has(parent)) blobBatches.set(parent, []);
+    blobBatches.get(parent).push({x,z,scale});
+  }
+  // Every blob shadow shares one geometry/material and gets folded into a single
+  // InstancedMesh per parent group — cuts what used to be one draw call per
+  // tree/rock/crystal/etc. down to a handful of draw calls total.
+  function flushBlobs(){
+    const dummy = new THREE.Object3D();
+    blobBatches.forEach((list, parent)=>{
+      if(list.length===0) return;
+      const geo = new THREE.PlaneGeometry(1,1);
+      const mat = new THREE.MeshBasicMaterial({ map:blobTex, transparent:true, depthWrite:false });
+      const inst = new THREE.InstancedMesh(geo, mat, list.length);
+      list.forEach((b,i)=>{
+        dummy.position.set(b.x, 0.015, b.z);
+        dummy.rotation.set(-Math.PI/2, 0, 0);
+        dummy.scale.set(b.scale, b.scale, 1);
+        dummy.updateMatrix();
+        inst.setMatrixAt(i, dummy.matrix);
+      });
+      inst.instanceMatrix.needsUpdate = true;
+      parent.add(inst);
+    });
+    blobBatches.clear();
+  }
+
+  // Shared helper: fold a list of matrices sharing one geometry/material into
+  // a single InstancedMesh draw call instead of one Mesh per object.
+  function buildInstanced(geo, mat, matrices){
+    if(!matrices.length) return null;
+    const inst = new THREE.InstancedMesh(geo, mat, matrices.length);
+    matrices.forEach((m,i)=> inst.setMatrixAt(i, m));
+    inst.instanceMatrix.needsUpdate = true;
+    return inst;
   }
 
   function makeSmokeTexture(){
@@ -715,17 +744,32 @@
 
     const mountainMat = new THREE.MeshPhongMaterial({ color:0x4b3b63, flatShading:true, shininess:0 });
     const mountainMat2 = new THREE.MeshPhongMaterial({ color:0x5c4a78, flatShading:true, shininess:0 });
+    const mountainGeo = new THREE.ConeGeometry(1, 1, 5);
     const mountainCount = 22;
+    const mountainDummy = new THREE.Object3D();
+    const mountainMatricesA = [], mountainMatricesB = [];
     for(let i=0;i<mountainCount;i++){
       const ang = (i/mountainCount)*Math.PI*2 + Math.random()*0.15;
       const dist = 27 + Math.random()*7;
       const h = 6 + Math.random()*9;
       const r = 4 + Math.random()*4;
-      const geo = new THREE.ConeGeometry(r, h, 5);
-      const m = new THREE.Mesh(geo, Math.random()>0.5?mountainMat:mountainMat2);
-      m.position.set(Math.cos(ang)*dist, h/2 - 1.5, Math.sin(ang)*dist);
-      m.rotation.y = Math.random()*Math.PI;
-      group.add(m);
+      mountainDummy.position.set(Math.cos(ang)*dist, h/2 - 1.5, Math.sin(ang)*dist);
+      mountainDummy.rotation.set(0, Math.random()*Math.PI, 0);
+      mountainDummy.scale.set(r, h, r);
+      mountainDummy.updateMatrix();
+      (Math.random()>0.5 ? mountainMatricesA : mountainMatricesB).push(mountainDummy.matrix.clone());
+    }
+    if(mountainMatricesA.length>0){
+      const instA = new THREE.InstancedMesh(mountainGeo, mountainMat, mountainMatricesA.length);
+      mountainMatricesA.forEach((m,i)=>instA.setMatrixAt(i,m));
+      instA.instanceMatrix.needsUpdate = true;
+      group.add(instA);
+    }
+    if(mountainMatricesB.length>0){
+      const instB = new THREE.InstancedMesh(mountainGeo, mountainMat2, mountainMatricesB.length);
+      mountainMatricesB.forEach((m,i)=>instB.setMatrixAt(i,m));
+      instB.instanceMatrix.needsUpdate = true;
+      group.add(instB);
     }
 
     const leafMats = [
@@ -738,26 +782,34 @@
     const leafGeo2 = new THREE.ConeGeometry(0.75, 1.7, 6);
     const trunkGeo = new THREE.CylinderGeometry(0.15, 0.2, 1.1, 6);
 
+    // Trees are instanced: one InstancedMesh for all trunks, and one per
+    // leaf-color variant for each of the two leaf tiers — 7 draw calls
+    // total instead of 3 separate meshes for every single tree.
+    const treeDummy = new THREE.Object3D();
+    const trunkMatrices = [];
+    const leafMatricesByColor = leafMats.map(()=>[]);
+    const leaf2MatricesByColor = leafMats.map(()=>[]);
+
     function placeTree(x,z){
       const h = terrainHeight(x,z);
-      const tg = new THREE.Group();
       const scale = 0.85 + Math.random()*0.5;
-      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-      trunk.position.y = 0.55*scale;
-      trunk.scale.set(scale,scale,scale);
-      tg.add(trunk);
-      const mat = leafMats[Math.floor(Math.random()*leafMats.length)];
-      const leaf1 = new THREE.Mesh(leafGeo, mat);
-      leaf1.position.y = 1.7*scale;
-      leaf1.scale.set(scale,scale,scale);
-      tg.add(leaf1);
-      const leaf2 = new THREE.Mesh(leafGeo2, mat);
-      leaf2.position.y = 2.5*scale;
-      leaf2.scale.set(scale,scale,scale);
-      tg.add(leaf2);
-      tg.position.set(x, h, z);
-      tg.rotation.y = Math.random()*Math.PI*2;
-      group.add(tg);
+      const rotY = Math.random()*Math.PI*2;
+      const colorIdx = Math.floor(Math.random()*leafMats.length);
+
+      treeDummy.position.set(x, h + 0.55*scale, z);
+      treeDummy.rotation.set(0, rotY, 0);
+      treeDummy.scale.set(scale,scale,scale);
+      treeDummy.updateMatrix();
+      trunkMatrices.push(treeDummy.matrix.clone());
+
+      treeDummy.position.set(x, h + 1.7*scale, z);
+      treeDummy.updateMatrix();
+      leafMatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+
+      treeDummy.position.set(x, h + 2.5*scale, z);
+      treeDummy.updateMatrix();
+      leaf2MatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+
       addBlob(x, z, 1.6*scale, group);
     }
 
@@ -772,18 +824,45 @@
       placed++;
     }
 
+    function buildInstancedTier(geo, mats, matricesByColor){
+      matricesByColor.forEach((list,i)=>{
+        if(list.length===0) return;
+        const inst = new THREE.InstancedMesh(geo, mats[i], list.length);
+        list.forEach((m,idx)=> inst.setMatrixAt(idx, m));
+        inst.instanceMatrix.needsUpdate = true;
+        group.add(inst);
+      });
+    }
+    if(trunkMatrices.length > 0){
+      const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, trunkMatrices.length);
+      trunkMatrices.forEach((m,i)=> trunkInst.setMatrixAt(i, m));
+      trunkInst.instanceMatrix.needsUpdate = true;
+      group.add(trunkInst);
+    }
+    buildInstancedTier(leafGeo, leafMats, leafMatricesByColor);
+    buildInstancedTier(leafGeo2, leafMats, leaf2MatricesByColor);
+
     const rockMat = new THREE.MeshPhongMaterial({color:0x6c6a72, flatShading:true, shininess:0});
+    const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+    const rockDummy = new THREE.Object3D();
+    const rockMatrices = [];
     for(let i=0;i<14;i++){
       const ang = Math.random()*Math.PI*2;
       const dist = 4.5 + Math.random()*20;
       const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
       const s = 0.25 + Math.random()*0.4;
-      const geo = new THREE.DodecahedronGeometry(s, 0);
-      const m = new THREE.Mesh(geo, rockMat);
-      m.position.set(x, terrainHeight(x,z)+s*0.4, z);
-      m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      group.add(m);
+      rockDummy.position.set(x, terrainHeight(x,z)+s*0.4, z);
+      rockDummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      rockDummy.scale.set(s,s,s);
+      rockDummy.updateMatrix();
+      rockMatrices.push(rockDummy.matrix.clone());
       addBlob(x,z,s*2.4,group);
+    }
+    if(rockMatrices.length>0){
+      const rockInst = new THREE.InstancedMesh(rockGeo, rockMat, rockMatrices.length);
+      rockMatrices.forEach((m,i)=>rockInst.setMatrixAt(i,m));
+      rockInst.instanceMatrix.needsUpdate = true;
+      group.add(rockInst);
     }
 
     const stoneMat = new THREE.MeshPhongMaterial({color:0x817a86, flatShading:true, shininess:0});
@@ -832,6 +911,7 @@
     makeTorch(1.7, 2.1);
     makeTorch(-1.7, 2.1);
 
+    flushBlobs();
     return {
       group, lights, smoke: [], precip: [], flashers: [],
       fog:{color:0xdf9a5c, near:12, far:34},
@@ -905,17 +985,22 @@
     // distant skyline: warehouse blocks
     const bldgMatA = new THREE.MeshPhongMaterial({color:0x35373f, flatShading:true, shininess:0});
     const bldgMatB = new THREE.MeshPhongMaterial({color:0x40424a, flatShading:true, shininess:0});
+    const bldgGeo = new THREE.BoxGeometry(1,1,1);
+    const bldgDummy = new THREE.Object3D();
+    const bldgMatricesA = [], bldgMatricesB = [];
     const skylineCount = 16;
     for(let i=0;i<skylineCount;i++){
       const ang = (i/skylineCount)*Math.PI*2 + Math.random()*0.2;
       const dist = 26 + Math.random()*8;
       const w = 3+Math.random()*3, d = 3+Math.random()*3, h = 5+Math.random()*10;
-      const geo = new THREE.BoxGeometry(w,h,d);
-      const m = new THREE.Mesh(geo, Math.random()>0.5?bldgMatA:bldgMatB);
-      m.position.set(Math.cos(ang)*dist, h/2-1.2, Math.sin(ang)*dist);
-      m.rotation.y = Math.random()*Math.PI;
-      group.add(m);
+      bldgDummy.position.set(Math.cos(ang)*dist, h/2-1.2, Math.sin(ang)*dist);
+      bldgDummy.rotation.set(0, Math.random()*Math.PI, 0);
+      bldgDummy.scale.set(w,h,d);
+      bldgDummy.updateMatrix();
+      (Math.random()>0.5 ? bldgMatricesA : bldgMatricesB).push(bldgDummy.matrix.clone());
     }
+    [buildInstanced(bldgGeo, bldgMatA, bldgMatricesA), buildInstanced(bldgGeo, bldgMatB, bldgMatricesB)]
+      .forEach(inst => { if(inst) group.add(inst); });
 
     // smokestacks (closer, with rising smoke)
     const stackMat = new THREE.MeshPhongMaterial({color:0x5b3f38, flatShading:true, shininess:0});
@@ -951,21 +1036,27 @@
     const crateMat2 = new THREE.MeshPhongMaterial({color:0x6e5330, flatShading:true, shininess:0});
     const barrelMat = new THREE.MeshPhongMaterial({color:0x8a3a28, flatShading:true, shininess:0});
     const barrelMat2 = new THREE.MeshPhongMaterial({color:0x5c6a6e, flatShading:true, shininess:0});
+    const crateGeo = new THREE.BoxGeometry(1,1,1);
+    const barrelGeo = new THREE.CylinderGeometry(1,1,1,10);
+    const propDummy = new THREE.Object3D();
+    const crateMatricesA=[], crateMatricesB=[], barrelMatricesA=[], barrelMatricesB=[];
 
     function placeCrate(x,z){
       const s = 0.55 + Math.random()*0.35;
-      const m = new THREE.Mesh(new THREE.BoxGeometry(s,s,s), Math.random()>0.5?crateMat:crateMat2);
-      m.position.set(x, s/2, z);
-      m.rotation.y = Math.random()*Math.PI*2;
-      group.add(m);
+      propDummy.position.set(x, s/2, z);
+      propDummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      propDummy.scale.set(s,s,s);
+      propDummy.updateMatrix();
+      (Math.random()>0.5?crateMatricesA:crateMatricesB).push(propDummy.matrix.clone());
       addBlob(x,z,s*1.8,group);
     }
     function placeBarrel(x,z){
       const r = 0.28 + Math.random()*0.1, h = 0.6 + Math.random()*0.2;
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,10), Math.random()>0.5?barrelMat:barrelMat2);
-      m.position.set(x, h/2, z);
-      m.rotation.y = Math.random()*Math.PI*2;
-      group.add(m);
+      propDummy.position.set(x, h/2, z);
+      propDummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      propDummy.scale.set(r,h,r);
+      propDummy.updateMatrix();
+      (Math.random()>0.5?barrelMatricesA:barrelMatricesB).push(propDummy.matrix.clone());
       addBlob(x,z,r*3.2,group);
     }
 
@@ -978,6 +1069,12 @@
       if(Math.random()>0.5) placeCrate(x,z); else placeBarrel(x,z);
       placed++;
     }
+    [
+      buildInstanced(crateGeo, crateMat, crateMatricesA),
+      buildInstanced(crateGeo, crateMat2, crateMatricesB),
+      buildInstanced(barrelGeo, barrelMat, barrelMatricesA),
+      buildInstanced(barrelGeo, barrelMat2, barrelMatricesB)
+    ].forEach(inst => { if(inst) group.add(inst); });
 
     // industrial platform (same footprint as the shrine dais)
     const steelMat = new THREE.MeshPhongMaterial({color:0x3a3d42, flatShading:true, shininess:0});
@@ -992,13 +1089,19 @@
     group.add(daisRim);
 
     // rivets around the rim
+    const rivetGeo = new THREE.SphereGeometry(0.035,6,6);
+    const rivetMatrices = [];
     for(let i=0;i<16;i++){
       const ang = (i/16)*Math.PI*2;
       const r = PLATFORM_OUTER_R-0.15;
-      const rivet = new THREE.Mesh(new THREE.SphereGeometry(0.035,6,6), steelMatDark);
-      rivet.position.set(Math.cos(ang)*r, 0.41, Math.sin(ang)*r);
-      group.add(rivet);
+      propDummy.position.set(Math.cos(ang)*r, 0.41, Math.sin(ang)*r);
+      propDummy.rotation.set(0,0,0);
+      propDummy.scale.set(1,1,1);
+      propDummy.updateMatrix();
+      rivetMatrices.push(propDummy.matrix.clone());
     }
+    const rivetInst = buildInstanced(rivetGeo, steelMatDark, rivetMatrices);
+    if(rivetInst) group.add(rivetInst);
 
     // lamp posts at the platform corners
     function makeLamp(x,z){
@@ -1024,6 +1127,7 @@
     makeLamp(1.9, 2.0);
     makeLamp(-1.9, 2.0);
 
+    flushBlobs();
     return {
       group, lights, smoke, precip: [], flashers: [],
       fog:{color:0x8f8a80, near:9, far:28},
@@ -1093,17 +1197,32 @@
     // distant crystal spires, standing in for the shrine's mountains
     const crystalMat = new THREE.MeshPhongMaterial({ color:0x6a4fa0, emissive:0x2a1a55, flatShading:true, shininess:10 });
     const crystalMat2 = new THREE.MeshPhongMaterial({ color:0x3fa0a0, emissive:0x0f4a4a, flatShading:true, shininess:10 });
+    const spireGeo = new THREE.ConeGeometry(1, 1, 5);
     const spireCount = 20;
+    const spireDummy = new THREE.Object3D();
+    const spireMatricesA = [], spireMatricesB = [];
     for(let i=0;i<spireCount;i++){
       const ang = (i/spireCount)*Math.PI*2 + Math.random()*0.15;
       const dist = 25 + Math.random()*8;
       const h = 5 + Math.random()*10;
       const r = 1.2 + Math.random()*1.6;
-      const geo = new THREE.ConeGeometry(r, h, 5);
-      const m = new THREE.Mesh(geo, Math.random()>0.5?crystalMat:crystalMat2);
-      m.position.set(Math.cos(ang)*dist, h/2 - 1.5, Math.sin(ang)*dist);
-      m.rotation.y = Math.random()*Math.PI;
-      group.add(m);
+      spireDummy.position.set(Math.cos(ang)*dist, h/2 - 1.5, Math.sin(ang)*dist);
+      spireDummy.rotation.set(0, Math.random()*Math.PI, 0);
+      spireDummy.scale.set(r, h, r);
+      spireDummy.updateMatrix();
+      (Math.random()>0.5 ? spireMatricesA : spireMatricesB).push(spireDummy.matrix.clone());
+    }
+    if(spireMatricesA.length>0){
+      const instA = new THREE.InstancedMesh(spireGeo, crystalMat, spireMatricesA.length);
+      spireMatricesA.forEach((m,i)=>instA.setMatrixAt(i,m));
+      instA.instanceMatrix.needsUpdate = true;
+      group.add(instA);
+    }
+    if(spireMatricesB.length>0){
+      const instB = new THREE.InstancedMesh(spireGeo, crystalMat2, spireMatricesB.length);
+      spireMatricesB.forEach((m,i)=>instB.setMatrixAt(i,m));
+      instB.instanceMatrix.needsUpdate = true;
+      group.add(instB);
     }
 
     // bioluminescent crystal clusters, standing in for trees
@@ -1117,27 +1236,47 @@
     const crystalGeoSmall = new THREE.IcosahedronGeometry(0.3, 0);
     const stalkGeo = new THREE.CylinderGeometry(0.06,0.09,0.7,5);
 
+    // Crystal clusters are instanced (grouped by their 3 color variants) —
+    // the point lights stay per-cluster since lights can't be instanced,
+    // but the visible geometry collapses from 3 meshes/cluster to 7 draw calls total.
+    const clusterDummy = new THREE.Object3D();
+    const clusterPartDummy = new THREE.Object3D();
+    clusterDummy.add(clusterPartDummy);
+    const stalkMatrices = [];
+    const crystalMatricesByColor = clusterMats.map(()=>[]);
+    const crystal2MatricesByColor = clusterMats.map(()=>[]);
+
     function placeCluster(x,z){
       const h = terrainHeight(x,z);
-      const cg = new THREE.Group();
       const scale = 0.7 + Math.random()*0.6;
-      const mat = clusterMats[Math.floor(Math.random()*clusterMats.length)];
-      const stalk = new THREE.Mesh(stalkGeo, stalkMat);
-      stalk.position.y = 0.35*scale;
-      stalk.scale.set(scale,scale,scale);
-      cg.add(stalk);
-      const crystal = new THREE.Mesh(crystalGeo, mat);
-      crystal.position.y = 0.85*scale;
-      crystal.scale.set(scale,scale*1.3,scale);
-      crystal.rotation.y = Math.random()*Math.PI;
-      cg.add(crystal);
-      const crystal2 = new THREE.Mesh(crystalGeoSmall, mat);
-      crystal2.position.set(0.25*scale, 0.55*scale, 0.1*scale);
-      crystal2.rotation.y = Math.random()*Math.PI;
-      cg.add(crystal2);
-      cg.position.set(x, h, z);
-      cg.rotation.y = Math.random()*Math.PI*2;
-      group.add(cg);
+      const colorIdx = Math.floor(Math.random()*clusterMats.length);
+      const mat = clusterMats[colorIdx];
+
+      clusterDummy.position.set(x, h, z);
+      clusterDummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      clusterDummy.updateMatrix();
+
+      clusterPartDummy.position.set(0, 0.35*scale, 0);
+      clusterPartDummy.rotation.set(0,0,0);
+      clusterPartDummy.scale.set(scale,scale,scale);
+      clusterPartDummy.updateMatrix();
+      clusterDummy.updateMatrixWorld(true);
+      stalkMatrices.push(clusterPartDummy.matrixWorld.clone());
+
+      clusterPartDummy.position.set(0, 0.85*scale, 0);
+      clusterPartDummy.rotation.set(0, Math.random()*Math.PI, 0);
+      clusterPartDummy.scale.set(scale, scale*1.3, scale);
+      clusterPartDummy.updateMatrix();
+      clusterDummy.updateMatrixWorld(true);
+      crystalMatricesByColor[colorIdx].push(clusterPartDummy.matrixWorld.clone());
+
+      clusterPartDummy.position.set(0.25*scale, 0.55*scale, 0.1*scale);
+      clusterPartDummy.rotation.set(0, Math.random()*Math.PI, 0);
+      clusterPartDummy.scale.set(1,1,1);
+      clusterPartDummy.updateMatrix();
+      clusterDummy.updateMatrixWorld(true);
+      crystal2MatricesByColor[colorIdx].push(clusterPartDummy.matrixWorld.clone());
+
       addBlob(x, z, 1.3*scale, group);
 
       const light = new THREE.PointLight(mat.color.getHex(), 0.5, 2.2, 2);
@@ -1156,19 +1295,41 @@
       placed++;
     }
 
+    function buildClusterInstanced(geo, mat, matrices){
+      if(matrices.length===0) return;
+      const inst = new THREE.InstancedMesh(geo, mat, matrices.length);
+      matrices.forEach((m,i)=> inst.setMatrixAt(i, m));
+      inst.instanceMatrix.needsUpdate = true;
+      group.add(inst);
+    }
+    buildClusterInstanced(stalkGeo, stalkMat, stalkMatrices);
+    clusterMats.forEach((mat,i)=>{
+      buildClusterInstanced(crystalGeo, mat, crystalMatricesByColor[i]);
+      buildClusterInstanced(crystalGeoSmall, mat, crystal2MatricesByColor[i]);
+    });
+
     // alien boulders
     const rockMat = new THREE.MeshPhongMaterial({color:0x4a4258, flatShading:true, shininess:5});
+    const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+    const rockDummy = new THREE.Object3D();
+    const rockMatrices = [];
     for(let i=0;i<14;i++){
       const ang = Math.random()*Math.PI*2;
       const dist = 4.5 + Math.random()*20;
       const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
       const s = 0.25 + Math.random()*0.4;
-      const geo = new THREE.DodecahedronGeometry(s, 0);
-      const m = new THREE.Mesh(geo, rockMat);
-      m.position.set(x, terrainHeight(x,z)+s*0.4, z);
-      m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      group.add(m);
+      rockDummy.position.set(x, terrainHeight(x,z)+s*0.4, z);
+      rockDummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      rockDummy.scale.set(s,s,s);
+      rockDummy.updateMatrix();
+      rockMatrices.push(rockDummy.matrix.clone());
       addBlob(x,z,s*2.4,group);
+    }
+    if(rockMatrices.length>0){
+      const rockInst = new THREE.InstancedMesh(rockGeo, rockMat, rockMatrices.length);
+      rockMatrices.forEach((m,i)=>rockInst.setMatrixAt(i,m));
+      rockInst.instanceMatrix.needsUpdate = true;
+      group.add(rockInst);
     }
 
     // starfield
@@ -1256,6 +1417,7 @@
     makeOrb(1.7, 2.1);
     makeOrb(-1.7, 2.1);
 
+    flushBlobs();
     return {
       group, lights, smoke, precip: [], flashers: [],
       fog:{color:0x4a3f66, near:10, far:30},
@@ -1316,6 +1478,10 @@
     const towerRoofMat = new THREE.MeshPhongMaterial({color:0x201e1a, flatShading:true, shininess:0});
     const wireMat = new THREE.MeshPhongMaterial({color:0x18171a, flatShading:true, shininess:20});
     const skylineCount = 26;
+    const postGeo = new THREE.CylinderGeometry(0.05,0.06,1.5,5);
+    const wireGeo = new THREE.CylinderGeometry(0.012,0.012,1.05,4);
+    const fenceDummy = new THREE.Object3D();
+    const postMatrices = [], wireMatrices = [];
     for(let i=0;i<skylineCount;i++){
       const ang = (i/skylineCount)*Math.PI*2 + Math.random()*0.06;
       const dist = 25 + Math.random()*6;
@@ -1343,66 +1509,91 @@
         tg.rotation.y = -ang;
         group.add(tg);
       } else {
-        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.5,5), postMat);
-        post.position.set(Math.cos(ang)*dist, 0.75, Math.sin(ang)*dist);
-        group.add(post);
+        const px = Math.cos(ang)*dist, pz = Math.sin(ang)*dist;
+        fenceDummy.position.set(px, 0.75, pz);
+        fenceDummy.rotation.set(0,0,0);
+        fenceDummy.scale.set(1,1,1);
+        fenceDummy.updateMatrix();
+        postMatrices.push(fenceDummy.matrix.clone());
         for(let w=0; w<3; w++){
-          const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,1.05,4), wireMat);
-          wire.position.set(Math.cos(ang)*dist, 0.55+w*0.32, Math.sin(ang)*dist);
-          wire.rotation.y = -ang + Math.PI/2;
-          wire.rotation.z = Math.PI/2;
-          group.add(wire);
+          fenceDummy.position.set(px, 0.55+w*0.32, pz);
+          fenceDummy.rotation.set(0, -ang + Math.PI/2, Math.PI/2);
+          fenceDummy.updateMatrix();
+          wireMatrices.push(fenceDummy.matrix.clone());
         }
       }
     }
+    [buildInstanced(postGeo, postMat, postMatrices), buildInstanced(wireGeo, wireMat, wireMatrices)]
+      .forEach(inst => { if(inst) group.add(inst); });
 
-    // sparse taiga: bare birches and snow-capped pines, standing in for trees
+    // sparse taiga: bare birches and snow-capped pines, standing in for trees.
+    // Instanced instead of one mesh per branch/cone — cuts what was ~9 draw
+    // calls per tree down to a handful of InstancedMesh calls total.
     const birchTrunkMat = new THREE.MeshPhongMaterial({color:0xc8c6be, flatShading:true, shininess:0});
     const birchBranchMat = new THREE.MeshPhongMaterial({color:0x2a2825, flatShading:true, shininess:0});
     const pineMat = new THREE.MeshPhongMaterial({color:0x2e4234, flatShading:true, shininess:0});
     const pineSnowMat = new THREE.MeshPhongMaterial({color:0xe4e8ea, flatShading:true, shininess:0});
     const trunkGeo = new THREE.CylinderGeometry(0.06,0.09,2.2,5);
+    const branchGeo = new THREE.CylinderGeometry(0.015,0.03,0.55,4);
+    const pineC1Geo = new THREE.ConeGeometry(0.55,1.1,6);
+    const pineC2Geo = new THREE.ConeGeometry(0.4,0.85,6);
+    const pineSnow1Geo = new THREE.ConeGeometry(0.5,0.14,6);
+    const pineSnow2Geo = new THREE.ConeGeometry(0.15,0.14,6);
+
+    const taigaDummy = new THREE.Object3D();
+    const partDummy = new THREE.Object3D();
+    taigaDummy.add(partDummy);
+
+    const birchTrunkMatrices = [];
+    const birchBranchMatrices = [];
+    const pineC1Matrices = [], pineC2Matrices = [], pineSnow1Matrices = [], pineSnow2Matrices = [];
 
     function placeBirch(x,z){
       const h = terrainHeight(x,z);
-      const tg = new THREE.Group();
       const scale = 0.8 + Math.random()*0.5;
-      const trunk = new THREE.Mesh(trunkGeo, birchTrunkMat);
-      trunk.position.y = 1.1*scale;
-      trunk.scale.set(scale,scale,scale);
-      tg.add(trunk);
+      taigaDummy.position.set(x, h, z);
+      taigaDummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      taigaDummy.updateMatrix();
+
+      partDummy.position.set(0, 1.1*scale, 0);
+      partDummy.rotation.set(0,0,0);
+      partDummy.scale.set(scale,scale,scale);
+      partDummy.updateMatrix();
+      taigaDummy.updateMatrixWorld(true);
+      birchTrunkMatrices.push(partDummy.matrixWorld.clone());
+
       for(let b=0;b<4;b++){
-        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.03,0.55*scale,4), birchBranchMat);
-        branch.position.set(0, (1.6+b*0.16)*scale, 0);
-        branch.rotation.z = (Math.random()>0.5?1:-1) * (0.7+Math.random()*0.4);
-        branch.rotation.y = Math.random()*Math.PI;
-        tg.add(branch);
+        partDummy.position.set(0, (1.6+b*0.16)*scale, 0);
+        partDummy.rotation.set(0, Math.random()*Math.PI, (Math.random()>0.5?1:-1)*(0.7+Math.random()*0.4));
+        partDummy.scale.set(scale,scale,scale);
+        partDummy.updateMatrix();
+        taigaDummy.updateMatrixWorld(true);
+        birchBranchMatrices.push(partDummy.matrixWorld.clone());
       }
-      tg.position.set(x, h, z);
-      tg.rotation.y = Math.random()*Math.PI*2;
-      group.add(tg);
       addBlob(x, z, 0.7*scale, group);
     }
 
     function placePine(x,z){
       const h = terrainHeight(x,z);
       const scale = 0.8 + Math.random()*0.6;
-      const pg = new THREE.Group();
-      const c1 = new THREE.Mesh(new THREE.ConeGeometry(0.55,1.1,6), pineMat);
-      c1.position.y = 0.75*scale; c1.scale.set(scale,scale,scale);
-      pg.add(c1);
-      const c2 = new THREE.Mesh(new THREE.ConeGeometry(0.4,0.85,6), pineMat);
-      c2.position.y = 1.35*scale; c2.scale.set(scale,scale,scale);
-      pg.add(c2);
-      const snow1 = new THREE.Mesh(new THREE.ConeGeometry(0.5,0.14,6), pineSnowMat);
-      snow1.position.y = 1.02*scale; snow1.scale.set(scale,scale,scale);
-      pg.add(snow1);
-      const snow2 = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.14,6), pineSnowMat);
-      snow2.position.y = 1.75*scale; snow2.scale.set(scale,scale,scale);
-      pg.add(snow2);
-      pg.position.set(x, h, z);
-      pg.rotation.y = Math.random()*Math.PI*2;
-      group.add(pg);
+      taigaDummy.position.set(x, h, z);
+      taigaDummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      taigaDummy.updateMatrix();
+
+      const tiers = [
+        [pineC1Matrices, 0.75, pineC1Geo],
+        [pineC2Matrices, 1.35, pineC2Geo],
+        [pineSnow1Matrices, 1.02, pineSnow1Geo],
+        [pineSnow2Matrices, 1.75, pineSnow2Geo]
+      ];
+      tiers.forEach(([list, yMult])=>{
+        partDummy.position.set(0, yMult*scale, 0);
+        partDummy.rotation.set(0,0,0);
+        partDummy.scale.set(scale,scale,scale);
+        partDummy.updateMatrix();
+        taigaDummy.updateMatrixWorld(true);
+        list.push(partDummy.matrixWorld.clone());
+      });
       addBlob(x, z, 0.85*scale, group);
     }
 
@@ -1416,44 +1607,81 @@
       placed++;
     }
 
+    function buildInstanced(geo, mat, matrices){
+      if(matrices.length===0) return;
+      const inst = new THREE.InstancedMesh(geo, mat, matrices.length);
+      matrices.forEach((m,i)=> inst.setMatrixAt(i, m));
+      inst.instanceMatrix.needsUpdate = true;
+      group.add(inst);
+    }
+    buildInstanced(trunkGeo, birchTrunkMat, birchTrunkMatrices);
+    buildInstanced(branchGeo, birchBranchMat, birchBranchMatrices);
+    buildInstanced(pineC1Geo, pineMat, pineC1Matrices);
+    buildInstanced(pineC2Geo, pineMat, pineC2Matrices);
+    buildInstanced(pineSnow1Geo, pineSnowMat, pineSnow1Matrices);
+    buildInstanced(pineSnow2Geo, pineSnowMat, pineSnow2Matrices);
+
     // log piles and snow-dusted boulders, standing in for rocks
     const logMat = new THREE.MeshPhongMaterial({color:0x4a3a28, flatShading:true, shininess:0});
     const logEndMat = new THREE.MeshPhongMaterial({color:0xc9b891, flatShading:true, shininess:0});
     const boulderMat = new THREE.MeshPhongMaterial({color:0x6a6d70, flatShading:true, shininess:0});
     const boulderSnowMat = new THREE.MeshPhongMaterial({color:0xe8ecec, flatShading:true, shininess:0});
+    const logGeo = new THREE.CylinderGeometry(0.14,0.14,1.1,8);
+    const logEndGeo = new THREE.CircleGeometry(0.14,8);
+    const boulderGeo = new THREE.DodecahedronGeometry(1,0);
+    const boulderCapGeo = new THREE.ConeGeometry(0.75,0.4,6); // pre-scaled by s below via non-uniform instance scale
+
+    const pileDummy = new THREE.Object3D();
+    const pilePartDummy = new THREE.Object3D();
+    pileDummy.add(pilePartDummy);
+    const logMatrices = [];
+    const logEndMatrices = [];
 
     function placeLogPile(x,z){
-      const g = new THREE.Group();
-      const logGeo = new THREE.CylinderGeometry(0.14,0.14,1.1,8);
       const rows = [[0,0],[0.24,0],[0.12,0.21],[-0.24,0],[-0.12,0.21]];
+      const h = terrainHeight(x,z);
+      pileDummy.position.set(x,h,z);
+      pileDummy.rotation.set(0, Math.random()*Math.PI*2, 0);
+      pileDummy.updateMatrix();
+
       rows.forEach(([ox,oy])=>{
-        const log = new THREE.Mesh(logGeo, logMat);
-        log.rotation.z = Math.PI/2;
-        log.position.set(0, 0.14+oy, ox);
-        g.add(log);
-        [ -0.56, 0.56 ].forEach(ex=>{
-          const cap = new THREE.Mesh(new THREE.CircleGeometry(0.14,8), logEndMat);
-          cap.rotation.y = Math.PI/2;
-          cap.position.set(ex, 0.14+oy, ox);
-          g.add(cap);
+        pilePartDummy.position.set(0, 0.14+oy, ox);
+        pilePartDummy.rotation.set(0, 0, Math.PI/2);
+        pilePartDummy.scale.set(1,1,1);
+        pilePartDummy.updateMatrix();
+        pileDummy.updateMatrixWorld(true);
+        logMatrices.push(pilePartDummy.matrixWorld.clone());
+
+        [-0.56, 0.56].forEach(ex=>{
+          pilePartDummy.position.set(ex, 0.14+oy, ox);
+          pilePartDummy.rotation.set(0, Math.PI/2, 0);
+          pilePartDummy.scale.set(1,1,1);
+          pilePartDummy.updateMatrix();
+          pileDummy.updateMatrixWorld(true);
+          logEndMatrices.push(pilePartDummy.matrixWorld.clone());
         });
       });
-      const h = terrainHeight(x,z);
-      g.position.set(x,h,z);
-      g.rotation.y = Math.random()*Math.PI*2;
-      group.add(g);
       addBlob(x,z,1.4,group);
     }
+
+    const boulderDummy = new THREE.Object3D();
+    const boulderMatrices = [];
+    const boulderCapMatrices = [];
     function placeBoulder(x,z){
       const s = 0.25 + Math.random()*0.4;
-      const m = new THREE.Mesh(new THREE.DodecahedronGeometry(s,0), boulderMat);
       const h = terrainHeight(x,z);
-      m.position.set(x, h+s*0.4, z);
-      m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      group.add(m);
-      const cap = new THREE.Mesh(new THREE.ConeGeometry(s*0.75,s*0.4,6), boulderSnowMat);
-      cap.position.set(x, h+s*0.85, z);
-      group.add(cap);
+      boulderDummy.position.set(x, h+s*0.4, z);
+      boulderDummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      boulderDummy.scale.set(s,s,s);
+      boulderDummy.updateMatrix();
+      boulderMatrices.push(boulderDummy.matrix.clone());
+
+      boulderDummy.position.set(x, h+s*0.85, z);
+      boulderDummy.rotation.set(0,0,0);
+      boulderDummy.scale.set(s,s,s);
+      boulderDummy.updateMatrix();
+      boulderCapMatrices.push(boulderDummy.matrix.clone());
+
       addBlob(x,z,s*2.4,group);
     }
 
@@ -1467,6 +1695,18 @@
       const dist = 4.5 + Math.random()*17;
       placeBoulder(Math.cos(ang)*dist, Math.sin(ang)*dist);
     }
+
+    function buildFarmInstanced(geo, mat, matrices){
+      if(matrices.length===0) return;
+      const inst = new THREE.InstancedMesh(geo, mat, matrices.length);
+      matrices.forEach((m,i)=> inst.setMatrixAt(i, m));
+      inst.instanceMatrix.needsUpdate = true;
+      group.add(inst);
+    }
+    buildFarmInstanced(logGeo, logMat, logMatrices);
+    buildFarmInstanced(logEndGeo, logEndMat, logEndMatrices);
+    buildFarmInstanced(boulderGeo, boulderMat, boulderMatrices);
+    buildFarmInstanced(boulderCapGeo, boulderSnowMat, boulderCapMatrices);
 
     // barracks, muster bell — a fixed camp vignette for composition
     const barracksMat = new THREE.MeshPhongMaterial({color:0x4a4844, flatShading:true, shininess:0});
@@ -1572,6 +1812,7 @@
       precip.push({ sprite:spr, speed:0.8+Math.random()*0.8, driftPhase:Math.random()*10, startY:startY, topY:18 });
     }
 
+    flushBlobs();
     return {
       group, lights, smoke, precip, flashers: [],
       fog:{color:0xaab4bc, near:9, far:24},
@@ -1680,6 +1921,18 @@
     const crowdMatrices = [];
     const crowdPositions = [];
     const dummy = new THREE.Object3D();
+    // standardDieMats face order is [+x,-x,+y,-y,+z,-z] = pip values [1,6,2,5,3,4].
+    // Picking one of these normals to align with "up" (plus a random spin
+    // around that axis) gives every pip value an equal shot at showing on
+    // top, instead of always leaving the original +y face (a "2") up.
+    const dieUpNormals = [
+      new THREE.Vector3(1,0,0), new THREE.Vector3(-1,0,0),
+      new THREE.Vector3(0,1,0), new THREE.Vector3(0,-1,0),
+      new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,-1)
+    ];
+    const worldUp = new THREE.Vector3(0,1,0);
+    const alignQuat = new THREE.Quaternion();
+    const yawQuat = new THREE.Quaternion();
     const tiers = 7;
     const arenaHalf = ringSize/2 + 1.3;
     for(let tier=0; tier<tiers; tier++){
@@ -1693,7 +1946,10 @@
         const z = Math.sin(ang)*(radius+jitter);
         const py = y + Math.random()*0.08;
         dummy.position.set(x, py, z);
-        dummy.rotation.set((Math.random()-0.5)*0.3, Math.random()*Math.PI*2, (Math.random()-0.5)*0.3);
+        const faceIdx = Math.floor(Math.random()*6);
+        alignQuat.setFromUnitVectors(dieUpNormals[faceIdx], worldUp);
+        yawQuat.setFromAxisAngle(worldUp, Math.random()*Math.PI*2);
+        dummy.quaternion.copy(yawQuat).multiply(alignQuat);
         const sc = 0.85 + Math.random()*0.35;
         dummy.scale.set(sc,sc,sc);
         dummy.updateMatrix();
@@ -1885,7 +2141,7 @@
     factionButtons.forEach(btn=>{ btn.disabled=false; });
     setupPlayerLabel.textContent = 'PLAYER 1';
     setupTitle.textContent = 'Choose Your Faction';
-    setupOverlay.classList.remove('hidden');
+    setupOverlay.classList.add('show');
     textbox.classList.remove('show');
     hint.textContent = 'TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL';
     hint.classList.remove('fade');
@@ -1902,7 +2158,7 @@
       setupTitle.textContent = 'Choose Your Faction';
       factionButtons.forEach(btn=>{ btn.disabled = (btn.dataset.key === key); });
     } else {
-      setupOverlay.classList.add('hidden');
+      setupOverlay.classList.remove('show');
       gameStarted = true;
       gameOver = false;
       currentPlayer = 0;
@@ -1926,7 +2182,11 @@
   playAgainBtn.addEventListener('click', beginSetup);
 
   startGameBtn.addEventListener('click', ()=>{
-    titleOverlay.classList.add('hidden');
+    titleOverlay.classList.remove('show');
+    turnIndicator.classList.remove('pregame-hidden');
+    scoreboardEl.classList.remove('pregame-hidden');
+    rollCounterEl.classList.remove('pregame-hidden');
+    dice.forEach(d=>{ d.mesh.visible = true; });
     beginSetup();
   });
   howtoBtn.addEventListener('click', ()=>{
@@ -1937,7 +2197,7 @@
   });
 
   function skipRemainingRolls(){
-    if(!gameStarted || gameOver || rolling || pendingChoice) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice) return;
     if(rollCount < 1) return;
     awaitingTurnEnd = false;
     choicePrompt.classList.remove('show');
@@ -1948,40 +2208,38 @@
   function endTurn(){
     if(gameOver) return;
     awaitingTurnEnd = false;
-    currentPlayer = 1 - currentPlayer;
-    rollCount = 0;
-    dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
-    applyDiceColorsForPlayer(currentPlayer);
-    updateRollCounter();
-    switchToEnv(factionByKey(players[currentPlayer].faction).env);
-    updateTurnIndicator();
-    updateScoreboard();
-    hint.textContent = 'TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL';
-    hint.classList.remove('fade');
-    hintFaded = false;
+
+    const zoomInRadius = Math.max(minRadius, 3.2);
+    animateCameraTo(zoomInRadius, theta, phi, 550, ()=>{
+      currentPlayer = 1 - currentPlayer;
+      rollCount = 0;
+      dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
+      applyDiceColorsForPlayer(currentPlayer);
+      updateRollCounter();
+      switchToEnv(factionByKey(players[currentPlayer].faction).env);
+      updateTurnIndicator();
+      updateScoreboard();
+      hint.textContent = 'TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL';
+      hint.classList.remove('fade');
+      hintFaded = false;
+
+      const cam = PLAYER_CAM[currentPlayer];
+      animateCameraTo(cam.radius, cam.theta, cam.phi, 650, null);
+    });
   }
 
   // ---------- Combat bonus rules (based on the 3 faction dice) ----------
-  // SICKLE/HAMMER = defense symbols, GUN/PLANE = attack symbols,
-  // SWORD = knight, UFO = ufo — matching the existing faction grouping.
-  const SYMBOL_CATEGORY = {
+  // SICKLE/HAMMER = defense, GUN/PLANE = attack. SWORD now always counts as
+  // attack too (a Knight's blade is a weapon) — so a roll that forms the
+  // Knight faction naturally earns an attack bonus once a faction is
+  // established, same as any other attack-heavy roll. UFO is ambiguous alien
+  // tech, so whenever one appears the player picks whether it counts as
+  // attack or defense that roll.
+  const STATIC_CATEGORY = {
     SICKLE:'defense', HAMMER:'defense',
     GUN:'attack', PLANE:'attack',
-    SWORD:'knight', UFO:'ufo'
+    SWORD:'attack'
   };
-
-  function matchBonusPattern(a,d,k,u){
-    if(a===3) return { type:'triple-attack' };
-    if(d===3) return { type:'triple-defense' };
-    if(a===1 && d===1 && k===1) return { type:'equip', awards:['attack'] };
-    if(a===1 && d===1 && u===1) return { type:'choice' };
-    if(a===2 && d===1) return { type:'equip', awards:['attack'] };
-    if(d===2 && a===1) return { type:'equip', awards:['defense'] };
-    if(a===2 && (k===1 || u===1)) return { type:'equip', awards:['attack','attack'] };
-    if(d===2 && k===1) return { type:'equip', awards:['attack','defense'] };
-    if(d===2 && u===1) return { type:'equip', awards:['defense','defense'] };
-    return { type:'none' };
-  }
 
   const EQUIP_VALUE = { pip1:1, pip2:2, pip3:3, circle:0 };
 
@@ -2002,21 +2260,60 @@
     return { atkGain, defGain };
   }
 
-  let pendingChoice = null;
+  // Resolves the attack/defense bonus for a roll once we know how any UFOs
+  // in it should be counted (ufoAs is null when there were no UFOs to ask about).
+  function resolveBonusForRoll(labels, faction, equipValue, playerIdx, ufoAs){
+    if(faction){
+      players[playerIdx].factionEstablished = true;
+    }
 
-  choiceAttackBtn.addEventListener('click', ()=> resolveChoice('attack'));
-  choiceDefenseBtn.addEventListener('click', ()=> resolveChoice('defense'));
+    const a = labels.filter(l => STATIC_CATEGORY[l]==='attack' || (l==='UFO' && ufoAs==='attack')).length;
+    const d = labels.filter(l => STATIC_CATEGORY[l]==='defense' || (l==='UFO' && ufoAs==='defense')).length;
 
-  function resolveChoice(kind){
-    if(!pendingChoice) return;
-    const { equipValue, playerIdx } = pendingChoice;
-    pendingChoice = null;
-    choicePrompt.classList.remove('show');
-    const { atkGain, defGain } = applyEquipAwards([kind], equipValue, playerIdx);
-    tbBonus.textContent = kind==='attack'
-      ? '⚔ EQUIPPED ATTACK — ATK +' + atkGain + (atkGain>0 ? ' (dealt to opponent)' : '')
-      : '🛡 EQUIPPED DEFENSE — DEF +' + defGain;
+    let type = 'none';
+    if(a===3) type = 'triple-attack';
+    else if(d===3) type = 'triple-defense';
+    else if(a>=2) type = 'equip-attack';
+    else if(d>=2) type = 'equip-defense';
+
+    if(type !== 'none' && !players[playerIdx].factionEstablished){
+      tbBonus.textContent = '⚠ NO FACTION ESTABLISHED — BONUS WITHHELD';
+      concludeRollResolution();
+      return;
+    }
+
+    if(type === 'triple-attack'){
+      players[playerIdx].atk += 1;
+      applyDamage(playerIdx, 1);
+      tbBonus.textContent = '⚔ TRIPLE ATTACK — ATK +1';
+    } else if(type === 'triple-defense'){
+      const p = players[playerIdx];
+      const before = p.gdp;
+      p.gdp = Math.min(GDP_MAX, p.gdp + 3);
+      updateScoreboard();
+      tbBonus.textContent = '🛡 TRIPLE DEFENSE — GDP +' + (p.gdp-before);
+    } else if(type === 'equip-attack'){
+      const { atkGain } = applyEquipAwards(['attack'], equipValue, playerIdx);
+      tbBonus.textContent = atkGain>0 ? ('⚙ EQUIP — ATK +'+atkGain) : '⚙ EQUIP TRIGGERED — BLANK ROLL';
+    } else if(type === 'equip-defense'){
+      const { defGain } = applyEquipAwards(['defense'], equipValue, playerIdx);
+      tbBonus.textContent = defGain>0 ? ('⚙ EQUIP — DEF +'+defGain) : '⚙ EQUIP TRIGGERED — BLANK ROLL';
+    }
+
     concludeRollResolution();
+  }
+
+  let pendingUfoChoice = null;
+
+  choiceAttackBtn.addEventListener('click', ()=> resolveUfoChoice('attack'));
+  choiceDefenseBtn.addEventListener('click', ()=> resolveUfoChoice('defense'));
+
+  function resolveUfoChoice(kind){
+    if(!pendingUfoChoice) return;
+    const { labels, faction, equipValue, playerIdx } = pendingUfoChoice;
+    pendingUfoChoice = null;
+    choicePrompt.classList.remove('show');
+    resolveBonusForRoll(labels, faction, equipValue, playerIdx, kind);
   }
 
   let awaitingTurnEnd = false;
@@ -2333,6 +2630,7 @@
     const mesh = new THREE.Mesh(dieGeo, isEquip ? PLAYER_DICE_MATERIALS[0].equip : PLAYER_DICE_MATERIALS[0].faction);
     mesh.position.copy(restPositions[i]);
     mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    mesh.visible = false; // hidden until the game actually starts (title screen has no platform for them)
     scene.add(mesh);
     addBlob(mesh.position.x, mesh.position.z, dieSize*2.1, scene);
 
@@ -2350,6 +2648,7 @@
       locked:false, lockRing
     });
   }
+  flushBlobs();
 
   function applyDiceColorsForPlayer(playerIdx){
     const set = PLAYER_DICE_MATERIALS[playerIdx];
@@ -2409,7 +2708,7 @@
   }
 
   function toggleLock(d){
-    if(!gameStarted || gameOver || rolling || pendingChoice || awaitingTurnEnd) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd) return;
     d.locked = !d.locked;
     d.lockRing.visible = d.locked;
     beep(d.locked ? 880 : 440, 0.05, 0.05, 'square');
@@ -2423,7 +2722,7 @@
   }
 
   function rollDice(){
-    if(!gameStarted || gameOver || rolling || pendingChoice || awaitingTurnEnd) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd) return;
     rolling = true;
     textbox.classList.remove('show');
     hint.classList.add('fade');
@@ -2497,48 +2796,17 @@
       return;
     }
 
-    const cats = labels.map(l=>SYMBOL_CATEGORY[l]);
-    const a = cats.filter(c=>c==='attack').length;
-    const d = cats.filter(c=>c==='defense').length;
-    const k = cats.filter(c=>c==='knight').length;
-    const u = cats.filter(c=>c==='ufo').length;
-    const pattern = matchBonusPattern(a,d,k,u);
     const equipValue = EQUIP_VALUE[equipType];
+    const ufoCount = labels.filter(l => l==='UFO').length;
 
-    if(faction){
-      players[currentPlayer].factionEstablished = true;
-    }
-
-    if(pattern.type !== 'none' && !players[currentPlayer].factionEstablished){
-      tbBonus.textContent = '⚠ NO FACTION ESTABLISHED — BONUS WITHHELD';
-      concludeRollResolution();
-      return;
-    }
-
-    if(pattern.type === 'triple-attack'){
-      players[currentPlayer].atk += 1;
-      applyDamage(currentPlayer, 1);
-      tbBonus.textContent = '⚔ TRIPLE ATTACK — ATK +1';
-    } else if(pattern.type === 'triple-defense'){
-      const p = players[currentPlayer];
-      const before = p.gdp;
-      p.gdp = Math.min(GDP_MAX, p.gdp + 3);
-      updateScoreboard();
-      tbBonus.textContent = '🛡 TRIPLE DEFENSE — GDP +' + (p.gdp-before);
-    } else if(pattern.type === 'equip'){
-      const { atkGain, defGain } = applyEquipAwards(pattern.awards, equipValue, currentPlayer);
-      const parts = [];
-      if(atkGain>0) parts.push('ATK +'+atkGain);
-      if(defGain>0) parts.push('DEF +'+defGain);
-      tbBonus.textContent = parts.length ? ('⚙ EQUIP — ' + parts.join('  ')) : '⚙ EQUIP TRIGGERED — BLANK ROLL';
-    } else if(pattern.type === 'choice'){
-      pendingChoice = { equipValue, playerIdx: currentPlayer };
-      tbBonus.textContent = '⚙ CHOOSE YOUR EQUIP TYPE';
+    if(ufoCount > 0){
+      pendingUfoChoice = { labels, faction, equipValue, playerIdx: currentPlayer };
+      tbBonus.textContent = '⚙ UFO ROLLED — CALL IT ATK OR DEF';
       choicePrompt.classList.add('show');
       return; // wait for the player's choice before continuing the turn
     }
 
-    concludeRollResolution();
+    resolveBonusForRoll(labels, faction, equipValue, currentPlayer, null);
   }
 
   // ---------- Camera orbit controls ----------
@@ -2549,6 +2817,13 @@
   const minPhi = 0.16, maxPhi = Math.PI/2 - 0.03;
   const minRadius = 4.5, maxRadius = 18;
 
+  // Each player gets a slightly different default view, so a scene switch
+  // is unmistakably a new player's turn even before the environment finishes swapping.
+  const PLAYER_CAM = [
+    { theta: Math.PI * 0.22, phi: Math.PI * 0.22, radius: 7.5 },
+    { theta: Math.PI * 0.22 + Math.PI * 0.58, phi: Math.PI * 0.27, radius: 7.0 }
+  ];
+
   function updateCamera(){
     const sinPhi = Math.sin(phi);
     camera.position.x = target.x + radius * sinPhi * Math.sin(theta);
@@ -2556,7 +2831,25 @@
     camera.position.y = target.y + radius * Math.cos(phi);
     camera.lookAt(target);
   }
+  let cameraDirty = true;
   updateCamera();
+
+  // Simple tween for the turn-change zoom in/out — separate from the
+  // drag/zoom "dirty" path so it can drive the camera on its own each frame.
+  let cameraAnim = null;
+  function lerpAngle(from, to, t){
+    let diff = ((to - from + Math.PI) % (Math.PI*2) + Math.PI*2) % (Math.PI*2) - Math.PI;
+    return from + diff*t;
+  }
+  function animateCameraTo(toRadius, toTheta, toPhi, duration, onComplete){
+    cameraAnim = {
+      startTime: performance.now(), duration,
+      fromR: radius, toR: toRadius,
+      fromTheta: theta, toTheta,
+      fromPhi: phi, toPhi,
+      onComplete
+    };
+  }
 
   let isDragging = false, lastX=0, lastY=0, hintFaded=false;
   let downTime=0, dragDistance=0;
@@ -2597,6 +2890,7 @@
     theta -= dx*0.0062;
     phi   -= dy*0.0062;
     phi = Math.max(minPhi, Math.min(maxPhi, phi));
+    cameraDirty = true;
     if(dragDistance > TAP_MAX_DIST) fadeHint();
   });
   window.addEventListener('pointerup', (e)=>{
@@ -2625,6 +2919,7 @@
     e.preventDefault();
     radius += e.deltaY*0.0065;
     radius = Math.max(minRadius, Math.min(maxRadius, radius));
+    cameraDirty = true;
     fadeHint();
   }, {passive:false});
 
@@ -2642,6 +2937,7 @@
       radius += (pinchDist-d)*0.014;
       radius = Math.max(minRadius, Math.min(maxRadius, radius));
       pinchDist = d;
+      cameraDirty = true;
     }
   }, {passive:true});
   canvas.addEventListener('touchend', ()=>{ pinchDist=null; });
@@ -2654,16 +2950,37 @@
 
   // ---------- Animate ----------
   const clock = new THREE.Clock();
+  let rafId = null;
+  let loopRunning = false;
+  const TARGET_FPS = 30;
+  const FRAME_INTERVAL = 1000 / TARGET_FPS;
+  let lastFrameTime = 0;
+  let frameParity = 0;
+
   function animate(){
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
+
+    // Cap the render rate. Ambient effects (torch flicker, falling snow,
+    // camera orbit) don't need a 120Hz+ display's full refresh rate, so this
+    // cuts CPU/GPU work substantially on high-refresh screens with zero
+    // visible difference for this kind of scene.
+    const nowRaw = performance.now();
+    if(nowRaw - lastFrameTime < FRAME_INTERVAL) return;
+    lastFrameTime = nowRaw - ((nowRaw - lastFrameTime) % FRAME_INTERVAL);
+
     const dt = Math.min(clock.getDelta(), 0.05);
     const now = performance.now();
+    frameParity ^= 1;
 
-    currentEnv.lights.forEach((t,i)=>{
-      const flick = 0.85 + Math.sin(now*0.012 + i*3.1)*0.1 + Math.random()*0.08;
-      t.light.intensity = t.baseIntensity*flick;
-      if(t.flame.scale) t.flame.scale.y = 0.9 + Math.sin(now*0.02+i)*0.1;
-    });
+    // Flicker doesn't need per-frame precision — updating every other
+    // frame is visually identical and halves this loop's math.
+    if(frameParity === 0){
+      currentEnv.lights.forEach((t,i)=>{
+        const flick = 0.85 + Math.sin(now*0.012 + i*3.1)*0.1 + Math.random()*0.08;
+        t.light.intensity = t.baseIntensity*flick;
+        if(t.flame.scale) t.flame.scale.y = 0.9 + Math.sin(now*0.02+i)*0.1;
+      });
+    }
 
     currentEnv.smoke.forEach(p=>{
       const t = ((now*0.00035) + p.phase) % 1;
@@ -2720,8 +3037,11 @@
       d.mesh.position.x = THREE.MathUtils.lerp(d.startPos.x, d.targetPos.x, easedT);
       d.mesh.position.z = THREE.MathUtils.lerp(d.startPos.z, d.targetPos.z, easedT);
 
+      // Decaying bounce that actually starts at drop height (cos(0)=1) and
+      // settles to the ground by t=1, instead of snapping to the ground
+      // immediately and only bouncing upward from there.
       const amp = (d.startPos.y - groundY) * Math.exp(-4.2*t);
-      d.mesh.position.y = groundY + Math.abs(Math.sin(t*15.5)) * amp;
+      d.mesh.position.y = groundY + Math.abs(Math.cos(t*15.5)) * amp;
 
       if(t < 0.78){
         const decay = 1 - t/0.78;
@@ -2739,10 +3059,71 @@
       }
     });
 
-    updateCamera();
+    // Simple pairwise separation so dice never visibly pass through each
+    // other while tumbling — pushes overlapping pairs apart along the line
+    // between their centers. A resting/locked die never gets nudged; only
+    // the currently-active one gives way.
+    const DIE_MIN_DIST = dieSize * 1.08;
+    for(let i=0;i<dice.length;i++){
+      for(let j=i+1;j<dice.length;j++){
+        const a = dice[i], b = dice[j];
+        if(!a.active && !b.active) continue;
+        const dx = b.mesh.position.x - a.mesh.position.x;
+        const dz = b.mesh.position.z - a.mesh.position.z;
+        const distSq = dx*dx + dz*dz;
+        if(distSq > 0.000001 && distSq < DIE_MIN_DIST*DIE_MIN_DIST){
+          const dist = Math.sqrt(distSq);
+          const overlap = DIE_MIN_DIST - dist;
+          const nx = dx/dist, nz = dz/dist;
+          const aShare = (a.active && b.active) ? 0.5 : (a.active ? 1 : 0);
+          const bShare = (a.active && b.active) ? 0.5 : (b.active ? 1 : 0);
+          a.mesh.position.x -= nx*overlap*aShare;
+          a.mesh.position.z -= nz*overlap*aShare;
+          b.mesh.position.x += nx*overlap*bShare;
+          b.mesh.position.z += nz*overlap*bShare;
+        }
+      }
+    }
+
+    if(cameraAnim){
+      const t = Math.min(1, (now - cameraAnim.startTime) / cameraAnim.duration);
+      const eased = 1 - Math.pow(1-t, 2);
+      radius = cameraAnim.fromR + (cameraAnim.toR - cameraAnim.fromR) * eased;
+      theta = lerpAngle(cameraAnim.fromTheta, cameraAnim.toTheta, eased);
+      phi = cameraAnim.fromPhi + (cameraAnim.toPhi - cameraAnim.fromPhi) * eased;
+      updateCamera();
+      if(t >= 1){
+        const done = cameraAnim.onComplete;
+        cameraAnim = null;
+        if(done) done();
+      }
+    } else if(cameraDirty){
+      updateCamera();
+      cameraDirty = false;
+    }
     renderer.render(scene, camera);
   }
-  animate();
+  function startLoop(){
+    if(loopRunning) return;
+    loopRunning = true;
+    clock.getDelta(); // discard the paused duration so dt doesn't spike on resume
+    animate();
+  }
+  function stopLoop(){
+    loopRunning = false;
+    if(rafId !== null){
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      stopLoop();
+    } else {
+      startLoop();
+    }
+  });
+  startLoop();
 
   setTimeout(()=>{
     loading.style.opacity='0';
