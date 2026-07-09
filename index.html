@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Three Emblems</title>
+<title>PropaganDICE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -30,6 +30,9 @@
   body.env-farm{
     background:linear-gradient(180deg, #3a3f47 0%, #5c636b 45%, #8a94a0 80%, #a8b0b8 100%);
   }
+  body.env-title{
+    background:linear-gradient(180deg, #08070c 0%, #16141c 45%, #2a2530 80%, #3a2f38 100%);
+  }
   #canvas-wrap{position:fixed; inset:0;}
   canvas{display:block; touch-action:none; cursor:grab;}
   canvas.dragging{cursor:grabbing;}
@@ -54,7 +57,7 @@
   }
 
   #lore{
-    position:fixed; left:24px; top:24px; z-index:10;
+    position:fixed; left:24px; top:calc(24px + env(safe-area-inset-top, 0px)); z-index:10;
     max-width:260px;
     color:#f4ecd8;
     text-shadow:0 2px 6px rgba(0,0,0,0.6);
@@ -72,7 +75,7 @@
   }
 
   #scene-btn{
-    position:fixed; right:24px; top:24px; z-index:10;
+    position:fixed; right:24px; top:calc(24px + env(safe-area-inset-top, 0px)); z-index:10;
     font-family:'Press Start 2P', monospace;
     font-size:9px; letter-spacing:0.06em; color:#f4ecd8;
     background:rgba(10,10,15,0.45);
@@ -86,8 +89,25 @@
   #scene-btn:hover{ background:rgba(232,196,104,0.18); border-color:var(--gold); }
   #scene-btn:active{ transform:translateY(2px); }
 
+  #skip-btn{
+    position:fixed; right:24px; top:calc(66px + env(safe-area-inset-top, 0px)); z-index:10;
+    font-family:'Press Start 2P', monospace;
+    font-size:8px; letter-spacing:0.06em; color:#f4ecd8;
+    background:rgba(10,10,15,0.45);
+    border:2px solid rgba(159,180,224,0.55);
+    padding:9px 13px;
+    cursor:pointer;
+    text-shadow:0 2px 4px rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.08s ease, opacity 0.2s ease;
+  }
+  #skip-btn:hover{ background:rgba(159,180,224,0.18); border-color:#9fb4e0; }
+  #skip-btn:active{ transform:translateY(2px); }
+  #skip-btn:disabled{ opacity:0.35; cursor:default; }
+  #skip-btn:disabled:hover{ background:rgba(10,10,15,0.45); border-color:rgba(159,180,224,0.55); }
+
   #turn-indicator{
-    position:fixed; top:24px; left:50%; transform:translateX(-50%);
+    position:fixed; top:calc(24px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; text-align:center;
     text-shadow:0 2px 6px rgba(0,0,0,0.7);
     transition:opacity 0.3s ease;
@@ -103,7 +123,7 @@
   }
 
   #scoreboard{
-    position:fixed; top:78px; left:50%; transform:translateX(-50%);
+    position:fixed; top:calc(78px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; display:flex; align-items:center; gap:16px;
     text-shadow:0 2px 6px rgba(0,0,0,0.75);
   }
@@ -130,7 +150,7 @@
   }
 
   #hint{
-    position:fixed; bottom:34px; left:50%; transform:translateX(-50%);
+    position:fixed; bottom:calc(34px + env(safe-area-inset-bottom, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; font-family:'Press Start 2P', monospace;
     font-size:8px; letter-spacing:0.14em; color:#f4ecd8;
     text-shadow:0 2px 4px rgba(0,0,0,0.7);
@@ -139,7 +159,7 @@
   #hint.fade{opacity:0;}
 
   #roll-counter{
-    position:fixed; top:148px; left:50%; transform:translateX(-50%);
+    position:fixed; top:calc(160px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; font-family:'Press Start 2P', monospace;
     font-size:9px; letter-spacing:0.12em; color:var(--gold);
     text-shadow:0 2px 4px rgba(0,0,0,0.8);
@@ -149,7 +169,7 @@
 
   /* Zelda-style dialogue box */
   #textbox{
-    position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
+    position:fixed; left:50%; bottom:calc(30px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%) translateY(20px);
     z-index:15; width:min(560px, 88vw);
     background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
     border:3px solid var(--box-blue-light);
@@ -275,6 +295,143 @@
     font-family:'Cinzel', serif; font-size:11px; color:#9fb4e0;
   }
 
+  /* Title screen */
+  #title-overlay{
+    position:fixed; inset:0; z-index:27;
+    display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.58) 100%);
+    transition:opacity 0.5s ease;
+  }
+  #title-overlay.hidden{ opacity:0; pointer-events:none; }
+  #title-card{
+    text-align:center; padding:38px 46px;
+    background:rgba(6,6,12,0.55);
+    border:2px solid rgba(232,196,104,0.4);
+    backdrop-filter:blur(2px);
+  }
+  #title-card h1{
+    font-family:'Cinzel', serif; font-weight:700; font-size:44px;
+    color:#f4ecd8; margin:10px 0 8px 0;
+    text-shadow:0 4px 22px rgba(0,0,0,0.65);
+  }
+  #title-card .title-sub{
+    font-family:'Cinzel', serif; font-style:italic; font-size:14px;
+    color:#c9c2b0; margin:0 0 30px 0;
+  }
+  #title-buttons{ display:flex; gap:14px; justify-content:center; }
+  #start-game-btn, #howto-btn{
+    font-family:'Press Start 2P', monospace; font-size:11px;
+    padding:14px 22px; cursor:pointer; border:2px solid var(--gold);
+    transition:transform 0.08s ease, background 0.15s ease;
+  }
+  #start-game-btn{ background:var(--gold); color:#0a0a0b; }
+  #start-game-btn:hover{ transform:translateY(-2px); }
+  #howto-btn{ background:rgba(255,255,255,0.05); color:#f4ecd8; }
+  #howto-btn:hover{ background:rgba(232,196,104,0.15); transform:translateY(-2px); }
+
+  /* How to play */
+  #howto-overlay{
+    position:fixed; inset:0; z-index:28;
+    background:rgba(6,6,10,0.85); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  #howto-overlay.show{ display:flex; }
+  #howto-card{
+    width:min(640px, 92vw); max-height:82vh; overflow-y:auto;
+    background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
+    border:3px solid var(--box-blue-light);
+    box-shadow:0 0 0 2px #0a1430, 0 10px 40px rgba(0,0,0,0.7);
+    padding:28px 30px;
+  }
+  #howto-card h2{
+    font-family:'Cinzel', serif; color:var(--gold); font-size:22px; margin:0 0 16px 0;
+  }
+  #howto-card h3{
+    font-family:'Press Start 2P', monospace; font-size:10px; color:var(--gold);
+    letter-spacing:0.08em; margin:22px 0 10px 0;
+  }
+  #howto-card p, #howto-card li{
+    font-family:'Cinzel', serif; font-size:13px; color:#dfe6f0; line-height:1.65;
+  }
+  #howto-card ul{ margin:0; padding-left:20px; }
+  #howto-back-btn{
+    margin-top:26px; font-family:'Press Start 2P', monospace; font-size:10px;
+    padding:12px 20px; background:var(--gold); color:#0a0a0b;
+    border:2px solid #8a6a2e; cursor:pointer;
+  }
+  #howto-back-btn:hover{ transform:translateY(-2px); }
+
+  /* Narrow viewports (phones, iOS Safari): stack the top widgets vertically
+     instead of trying to fit them side-by-side, which is what caused overlap. */
+  @media (max-width: 700px){
+    #lore{
+      max-width:42vw;
+      left:10px;
+      top:calc(10px + env(safe-area-inset-top, 0px));
+    }
+    #lore .eyebrow{ font-size:6.5px; margin-bottom:4px; }
+    #lore h1{ font-size:15px; margin:0; }
+
+    #scene-btn{
+      right:10px;
+      top:calc(10px + env(safe-area-inset-top, 0px));
+      font-size:7.5px; padding:7px 9px;
+    }
+
+    #skip-btn{
+      right:10px;
+      top:calc(44px + env(safe-area-inset-top, 0px));
+      font-size:6.5px; padding:6px 8px;
+    }
+
+    #turn-indicator{
+      top:calc(74px + env(safe-area-inset-top, 0px));
+    }
+    #turn-indicator .ti-player{ font-size:6.5px; margin-bottom:2px; }
+    #turn-indicator .ti-faction{ font-size:10px; }
+
+    #scoreboard{
+      top:calc(102px + env(safe-area-inset-top, 0px));
+      gap:8px;
+    }
+    #scoreboard .sb-col{ min-width:78px; padding:5px 7px; }
+    #scoreboard .sb-label{ font-size:6.5px; }
+    #scoreboard .sb-row{ font-size:6.5px; }
+    #scoreboard .sb-vs{ font-size:10px; }
+
+    #roll-counter{
+      top:calc(170px + env(safe-area-inset-top, 0px));
+      font-size:7.5px;
+    }
+
+    #hint{
+      font-size:6.5px;
+      bottom:calc(26px + env(safe-area-inset-bottom, 0px));
+    }
+
+    #textbox{
+      width:94vw;
+      padding:12px 14px;
+      bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+    }
+    #textbox .tb-title{ font-size:8.5px; }
+    #textbox .tb-body{ font-size:7.5px; }
+    #textbox .tb-syms{ font-size:7px; }
+    #textbox .tb-bonus{ font-size:7.5px; }
+    #choice-prompt button{ font-size:7.5px; padding:9px 6px; }
+  }
+
+  @media (max-width: 420px){
+    #lore{ max-width:38vw; }
+    #lore h1{ font-size:13px; }
+    #scoreboard{ gap:5px; }
+    #scoreboard .sb-col{ min-width:64px; padding:4px 5px; }
+    #turn-indicator{ top:calc(72px + env(safe-area-inset-top, 0px)); }
+    #scoreboard{ top:calc(100px + env(safe-area-inset-top, 0px)); }
+    #roll-counter{ top:calc(168px + env(safe-area-inset-top, 0px)); }
+  }
+
   #loading{
     position:fixed; inset:0; z-index:30;
     background:#12102a;
@@ -285,19 +442,20 @@
   }
 </style>
 </head>
-<body class="env-shrine">
+<body class="env-title">
 
-<div id="loading">ENTERING THE VALLEY&hellip;</div>
+<div id="loading">ENTERING THE ARENA&hellip;</div>
 <div id="canvas-wrap"></div>
 <div id="sunglow"></div>
 <div id="vignette"></div>
 
 <div id="lore">
   <div class="eyebrow" id="lore-eyebrow">◆ THE SHRINE ◆</div>
-  <h1 id="lore-title">Three Emblems</h1>
+  <h1 id="lore-title">PropaganDICE</h1>
 </div>
 
 <button id="scene-btn">⟳ NEW GAME</button>
+<button id="skip-btn" disabled>⏭ SKIP ROLLS</button>
 
 <div id="turn-indicator">
   <div class="ti-player" id="ti-player">PLAYER 1</div>
@@ -341,7 +499,7 @@
   </div>
 </div>
 
-<div id="setup-overlay">
+<div id="setup-overlay" class="hidden">
   <div id="setup-card">
     <div class="setup-eyebrow" id="setup-player-label">PLAYER 1</div>
     <h2 id="setup-title">Choose Your Faction</h2>
@@ -356,13 +514,65 @@
       </button>
       <button class="faction-btn" data-key="KNIGHT">
         <span class="fb-name">Knight</span>
-        <span class="fb-sub">The Shrine-Keeper · Three Emblems</span>
+        <span class="fb-sub">The Shrine-Keeper · PropaganDICE</span>
       </button>
       <button class="faction-btn" data-key="PREFECT ZORB">
         <span class="fb-name">Prefect Zorb</span>
         <span class="fb-sub">The Alien · A Moon of Saturn</span>
       </button>
     </div>
+  </div>
+</div>
+
+<div id="title-overlay">
+  <div id="title-card">
+    <div class="setup-eyebrow">◆ TONIGHT'S MAIN EVENT ◆</div>
+    <h1>PropaganDICE</h1>
+    <p class="title-sub">Roll for the crowd. Fight for the belt.</p>
+    <div id="title-buttons">
+      <button id="start-game-btn">START GAME</button>
+      <button id="howto-btn">HOW TO PLAY</button>
+    </div>
+  </div>
+</div>
+
+<div id="howto-overlay">
+  <div id="howto-card">
+    <h2>How to Play</h2>
+    <p>Two players each pledge to a faction, then trade turns rolling to build their power and wear down the other's GDP. First to zero the opponent's GDP wins the bout.</p>
+
+    <h3>◆ THE DICE</h3>
+    <p>Every roll uses four dice: three <b>faction dice</b> and one <b>equip die</b>.</p>
+    <ul>
+      <li>Sickle / Hammer = Defense symbols</li>
+      <li>Gun / Plane = Attack symbols</li>
+      <li>Sword = Knight</li>
+      <li>UFO = Alien</li>
+    </ul>
+
+    <h3>◆ YOUR TURN</h3>
+    <p>Tap a die to lock it before your next roll. Tap anywhere else to roll the unlocked dice. You get 3 rolls per turn — after the 3rd roll (or if the equip die shows an X), tap anywhere to end your turn.</p>
+
+    <h3>◆ BONUS PATTERNS</h3>
+    <ul>
+      <li>Triple Attack → ATK +1</li>
+      <li>Triple Defense → GDP +3 (capped at 20)</li>
+      <li>1 Attack + 1 Defense + 1 Knight → 1 Attack Equip</li>
+      <li>1 Attack + 1 Defense + 1 UFO → 1 Attack or Defense Equip (your choice)</li>
+      <li>2 Attack + 1 Defense → 1 Attack Equip</li>
+      <li>2 Defense + 1 Attack → 1 Defense Equip</li>
+      <li>2 Attack + (Knight or UFO) → 2 Attack Equip</li>
+      <li>2 Defense + Knight → 1 Attack Equip &amp; 1 Defense Equip</li>
+      <li>2 Defense + UFO → 2 Defense Equip</li>
+    </ul>
+
+    <h3>◆ THE EQUIP DIE</h3>
+    <p>Its face sets how many points your equip awards are worth this roll: I = 1, II = 2, III = 3, O = blank (no points, but rolling continues), X = your turn ends immediately.</p>
+
+    <h3>◆ COMBAT</h3>
+    <p>Attack points hit your opponent right away — draining their DEF first, then their GDP. Defense points build a shield that absorbs future attacks. Reduce your opponent's GDP to zero to win.</p>
+
+    <button id="howto-back-btn">BACK</button>
   </div>
 </div>
 
@@ -376,6 +586,7 @@
   const tbBody = document.getElementById('tb-body');
   const tbSyms = document.getElementById('tb-syms');
   const sceneBtn = document.getElementById('scene-btn');
+  const skipBtn = document.getElementById('skip-btn');
   const loreEyebrow = document.getElementById('lore-eyebrow');
   const loreTitle = document.getElementById('lore-title');
   const rollCounterEl = document.getElementById('roll-counter');
@@ -399,6 +610,11 @@
     { gdp: document.getElementById('p1-gdp'), atk: document.getElementById('p1-atk'), def: document.getElementById('p1-def') },
     { gdp: document.getElementById('p2-gdp'), atk: document.getElementById('p2-atk'), def: document.getElementById('p2-def') }
   ];
+  const titleOverlay = document.getElementById('title-overlay');
+  const startGameBtn = document.getElementById('start-game-btn');
+  const howtoBtn = document.getElementById('howto-btn');
+  const howtoOverlay = document.getElementById('howto-overlay');
+  const howtoBackBtn = document.getElementById('howto-back-btn');
 
   // ---------- Renderer / Scene ----------
   const scene = new THREE.Scene();
@@ -617,7 +833,7 @@
     makeTorch(-1.7, 2.1);
 
     return {
-      group, lights, smoke: [], precip: [],
+      group, lights, smoke: [], precip: [], flashers: [],
       fog:{color:0xdf9a5c, near:12, far:34},
       hemi:{sky:0x8fa0d8, ground:0x33301c, intensity:0.85},
       sun:{color:0xffc98a, intensity:1.05},
@@ -625,7 +841,7 @@
       bodyClass:'env-shrine',
       lore:{
         eyebrow:'◆ THE SHRINE ◆',
-        title:'Three Emblems',
+        title:'PropaganDICE',
         desc:'Cast the faction dice upon the old dais. Two matching emblems reveal which banner claims your fate.'
       }
     };
@@ -809,7 +1025,7 @@
     makeLamp(-1.9, 2.0);
 
     return {
-      group, lights, smoke, precip: [],
+      group, lights, smoke, precip: [], flashers: [],
       fog:{color:0x8f8a80, near:9, far:28},
       hemi:{sky:0x6a6f7a, ground:0x1c1a18, intensity:0.75},
       sun:{color:0xcfd0c8, intensity:0.55},
@@ -1041,7 +1257,7 @@
     makeOrb(-1.7, 2.1);
 
     return {
-      group, lights, smoke, precip: [],
+      group, lights, smoke, precip: [], flashers: [],
       fog:{color:0x4a3f66, near:10, far:30},
       hemi:{sky:0x6a5a9c, ground:0x1a1522, intensity:0.7},
       sun:{color:0xb8c8ff, intensity:0.75},
@@ -1357,7 +1573,7 @@
     }
 
     return {
-      group, lights, smoke, precip,
+      group, lights, smoke, precip, flashers: [],
       fog:{color:0xaab4bc, near:9, far:24},
       hemi:{sky:0x8a96a0, ground:0x3a3833, intensity:0.75},
       sun:{color:0xd8dce0, intensity:0.6},
@@ -1371,11 +1587,184 @@
     };
   }
 
+  // =====================================================================
+  // TITLE ENVIRONMENT — a boxing ring packed with a crowd of dice
+  // =====================================================================
+  function buildTitleEnvironment(){
+    const group = new THREE.Group();
+    const lights = [];
+    const smoke = [];
+    const precip = [];
+
+    // arena floor
+    const groundMat = new THREE.MeshPhongMaterial({color:0x16141a, flatShading:true, shininess:0});
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(80,80,2,2), groundMat);
+    ground.rotation.x = -Math.PI/2;
+    group.add(ground);
+
+    // ---- boxing ring ----
+    const ringSize = 4.2, ringHeight = 0.9;
+    const matMat = new THREE.MeshPhongMaterial({color:0xd6cbb0, flatShading:true, shininess:8});
+    const apronMat = new THREE.MeshPhongMaterial({color:0x8a1f1f, flatShading:true, shininess:12});
+    const platform = new THREE.Mesh(new THREE.BoxGeometry(ringSize, 0.22, ringSize), matMat);
+    platform.position.y = ringHeight;
+    group.add(platform);
+    const apron = new THREE.Mesh(new THREE.BoxGeometry(ringSize+0.18, ringHeight, ringSize+0.18), apronMat);
+    apron.position.y = ringHeight/2;
+    group.add(apron);
+
+    const postMat = new THREE.MeshPhongMaterial({color:0x2a2a2e, flatShading:true, shininess:24});
+    const ropeMat = new THREE.MeshPhongMaterial({color:0xc9a227, flatShading:true, shininess:34});
+    const postHeight = 1.9, half = ringSize/2;
+    const cornerXZ = [[-half,-half],[half,-half],[half,half],[-half,half]];
+    cornerXZ.forEach(([x,z])=>{
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,postHeight,8), postMat);
+      post.position.set(x, ringHeight+postHeight/2, z);
+      group.add(post);
+      const pad = new THREE.Mesh(new THREE.SphereGeometry(0.13,8,8), ropeMat);
+      pad.position.set(x, ringHeight+postHeight*0.65, z);
+      group.add(pad);
+    });
+    for(let tier=0; tier<3; tier++){
+      const y = ringHeight + 0.5 + tier*0.42;
+      for(let i=0;i<4;i++){
+        const a = cornerXZ[i], b = cornerXZ[(i+1)%4];
+        const mx=(a[0]+b[0])/2, mz=(a[1]+b[1])/2;
+        const len = Math.hypot(b[0]-a[0], b[1]-a[1]);
+        const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,len,6), ropeMat);
+        rope.position.set(mx,y,mz);
+        if(Math.abs(a[0]-b[0]) < 0.001){ rope.rotation.x = Math.PI/2; }
+        else { rope.rotation.z = Math.PI/2; }
+        group.add(rope);
+      }
+    }
+
+    // a few decorative dice on the mat, standing in for the "fighters"
+    function makePipFaceTexture(n){
+      const TEX = 256;
+      const c = document.createElement('canvas'); c.width=TEX; c.height=TEX;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f5f0e6'; ctx.fillRect(0,0,TEX,TEX);
+      ctx.strokeStyle = '#2a2a2e'; ctx.lineWidth = TEX*0.045;
+      ctx.strokeRect(TEX*0.07, TEX*0.07, TEX*0.86, TEX*0.86);
+      ctx.fillStyle = '#1a1a1a';
+      const pos = {
+        1:[[0.5,0.5]],
+        2:[[0.28,0.28],[0.72,0.72]],
+        3:[[0.28,0.28],[0.5,0.5],[0.72,0.72]],
+        4:[[0.28,0.28],[0.72,0.28],[0.28,0.72],[0.72,0.72]],
+        5:[[0.28,0.28],[0.72,0.28],[0.5,0.5],[0.28,0.72],[0.72,0.72]],
+        6:[[0.28,0.24],[0.72,0.24],[0.28,0.5],[0.72,0.5],[0.28,0.76],[0.72,0.76]]
+      }[n];
+      pos.forEach(([px,py])=>{
+        ctx.beginPath(); ctx.arc(px*TEX, py*TEX, TEX*0.075, 0, Math.PI*2); ctx.fill();
+      });
+      const tex = new THREE.CanvasTexture(c);
+      tex.magFilter = THREE.LinearFilter;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.generateMipmaps = true;
+      return tex;
+    }
+    const pipMats = [1,2,3,4,5,6].map(n => new THREE.MeshPhongMaterial({ map: makePipFaceTexture(n), flatShading:true, shininess:14 }));
+    const standardDieMats = [pipMats[0],pipMats[5],pipMats[1],pipMats[4],pipMats[2],pipMats[3]];
+    const decoGeo = new THREE.BoxGeometry(0.5,0.5,0.5);
+    [[-0.6,0.3],[0.55,-0.35],[0.05,0.6]].forEach(([dx,dz])=>{
+      const dmesh = new THREE.Mesh(decoGeo, standardDieMats);
+      dmesh.position.set(dx, ringHeight+0.22+0.25, dz);
+      dmesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      group.add(dmesh);
+    });
+
+    // ---- crowd of traditional dice, packed into tiered stadium seating ----
+    const crowdGeo = new THREE.BoxGeometry(0.34,0.34,0.34);
+    const crowdMatrices = [];
+    const crowdPositions = [];
+    const dummy = new THREE.Object3D();
+    const tiers = 7;
+    const arenaHalf = ringSize/2 + 1.3;
+    for(let tier=0; tier<tiers; tier++){
+      const radius = arenaHalf + tier*0.85;
+      const y = 0.28 + tier*0.55;
+      const seatsThisTier = Math.max(26, Math.floor((radius*2*Math.PI)/0.42));
+      for(let s=0; s<seatsThisTier; s++){
+        const ang = (s/seatsThisTier)*Math.PI*2;
+        const jitter = (Math.random()-0.5)*0.16;
+        const x = Math.cos(ang)*(radius+jitter);
+        const z = Math.sin(ang)*(radius+jitter);
+        const py = y + Math.random()*0.08;
+        dummy.position.set(x, py, z);
+        dummy.rotation.set((Math.random()-0.5)*0.3, Math.random()*Math.PI*2, (Math.random()-0.5)*0.3);
+        const sc = 0.85 + Math.random()*0.35;
+        dummy.scale.set(sc,sc,sc);
+        dummy.updateMatrix();
+        crowdMatrices.push(dummy.matrix.clone());
+        crowdPositions.push({ x, y: py+0.22, z });
+      }
+    }
+    const crowdMesh = new THREE.InstancedMesh(crowdGeo, standardDieMats, crowdMatrices.length);
+    crowdMatrices.forEach((m,idx)=> crowdMesh.setMatrixAt(idx, m));
+    crowdMesh.instanceMatrix.needsUpdate = true;
+    group.add(crowdMesh);
+
+    // ---- a few little camera-flash pops from the crowd ----
+    function makeFlashDotTexture(){
+      const c = document.createElement('canvas'); c.width=64; c.height=64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32,32,0,32,32,32);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.45, 'rgba(255,255,255,0.75)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,64,64);
+      return new THREE.CanvasTexture(c);
+    }
+    const flashTex = makeFlashDotTexture();
+    const flashers = [];
+    const FLASH_COUNT = 6;
+    for(let i=0;i<FLASH_COUNT;i++){
+      const mat = new THREE.SpriteMaterial({ map:flashTex, transparent:true, opacity:0, depthWrite:false, fog:false });
+      const spr = new THREE.Sprite(mat);
+      spr.scale.set(0.001,0.001,1);
+      group.add(spr);
+      flashers.push({
+        sprite: spr, active:false, startTime:0, duration:190+Math.random()*120,
+        nextTrigger: Math.random()*2500, posPool: crowdPositions
+      });
+    }
+
+    // ---- arena lighting: bright ring spotlights, dim crowd ----
+    function makeRingSpot(x,z){
+      const spot = new THREE.SpotLight(0xffffff, 1.1, 16, Math.PI/5, 0.5, 1.2);
+      spot.position.set(x, 7, z);
+      spot.target.position.set(0, ringHeight, 0);
+      group.add(spot);
+      group.add(spot.target);
+      lights.push({ flame:{scale:null}, light:spot, baseIntensity:1.1 });
+    }
+    makeRingSpot(-3, -3);
+    makeRingSpot(3, -3);
+    makeRingSpot(0, 4);
+
+    return {
+      group, lights, smoke, precip, flashers,
+      fog:{color:0x0e0d12, near:14, far:30},
+      hemi:{sky:0x3a3a48, ground:0x0a0a0c, intensity:0.55},
+      sun:{color:0xf0ece0, intensity:0.4},
+      fillCool:{color:0x5a5a70, intensity:0.25},
+      bodyClass:'env-title',
+      lore:{
+        eyebrow:"◆ TONIGHT'S MAIN EVENT ◆",
+        title:'PropaganDICE',
+        desc:''
+      }
+    };
+  }
+
   // ---------- Environments ----------
   const shrineEnv = buildShrineEnvironment();
   const factoryEnv = buildFactoryEnvironment();
   const alienEnv = buildAlienEnvironment();
   const farmEnv = buildFarmEnvironment();
+  const titleEnv = buildTitleEnvironment();
 
   const FACTIONS = [
     { key:'PARTY BOSS',        env:farmEnv },
@@ -1385,7 +1774,7 @@
   ];
   function factionByKey(key){ return FACTIONS.find(f=>f.key===key); }
 
-  let currentEnv = shrineEnv;
+  let currentEnv = titleEnv;
   scene.add(currentEnv.group);
 
   function applyEnvironment(env){
@@ -1399,7 +1788,7 @@
     sun.intensity = env.sun.intensity;
     fillCool.color.setHex(env.fillCool.color);
     fillCool.intensity = env.fillCool.intensity;
-    document.body.classList.remove('env-shrine','env-factory','env-alien','env-farm');
+    document.body.classList.remove('env-shrine','env-factory','env-alien','env-farm','env-title');
     document.body.classList.add(env.bodyClass);
     loreEyebrow.textContent = env.lore.eyebrow;
     loreTitle.textContent = env.lore.title;
@@ -1417,8 +1806,8 @@
 
   // ---------- Two-player faction setup ----------
   const players = [
-    { faction:null, gdp:20, atk:0, def:0 },
-    { faction:null, gdp:20, atk:0, def:0 }
+    { faction:null, gdp:20, atk:0, def:0, factionEstablished:false },
+    { faction:null, gdp:20, atk:0, def:0, factionEstablished:false }
   ];
   let currentPlayer = 0;
   let setupStep = 0;
@@ -1442,21 +1831,25 @@
   }
 
   function resetStats(){
-    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; });
+    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; p.factionEstablished = false; });
     updateScoreboard();
   }
 
   // A hit first drains the target's DEF stat, then spills over into GDP.
+  // ATK and DEF are single-use resources: once engaged, they reset to zero.
   function applyDamage(attackerIdx, amount){
     if(amount<=0 || gameOver) return;
     const targetIdx = 1 - attackerIdx;
     const target = players[targetIdx];
     const absorbed = Math.min(target.def, amount);
-    target.def -= absorbed;
     let remaining = amount - absorbed;
+    if(absorbed > 0){
+      target.def = 0;
+    }
     if(remaining > 0){
       target.gdp = Math.max(0, target.gdp - remaining);
     }
+    players[attackerIdx].atk = 0;
     updateScoreboard();
     checkWin(targetIdx);
   }
@@ -1468,6 +1861,7 @@
       gameoverTitle.textContent = 'Player ' + (winnerIdx+1) + ' Wins';
       gameoverSub.textContent = 'Player ' + (defeatedIdx+1) + "'s GDP fell to zero.";
       gameoverOverlay.classList.add('show');
+      skipBtn.disabled = true;
     }
   }
 
@@ -1530,6 +1924,26 @@
 
   sceneBtn.addEventListener('click', beginSetup);
   playAgainBtn.addEventListener('click', beginSetup);
+
+  startGameBtn.addEventListener('click', ()=>{
+    titleOverlay.classList.add('hidden');
+    beginSetup();
+  });
+  howtoBtn.addEventListener('click', ()=>{
+    howtoOverlay.classList.add('show');
+  });
+  howtoBackBtn.addEventListener('click', ()=>{
+    howtoOverlay.classList.remove('show');
+  });
+
+  function skipRemainingRolls(){
+    if(!gameStarted || gameOver || rolling || pendingChoice) return;
+    if(rollCount < 1) return;
+    awaitingTurnEnd = false;
+    choicePrompt.classList.remove('show');
+    endTurn();
+  }
+  skipBtn.addEventListener('click', skipRemainingRolls);
 
   function endTurn(){
     if(gameOver) return;
@@ -2005,6 +2419,7 @@
     rollCounterEl.textContent = 'ROLL ' + rollCount + ' / ' + MAX_ROLLS;
     rollCounterEl.classList.add('pulse');
     setTimeout(()=>rollCounterEl.classList.remove('pulse'), 200);
+    skipBtn.disabled = !(gameStarted && !gameOver && rollCount >= 1);
   }
 
   function rollDice(){
@@ -2071,7 +2486,7 @@
       typeText(tbBody, 'YOU HAVE SUCCEEDED IN FORMING A FACTION: ' + faction);
       sfxChime(0); sfxChime(1); sfxChime(2);
     } else {
-      typeText(tbBody, 'THE OMENS ARE UNCLEAR. ROLL AGAIN.');
+      typeText(tbBody, 'THE PROPAGANDA ISN\'T LANDING. ROLL AGAIN.');
     }
 
     // The X face busts the turn outright, regardless of the faction dice.
@@ -2089,6 +2504,16 @@
     const u = cats.filter(c=>c==='ufo').length;
     const pattern = matchBonusPattern(a,d,k,u);
     const equipValue = EQUIP_VALUE[equipType];
+
+    if(faction){
+      players[currentPlayer].factionEstablished = true;
+    }
+
+    if(pattern.type !== 'none' && !players[currentPlayer].factionEstablished){
+      tbBonus.textContent = '⚠ NO FACTION ESTABLISHED — BONUS WITHHELD';
+      concludeRollResolution();
+      return;
+    }
 
     if(pattern.type === 'triple-attack'){
       players[currentPlayer].atk += 1;
@@ -2117,10 +2542,10 @@
   }
 
   // ---------- Camera orbit controls ----------
-  const target = new THREE.Vector3(0, 1.0, 0);
-  let radius = 9.5;
+  const target = new THREE.Vector3(0, 0.75, 0);
+  let radius = 7.5;
   let theta = Math.PI * 0.22;
-  let phi = Math.PI * 0.36;
+  let phi = Math.PI * 0.22;
   const minPhi = 0.16, maxPhi = Math.PI/2 - 0.03;
   const minRadius = 4.5, maxRadius = 18;
 
@@ -2255,6 +2680,28 @@
       if(p.sprite.position.y < 0){
         p.sprite.position.y = p.topY;
       }
+    });
+
+    currentEnv.flashers.forEach(f=>{
+      if(!f.active){
+        f.nextTrigger -= dt*1000;
+        if(f.nextTrigger <= 0 && f.posPool && f.posPool.length){
+          f.active = true;
+          f.startTime = now;
+          const p = f.posPool[Math.floor(Math.random()*f.posPool.length)];
+          f.sprite.position.set(p.x, p.y, p.z);
+          f.sprite.scale.set(0.3, 0.3, 1);
+        }
+        return;
+      }
+      const t = (now - f.startTime) / f.duration;
+      if(t >= 1){
+        f.active = false;
+        f.sprite.material.opacity = 0;
+        f.nextTrigger = 400 + Math.random()*3000;
+        return;
+      }
+      f.sprite.material.opacity = Math.sin(Math.min(Math.max(t,0),1) * Math.PI);
     });
 
     dice.forEach(d=>{
