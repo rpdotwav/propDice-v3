@@ -106,6 +106,24 @@
   #skip-btn:disabled{ opacity:0.35; cursor:default; }
   #skip-btn:disabled:hover{ background:rgba(10,10,15,0.45); border-color:rgba(159,180,224,0.55); }
 
+  #autoplay-btn{
+    position:fixed; right:24px; top:calc(108px + env(safe-area-inset-top, 0px)); z-index:10;
+    font-family:'Press Start 2P', monospace;
+    font-size:8px; letter-spacing:0.06em; color:#f4ecd8;
+    background:rgba(10,10,15,0.45);
+    border:2px solid rgba(122,196,140,0.5);
+    padding:9px 13px;
+    cursor:pointer;
+    text-shadow:0 2px 4px rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
+  }
+  #autoplay-btn:hover{ background:rgba(122,196,140,0.16); border-color:#7ac48c; }
+  #autoplay-btn:active{ transform:translateY(2px); }
+  #autoplay-btn.on{
+    background:rgba(122,196,140,0.22); border-color:#7ac48c; color:#c8f0d4;
+  }
+
   .pregame-hidden{ display:none !important; }
 
   #turn-indicator{
@@ -400,6 +418,12 @@
       font-size:6.5px; padding:6px 8px;
     }
 
+    #autoplay-btn{
+      right:10px;
+      top:calc(78px + env(safe-area-inset-top, 0px));
+      font-size:6.5px; padding:6px 8px;
+    }
+
     #turn-indicator{
       top:calc(74px + env(safe-area-inset-top, 0px));
     }
@@ -473,6 +497,7 @@
 
 <button id="scene-btn">⟳ NEW GAME</button>
 <button id="skip-btn" disabled>⏭ SKIP ROLLS</button>
+<button id="autoplay-btn">▶ AUTOPLAY: OFF</button>
 
 <div id="turn-indicator" class="pregame-hidden">
   <div class="ti-player" id="ti-player">PLAYER 1</div>
@@ -606,6 +631,7 @@
   const tbSyms = document.getElementById('tb-syms');
   const sceneBtn = document.getElementById('scene-btn');
   const skipBtn = document.getElementById('skip-btn');
+  const autoplayBtn = document.getElementById('autoplay-btn');
   const loreEyebrow = document.getElementById('lore-eyebrow');
   const loreTitle = document.getElementById('lore-title');
   const rollCounterEl = document.getElementById('roll-counter');
@@ -2193,6 +2219,7 @@
   modeToggleBtn.addEventListener('click', ()=>{
     manualMode = !manualMode;
     updateModeToggleLabel();
+    autoplayBtn.classList.toggle('pregame-hidden', manualMode);
   });
 
   function beginSetup(){
@@ -2200,6 +2227,10 @@
     gameOver = false;
     awaitingTurnEnd = false;
     awaitingCpuStepTap = false;
+    autoplayEnabled = false;
+    autoplayBtn.textContent = '▶ AUTOPLAY: OFF';
+    autoplayBtn.classList.remove('on');
+    autoplayBtn.classList.toggle('pregame-hidden', manualMode);
     cutsceneActive = false;
     attackCutscene = null;
     pendingGameOverInfo = null;
@@ -2248,6 +2279,7 @@
     hintFaded = false;
     hint.classList.remove('fade');
     isCpuPlayer = [false, !manualMode];
+    autoplayBtn.classList.toggle('pregame-hidden', !isCpuPlayer.some(v=>v));
     cpuMaybeAct();
   }
 
@@ -2489,6 +2521,7 @@
       awaitingCpuStepTap = true;
       hint.classList.remove('fade');
       hint.textContent = 'TAP TO LET THE CPU ROLL AGAIN';
+      cpuMaybeAct();
     } else {
       cpuMaybeAct();
     }
@@ -2496,6 +2529,7 @@
 
   // ---------- CPU opponent (default for Player 2 unless manual mode is on) ----------
   let cpuThinking = false;
+  let autoplayEnabled = false;
 
   function isCurrentPlayerCpu(){
     return gameStarted && !gameOver && !cutsceneActive && isCpuPlayer[currentPlayer];
@@ -2509,13 +2543,23 @@
     }, delay);
   }
 
+  autoplayBtn.addEventListener('click', ()=>{
+    autoplayEnabled = !autoplayEnabled;
+    autoplayBtn.textContent = autoplayEnabled ? '▶ AUTOPLAY: ON' : '▶ AUTOPLAY: OFF';
+    autoplayBtn.classList.toggle('on', autoplayEnabled);
+    cpuMaybeAct();
+  });
+
   function cpuMaybeAct(){
     if(!isCurrentPlayerCpu() || cpuThinking) return;
 
-    // The end-of-turn "read what happened" pause always waits for a real
-    // human tap, even when the outgoing player was the CPU — that's the
-    // whole point of being able to watch it play.
-    if(pendingBattleTransition) return;
+    // The end-of-turn "read what happened" pause and the between-rolls
+    // pause both normally wait for a real human tap so you can watch the
+    // CPU play — Autoplay lets the CPU blow through both on its own.
+    if(pendingBattleTransition){
+      if(autoplayEnabled) scheduleCpuAction(500, ()=>{ commenceBattleTransition(); });
+      return;
+    }
     if(pendingUfoChoice){
       scheduleCpuAction(700, ()=>{ resolveUfoChoice('attack'); });
       return;
@@ -2524,7 +2568,10 @@
       scheduleCpuAction(700, ()=>{ awaitingTurnEnd=false; endTurn(); });
       return;
     }
-    if(awaitingCpuStepTap) return; // waiting on the human to tap through this roll
+    if(awaitingCpuStepTap){
+      if(autoplayEnabled) scheduleCpuAction(500, ()=>{ awaitingCpuStepTap=false; cpuMaybeAct(); });
+      return;
+    }
     if(rolling) return;
 
     if(rollCount === 0){
@@ -2873,32 +2920,43 @@
     });
   }
 
-  // ---------- Attack cutscene: jump to the boxing ring, charge, impact, debris burst ----------
-  const DEBRIS_COUNT = 14;
-  const debrisPool = [];
-  (function initDebrisPool(){
-    const debrisGeo = new THREE.BoxGeometry(0.22,0.22,0.22);
-    const debrisColors = [0xf5f0e6,0xc9a227,0x8a1f1f,0x2e4fa0,0x2e7a4a,0x6a3f9e];
-    for(let i=0;i<DEBRIS_COUNT;i++){
-      const mat = new THREE.MeshPhongMaterial({ color: debrisColors[i%debrisColors.length], flatShading:true, shininess:10, transparent:true });
-      const mesh = new THREE.Mesh(debrisGeo, mat);
+  // ---------- Attack cutscene: jump to the boxing ring, charge, impact ----------
+
+  // Target dice: a few of the DEFENDING player's dice, sitting flat on the
+  // ring floor at the impact point, that the attacker's dice crash into and
+  // send flying. Reuses the real per-player die materials (never mutates
+  // their opacity, since those materials are shared with the actual
+  // gameplay dice) so they read as genuinely "the other player's dice."
+  const TARGET_DICE_COUNT = 3;
+  const targetDicePool = [];
+  (function initTargetDicePool(){
+    for(let i=0;i<TARGET_DICE_COUNT;i++){
+      const mesh = new THREE.Mesh(dieGeo, PLAYER_DICE_MATERIALS[0].faction);
       mesh.visible = false;
       scene.add(mesh);
-      debrisPool.push({ mesh, vel:new THREE.Vector3(), active:false, age:0 });
+      targetDicePool.push({ mesh, vel:new THREE.Vector3(), active:false, age:0 });
     }
   })();
 
-  function spawnDebrisBurst(x,y,z){
-    debrisPool.forEach(d=>{
+  function placeTargetDice(defenderIdx, x, y, z){
+    const set = PLAYER_DICE_MATERIALS[defenderIdx].faction;
+    targetDicePool.forEach((t,i)=>{
+      t.mesh.material = set;
+      t.mesh.visible = true;
+      t.active = false;
+      t.mesh.position.set(x + (i-1)*0.42, y, z + (i%2===0 ? 0.12 : -0.12));
+      t.mesh.rotation.set(0, Math.random()*Math.PI*2, 0);
+    });
+  }
+
+  function launchTargetDice(){
+    targetDicePool.forEach(t=>{
+      if(!t.mesh.visible) return;
       const ang = Math.random()*Math.PI*2;
-      const speed = 2.5+Math.random()*3.5;
-      d.vel.set(Math.cos(ang)*speed, 3+Math.random()*3, Math.sin(ang)*speed);
-      d.mesh.position.set(x,y,z);
-      d.mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-      d.mesh.material.opacity = 1;
-      d.mesh.visible = true;
-      d.active = true;
-      d.age = 0;
+      const speed = 2.5+Math.random()*3.0;
+      t.vel.set(Math.cos(ang)*speed, 2.8+Math.random()*2.5, Math.sin(ang)*speed);
+      t.active = true;
+      t.age = 0;
     });
   }
 
@@ -2911,8 +2969,12 @@
     textbox.classList.remove('show');
     switchToEnv(titleEnv);
 
-    const ringTopY = 0.9 + 0.22 + 0.25; // matches the boxing ring mat surface + die half-height
+    // Ring platform is a 0.22-tall box centered at y=0.9 (see buildTitleEnvironment),
+    // so its top surface sits at 0.9 + 0.11. Adding half a die's height puts
+    // a resting die's center exactly on the mat instead of clipping into it.
+    const ringTopY = 0.9 + 0.11 + dieSize/2;
     const startSide = attackerIdx===0 ? -1 : 1;
+    const defenderIdx = 1 - attackerIdx;
 
     animateCameraTo(6.0, Math.PI*0.5, Math.PI*0.34, 500, ()=>{
       tbBody.textContent = '';
@@ -2923,14 +2985,15 @@
         if(breakdown) tbBonus.textContent = breakdown;
       });
 
-      dice.forEach((d,i)=>{
+      dice.forEach((d)=>{
         d.mesh.visible = true;
-        d.mesh.position.set(startSide*2.4, ringTopY + (i-1.5)*0.05, (i-1.5)*0.32);
+        d.mesh.position.set(startSide*2.4, ringTopY, 0);
       });
+      placeTargetDice(defenderIdx, 0, ringTopY, 0);
 
       attackCutscene = {
         phase:'charge', phaseStart: performance.now(),
-        startSide, ringTopY, attackerIdx, onComplete,
+        startSide, ringTopY, attackerIdx, defenderIdx, onComplete,
         isFinal, roundsRemaining: rounds
       };
     });
@@ -2958,7 +3021,7 @@
         d.mesh.rotateOnAxis(d.spinAxis, 22*dt);
       });
       if(t>=1){
-        spawnDebrisBurst(0, cs.ringTopY, 0);
+        launchTargetDice();
         beep(85, 0.22, 0.2, 'square');
         beep(50, 0.3, 0.15, 'sawtooth');
         shakeEndTime = now + 260;
@@ -2971,10 +3034,11 @@
         if(cs.isFinal && cs.roundsRemaining > 1){
           cs.roundsRemaining--;
           cs.startSide *= -1;
-          dice.forEach((d,i)=>{
+          dice.forEach((d)=>{
             d.mesh.visible = true;
-            d.mesh.position.set(cs.startSide*2.4, cs.ringTopY + (i-1.5)*0.05, (i-1.5)*0.32);
+            d.mesh.position.set(cs.startSide*2.4, cs.ringTopY, 0);
           });
+          placeTargetDice(cs.defenderIdx, 0, cs.ringTopY, 0);
           cs.phase = 'charge';
           cs.phaseStart = now;
         } else {
@@ -3001,6 +3065,7 @@
     const cs = attackCutscene;
     attackCutscene = null;
     cutsceneActive = false;
+    targetDicePool.forEach(t=>{ t.active = false; t.mesh.visible = false; });
     const cb = cs.onComplete;
     if(cb) cb();
     return true;
@@ -3468,18 +3533,15 @@
       }
     }
 
-    debrisPool.forEach(d=>{
-      if(!d.active) return;
-      d.vel.y -= 9.0*dt;
-      d.mesh.position.addScaledVector(d.vel, dt);
-      d.mesh.rotation.x += dt*6; d.mesh.rotation.y += dt*4;
-      d.age += dt;
-      const life = 1.1;
-      if(d.age > life){
-        d.active = false;
-        d.mesh.visible = false;
-      } else if(d.age > life*0.6){
-        d.mesh.material.opacity = 1 - (d.age-life*0.6)/(life*0.4);
+    targetDicePool.forEach(t=>{
+      if(!t.active) return;
+      t.vel.y -= 9.0*dt;
+      t.mesh.position.addScaledVector(t.vel, dt);
+      t.mesh.rotation.x += dt*5; t.mesh.rotation.y += dt*4; t.mesh.rotation.z += dt*3;
+      t.age += dt;
+      if(t.age > 1.3 || t.mesh.position.y < -2){
+        t.active = false;
+        t.mesh.visible = false;
       }
     });
 
