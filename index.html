@@ -126,12 +126,12 @@
 
   #scoreboard{
     position:fixed; top:calc(78px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
-    z-index:10; display:flex; align-items:center; gap:16px;
+    z-index:10; display:flex; align-items:center; gap:22px;
     text-shadow:0 2px 6px rgba(0,0,0,0.75);
   }
   #scoreboard .sb-col{
     background:rgba(6,6,12,0.4); border:1px solid rgba(232,196,104,0.3);
-    padding:6px 12px; min-width:110px; text-align:center;
+    padding:12px 22px; min-width:160px; text-align:center;
     flex-shrink:0; white-space:nowrap;
     transition:border-color 0.2s ease, background 0.2s ease;
   }
@@ -139,18 +139,18 @@
     border-color:var(--gold); background:rgba(232,196,104,0.12);
   }
   #scoreboard .sb-label{
-    font-family:'Press Start 2P', monospace; font-size:8px;
-    letter-spacing:0.14em; color:#9fb4e0; margin-bottom:3px;
+    font-family:'Press Start 2P', monospace; font-size:11px;
+    letter-spacing:0.14em; color:#9fb4e0; margin-bottom:6px;
     white-space:nowrap;
   }
   #scoreboard .sb-row{
-    font-family:'Press Start 2P', monospace; font-size:9px;
-    color:#f4ecd8; letter-spacing:0.04em; line-height:1.7;
+    font-family:'Press Start 2P', monospace; font-size:14px;
+    color:#f4ecd8; letter-spacing:0.04em; line-height:1.8;
     white-space:nowrap;
   }
   #scoreboard .sb-gdp b{ color:var(--gold); }
   #scoreboard .sb-vs{
-    font-family:'Cinzel', serif; font-style:italic; font-size:12px;
+    font-family:'Cinzel', serif; font-style:italic; font-size:16px;
     color:#9fb4e0; opacity:0.7;
   }
 
@@ -164,7 +164,7 @@
   #hint.fade{opacity:0;}
 
   #roll-counter{
-    position:fixed; top:calc(160px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
+    position:fixed; top:calc(186px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; font-family:'Press Start 2P', monospace;
     font-size:9px; letter-spacing:0.12em; color:var(--gold);
     text-shadow:0 2px 4px rgba(0,0,0,0.8);
@@ -299,6 +299,16 @@
     font-family:'Cinzel', serif; font-size:11px; color:#9fb4e0;
   }
 
+  #mode-toggle-btn{
+    display:block; width:100%; margin-top:16px;
+    font-family:'Press Start 2P', monospace; font-size:8px; letter-spacing:0.04em;
+    color:#9fb4e0; background:rgba(255,255,255,0.03);
+    border:1px solid rgba(159,180,224,0.4);
+    padding:10px 8px; cursor:pointer;
+    transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  #mode-toggle-btn:hover{ background:rgba(159,180,224,0.14); border-color:#9fb4e0; color:#f4ecd8; }
+
   /* Title screen */
   #title-overlay{
     position:fixed; inset:0; z-index:27;
@@ -398,15 +408,15 @@
 
     #scoreboard{
       top:calc(102px + env(safe-area-inset-top, 0px));
-      gap:8px;
+      gap:12px;
     }
-    #scoreboard .sb-col{ min-width:78px; padding:5px 7px; }
-    #scoreboard .sb-label{ font-size:6.5px; }
-    #scoreboard .sb-row{ font-size:6.5px; }
-    #scoreboard .sb-vs{ font-size:10px; }
+    #scoreboard .sb-col{ min-width:100px; padding:8px 12px; }
+    #scoreboard .sb-label{ font-size:8.5px; }
+    #scoreboard .sb-row{ font-size:9px; }
+    #scoreboard .sb-vs{ font-size:12px; }
 
     #roll-counter{
-      top:calc(170px + env(safe-area-inset-top, 0px));
+      top:calc(184px + env(safe-area-inset-top, 0px));
       font-size:7.5px;
     }
 
@@ -430,11 +440,13 @@
   @media (max-width: 420px){
     #lore{ max-width:38vw; }
     #lore h1{ font-size:13px; }
-    #scoreboard{ gap:5px; }
-    #scoreboard .sb-col{ min-width:64px; padding:4px 5px; }
+    #scoreboard{ gap:8px; }
+    #scoreboard .sb-col{ min-width:84px; padding:7px 9px; }
+    #scoreboard .sb-label{ font-size:7.5px; }
+    #scoreboard .sb-row{ font-size:8px; }
     #turn-indicator{ top:calc(72px + env(safe-area-inset-top, 0px)); }
     #scoreboard{ top:calc(100px + env(safe-area-inset-top, 0px)); }
-    #roll-counter{ top:calc(168px + env(safe-area-inset-top, 0px)); }
+    #roll-counter{ top:calc(178px + env(safe-area-inset-top, 0px)); }
   }
 
   #loading{
@@ -481,7 +493,7 @@
   </div>
 </div>
 
-<div id="roll-counter" class="pregame-hidden">ROLL 0 / 3</div>
+<div id="roll-counter" class="pregame-hidden">TURN 1   ROLL 0 / 3</div>
 <div id="hint">TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL</div>
 
 <div id="textbox">
@@ -526,6 +538,7 @@
         <span class="fb-sub">The Alien · A Moon of Saturn</span>
       </button>
     </div>
+    <button id="mode-toggle-btn">MODE: VS CPU (INDUSTRY CAPTAIN) — TAP FOR 2-PLAYER</button>
   </div>
 </div>
 
@@ -549,28 +562,34 @@
     <h3>◆ THE DICE</h3>
     <p>Every roll uses four dice: three <b>faction dice</b> and one <b>equip die</b>.</p>
     <ul>
-      <li>Sickle / Hammer = Defense symbols</li>
-      <li>Gun / Plane / Sword = Attack symbols</li>
-      <li>UFO = your choice, Attack or Defense (asked each time one shows up)</li>
+      <li>Hammer, Plane, Sword = Attack symbols</li>
+      <li>Sickle, Gun = Defense symbols</li>
+      <li>UFO = your choice, Attack or Defense — you're only asked once, when your hand is finally scored</li>
     </ul>
 
     <h3>◆ YOUR TURN</h3>
-    <p>Tap a die to lock it before your next roll. Tap anywhere else to roll the unlocked dice. You get 3 rolls per turn — after the 3rd roll (or if the equip die shows an X), tap anywhere to end your turn.</p>
+    <p>Tap a die to lock it before your next roll. Tap anywhere else to roll the unlocked dice. You get 3 rolls per turn — after the 3rd roll (or if the equip die shows an X), tap anywhere to end your turn. Locking every die and tapping "roll" does nothing — it's treated exactly like choosing not to roll again.</p>
 
-    <h3>◆ BONUS PATTERNS</h3>
-    <p>Bonuses only score on a roll where <b>every die was rolled fresh</b> — holding dice back to chase a combo is allowed, but it doesn't pay out until you commit with a full roll and nothing locked. Once you've established a faction, count up Attack vs. Defense symbols on that roll's 3 faction dice:</p>
+    <h3>◆ DURING THE TURN</h3>
+    <p>Only two things happen immediately, on any roll:</p>
     <ul>
-      <li>3 Attack → ATK +1</li>
-      <li>3 Defense → GDP +3 (capped at 20)</li>
-      <li>2 Attack → 1 Attack Equip</li>
-      <li>2 Defense → 1 Defense Equip</li>
+      <li>All 3 faction dice show the <b>same face</b> → GDP +3, flat, unaffected by the equip die.</li>
+      <li>The roll claims <b>your own declared faction</b> → +1 pip banked onto this turn's equip value (skipped if the equip die shows X).</li>
+    </ul>
+
+    <h3>◆ SCORING YOUR HAND</h3>
+    <p>Everything else waits until you're done rolling — after your 3rd roll, or the moment you tap Skip. Whatever your 3 faction dice show <b>right then</b> is your final hand:</p>
+    <ul>
+      <li>If that hand doesn't claim a faction, nothing scores this turn (beyond any same-face GDP bonus already banked).</li>
+      <li>If it does, every Attack symbol and every Defense symbol in the hand (Sword and a declared UFO included) is multiplied by this turn's equip value — the equip die's final face, plus any pips banked from rolling your own faction earlier in the turn.</li>
+      <li>If the final hand includes a UFO, you're asked to call it Attack or Defense right then, before scoring.</li>
     </ul>
 
     <h3>◆ THE EQUIP DIE</h3>
-    <p>Its face sets how many points your equip award is worth this roll: I = 1, II = 2, III = 3, O = blank (no points, but rolling continues), X = your turn ends immediately.</p>
+    <p>Its face sets the multiplier: I = 1, II = 2, III = 3, O = blank (0, but rolling continues), X = your turn ends immediately and nothing scores beyond same-face GDP bonuses already earned.</p>
 
     <h3>◆ COMBAT</h3>
-    <p>Attack points hit your opponent right away — draining their DEF first, then their GDP. Defense points build a shield that absorbs future attacks. Reduce your opponent's GDP to zero to win.</p>
+    <p>ATK from your hand is banked, not dealt right away — it all deploys as damage at once when your turn ends, draining your opponent's DEF first and then their GDP. Neither player attacks on their very first turn — any ATK banked that turn carries forward and deploys at the end of your next turn instead. Defense resets to zero at the start of your next turn so it can't wall you off forever — except turns 1 and 2, since turn-1 ATK doesn't deploy until turn 2 and needs turn-1 DEF to still be standing to answer it. Reduce your opponent's GDP to zero to win.</p>
 
     <button id="howto-back-btn">BACK</button>
   </div>
@@ -598,6 +617,7 @@
   const setupPlayerLabel = document.getElementById('setup-player-label');
   const setupTitle = document.getElementById('setup-title');
   const factionButtons = Array.from(document.querySelectorAll('.faction-btn'));
+  const modeToggleBtn = document.getElementById('mode-toggle-btn');
   const tbBonus = document.getElementById('tb-bonus');
   const choicePrompt = document.getElementById('choice-prompt');
   const choiceAttackBtn = document.getElementById('choice-attack');
@@ -2062,8 +2082,8 @@
 
   // ---------- Two-player faction setup ----------
   const players = [
-    { faction:null, gdp:20, atk:0, def:0, factionEstablished:false },
-    { faction:null, gdp:20, atk:0, def:0, factionEstablished:false }
+    { faction:null, gdp:20, atk:0, def:0, turnsCompleted:0, bankedEquipPips:0 },
+    { faction:null, gdp:20, atk:0, def:0, turnsCompleted:0, bankedEquipPips:0 }
   ];
   let currentPlayer = 0;
   let setupStep = 0;
@@ -2073,7 +2093,7 @@
   const GDP_MAX = 20;
 
   function updateTurnIndicator(){
-    tiPlayer.textContent = 'PLAYER ' + (currentPlayer+1);
+    tiPlayer.textContent = 'PLAYER ' + (currentPlayer+1) + (isCpuPlayer[currentPlayer] ? ' (CPU)' : '');
     tiFaction.textContent = players[currentPlayer].faction || 'CHOOSING…';
   }
 
@@ -2087,14 +2107,45 @@
   }
 
   function resetStats(){
-    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; p.factionEstablished = false; });
+    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; p.turnsCompleted = 0; p.bankedEquipPips = 0; });
     updateScoreboard();
+  }
+
+  // ATK earned during a turn is banked, not dealt immediately — it's
+  // deployed as damage all at once when the turn ends. Neither player's
+  // very first turn deploys any ATK (no opening-turn attacks); whatever
+  // was banked simply carries forward into their next turn instead.
+  function deployEndOfTurnBonuses(playerIdx){
+    const p = players[playerIdx];
+    const isFirstTurn = (p.turnsCompleted === 0);
+    let dealt = 0;
+    let breakdown = '';
+    let message = '';
+    if(!isFirstTurn && p.atk > 0){
+      dealt = p.atk;
+      const targetIdx = 1 - playerIdx;
+      const defBefore = players[targetIdx].def;
+      const gdpBefore = players[targetIdx].gdp;
+      const { absorbedByDef, dealtToGdp } = applyDamage(playerIdx, p.atk);
+      const lines = [ dealt + ' ATK BANKED THIS TURN' ];
+      if(absorbedByDef > 0) lines.push(absorbedByDef + ' ABSORBED BY DEF (' + defBefore + ' → 0)');
+      if(dealtToGdp > 0) lines.push(dealtToGdp + ' TO GDP (' + gdpBefore + ' → ' + players[targetIdx].gdp + ')');
+      if(absorbedByDef === dealt) lines.push('FULLY BLOCKED — NO GDP LOST');
+      breakdown = lines.join('  /  ');
+      message = '⚔ PLAYER ' + (playerIdx+1) + ' DEPLOYS ' + dealt + ' ATK!';
+    } else if(isFirstTurn && p.atk > 0){
+      breakdown = p.atk + ' ATK BANKED — CARRIES OVER TO NEXT TURN';
+      message = '⏳ FIRST TURN — ' + p.atk + ' ATK CARRIES OVER TO NEXT TURN';
+    }
+    p.turnsCompleted++;
+    updateScoreboard();
+    return { dealt, breakdown, message };
   }
 
   // A hit first drains the target's DEF stat, then spills over into GDP.
   // ATK and DEF are single-use resources: once engaged, they reset to zero.
   function applyDamage(attackerIdx, amount){
-    if(amount<=0 || gameOver) return;
+    if(amount<=0 || gameOver) return { absorbedByDef:0, dealtToGdp:0 };
     const targetIdx = 1 - attackerIdx;
     const target = players[targetIdx];
     const absorbed = Math.min(target.def, amount);
@@ -2108,23 +2159,51 @@
     players[attackerIdx].atk = 0;
     updateScoreboard();
     checkWin(targetIdx);
+    return { absorbedByDef: absorbed, dealtToGdp: remaining };
   }
+
+  let pendingGameOverInfo = null;
 
   function checkWin(defeatedIdx){
     if(players[defeatedIdx].gdp <= 0){
       gameOver = true;
-      const winnerIdx = 1 - defeatedIdx;
-      gameoverTitle.textContent = 'Player ' + (winnerIdx+1) + ' Wins';
-      gameoverSub.textContent = 'Player ' + (defeatedIdx+1) + "'s GDP fell to zero.";
-      gameoverOverlay.classList.add('show');
       skipBtn.disabled = true;
+      pendingGameOverInfo = { winnerIdx: 1-defeatedIdx, defeatedIdx };
     }
   }
+
+  function revealGameOver(){
+    if(!pendingGameOverInfo) return;
+    const { winnerIdx, defeatedIdx } = pendingGameOverInfo;
+    pendingGameOverInfo = null;
+    gameoverTitle.textContent = 'Player ' + (winnerIdx+1) + ' Wins';
+    gameoverSub.textContent = 'Player ' + (defeatedIdx+1) + "'s GDP fell to zero.";
+    gameoverOverlay.classList.add('show');
+  }
+
+  let manualMode = false;
+  let isCpuPlayer = [false, true];
+
+  function updateModeToggleLabel(){
+    modeToggleBtn.textContent = manualMode
+      ? 'MODE: 2-PLAYER — TAP FOR VS CPU'
+      : 'MODE: VS CPU (INDUSTRY CAPTAIN) — TAP FOR 2-PLAYER';
+  }
+
+  modeToggleBtn.addEventListener('click', ()=>{
+    manualMode = !manualMode;
+    updateModeToggleLabel();
+  });
 
   function beginSetup(){
     gameStarted = false;
     gameOver = false;
     awaitingTurnEnd = false;
+    awaitingCpuStepTap = false;
+    cutsceneActive = false;
+    attackCutscene = null;
+    pendingGameOverInfo = null;
+    pendingBattleTransition = null;
     gameoverOverlay.classList.remove('show');
     players[0].faction = null;
     players[1].faction = null;
@@ -2141,6 +2220,7 @@
     factionButtons.forEach(btn=>{ btn.disabled=false; });
     setupPlayerLabel.textContent = 'PLAYER 1';
     setupTitle.textContent = 'Choose Your Faction';
+    updateModeToggleLabel();
     setupOverlay.classList.add('show');
     textbox.classList.remove('show');
     hint.textContent = 'TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL';
@@ -2148,29 +2228,45 @@
     hintFaded = false;
   }
 
+  function beginGamePlay(){
+    setupOverlay.classList.remove('show');
+    gameStarted = true;
+    gameOver = false;
+    currentPlayer = 0;
+    rollCount = 0;
+    turnNumber = 1;
+    dice.forEach((d,i)=>{
+      d.locked=false; d.lockRing.visible=false;
+      d.mesh.visible = true;
+      d.mesh.position.copy(restPositions[i]);
+    });
+    applyDiceColorsForPlayer(0);
+    updateRollCounter();
+    resetStats();
+    switchToEnv(factionByKey(players[0].faction).env);
+    updateTurnIndicator();
+    hintFaded = false;
+    hint.classList.remove('fade');
+    isCpuPlayer = [false, !manualMode];
+    cpuMaybeAct();
+  }
+
   function selectFaction(key){
     players[setupStep].faction = key;
     switchToEnv(factionByKey(key).env);
 
-    if(setupStep === 0){
+    if(setupStep === 0 && manualMode){
       setupStep = 1;
       setupPlayerLabel.textContent = 'PLAYER 2';
       setupTitle.textContent = 'Choose Your Faction';
       factionButtons.forEach(btn=>{ btn.disabled = (btn.dataset.key === key); });
+    } else if(setupStep === 0){
+      // CPU mode: Player 2 is auto-assigned (Industry Captain by default,
+      // falling back if Player 1 already took it) and play starts right away.
+      players[1].faction = (key === 'INDUSTRY CAPTAIN') ? 'PARTY BOSS' : 'INDUSTRY CAPTAIN';
+      beginGamePlay();
     } else {
-      setupOverlay.classList.remove('show');
-      gameStarted = true;
-      gameOver = false;
-      currentPlayer = 0;
-      rollCount = 0;
-      dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
-      applyDiceColorsForPlayer(0);
-      updateRollCounter();
-      resetStats();
-      switchToEnv(factionByKey(players[0].faction).env);
-      updateTurnIndicator();
-      hintFaded = false;
-      hint.classList.remove('fade');
+      beginGamePlay();
     }
   }
 
@@ -2197,7 +2293,7 @@
   });
 
   function skipRemainingRolls(){
-    if(!gameStarted || gameOver || rolling || pendingUfoChoice) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice || cutsceneActive || awaitingCpuStepTap) return;
     if(rollCount < 1) return;
     awaitingTurnEnd = false;
     choicePrompt.classList.remove('show');
@@ -2205,15 +2301,28 @@
   }
   skipBtn.addEventListener('click', skipRemainingRolls);
 
-  function endTurn(){
-    if(gameOver) return;
-    awaitingTurnEnd = false;
+  let pendingBattleTransition = null;
 
+  function proceedToNextPlayer(){
     const zoomInRadius = Math.max(minRadius, 3.2);
     animateCameraTo(zoomInRadius, theta, phi, 550, ()=>{
       currentPlayer = 1 - currentPlayer;
       rollCount = 0;
-      dice.forEach(d=>{ d.locked=false; d.lockRing.visible=false; });
+      turnNumber++;
+      const p = players[currentPlayer];
+      // Defense is a shield that lasts one cycle: it protects through the
+      // opponent's next turn, then clears at the start of your own next
+      // turn — except turns 1 and 2, since turn-1 ATK doesn't deploy until
+      // turn 2 and needs turn-1 DEF to still be around to answer it.
+      if(p.turnsCompleted >= 2){
+        p.def = 0;
+      }
+      p.bankedEquipPips = 0;
+      dice.forEach((d,i)=>{
+        d.locked=false; d.lockRing.visible=false;
+        d.mesh.visible = true;
+        d.mesh.position.copy(restPositions[i]);
+      });
       applyDiceColorsForPlayer(currentPlayer);
       updateRollCounter();
       switchToEnv(factionByKey(players[currentPlayer].faction).env);
@@ -2224,83 +2333,126 @@
       hintFaded = false;
 
       const cam = PLAYER_CAM[currentPlayer];
-      animateCameraTo(cam.radius, cam.theta, cam.phi, 650, null);
+      animateCameraTo(cam.radius, cam.theta, cam.phi, 650, cpuMaybeAct);
+    });
+  }
+
+  function commenceBattleTransition(){
+    if(!pendingBattleTransition) return false;
+    const bt = pendingBattleTransition;
+    pendingBattleTransition = null;
+    if(bt.hasBattle){
+      if(bt.isFinal){
+        playFinalBoxingMatch(bt.outgoingPlayer, bt.dealt, bt.breakdown, revealGameOver);
+      } else {
+        playAttackCutscene(bt.outgoingPlayer, bt.dealt, bt.breakdown, proceedToNextPlayer);
+      }
+    } else {
+      proceedToNextPlayer();
+    }
+    return true;
+  }
+
+  function endTurn(){
+    if(gameOver || cutsceneActive) return;
+    awaitingTurnEnd = false;
+
+    const outgoingPlayer = currentPlayer;
+
+    finalizeHandScoring(outgoingPlayer, (scoreMessage)=>{
+      const deployResult = deployEndOfTurnBonuses(outgoingPlayer);
+      const combined = [scoreMessage, deployResult.message].filter(Boolean).join('  /  ');
+      if(combined){
+        tbBonus.textContent = combined;
+        textbox.classList.add('show');
+      }
+
+      // Always pause here so the player can read what their final roll
+      // scored before anything else happens — advanced by the next tap.
+      const hasBattle = gameOver || deployResult.dealt > 0;
+      pendingBattleTransition = { outgoingPlayer, dealt: deployResult.dealt, breakdown: deployResult.breakdown, isFinal: gameOver, hasBattle };
+      hint.textContent = gameOver ? 'TAP TO GO TO THE FINAL ROUND' : (hasBattle ? 'TAP TO GO TO BATTLE' : 'TAP TO CONTINUE');
+      hint.classList.remove('fade');
+      hintFaded = false;
+      cpuMaybeAct();
     });
   }
 
   // ---------- Combat bonus rules (based on the 3 faction dice) ----------
-  // SICKLE/HAMMER = defense, GUN/PLANE = attack. SWORD now always counts as
-  // attack too (a Knight's blade is a weapon) — so a roll that forms the
-  // Knight faction naturally earns an attack bonus once a faction is
-  // established, same as any other attack-heavy roll. UFO is ambiguous alien
+  // Each two-symbol faction splits one attack, one defense: Party Boss is
+  // Hammer(attack)/Sickle(defense), Industry Captain is Plane(attack)/
+  // Gun(defense). Knight (Sword) is attack-only — a Knight's blade is a
+  // weapon, so a roll that forms the Knight faction naturally earns an
+  // attack bonus once a faction is established. UFO is ambiguous alien
   // tech, so whenever one appears the player picks whether it counts as
   // attack or defense that roll.
   const STATIC_CATEGORY = {
-    SICKLE:'defense', HAMMER:'defense',
-    GUN:'attack', PLANE:'attack',
+    SICKLE:'defense', HAMMER:'attack',
+    GUN:'defense', PLANE:'attack',
     SWORD:'attack'
   };
 
   const EQUIP_VALUE = { pip1:1, pip2:2, pip3:3, circle:0 };
 
-  function applyEquipAwards(awards, equipValue, playerIdx){
-    let atkGain = 0, defGain = 0;
-    awards.forEach(kind=>{
-      if(kind==='attack') atkGain += equipValue;
-      else defGain += equipValue;
-    });
-    if(atkGain>0){
-      players[playerIdx].atk += atkGain;
-      applyDamage(playerIdx, atkGain);
-    }
-    if(defGain>0){
-      players[playerIdx].def += defGain;
-    }
+  // Scores the final hand once a player is done rolling for the turn (all
+  // 3 rolls used, or Skip pressed). A faction must be formed by the hand
+  // as it currently stands; if so, every attack symbol and every defense
+  // symbol among the 3 faction dice multiplies by this turn's equip value
+  // (the equip die's face, plus any pips banked from rolling your own
+  // faction earlier in the turn). No equip value (an X ended the turn) or
+  // no faction formed means nothing scores this turn.
+  function applyFinalScoring(labels, ufoAs, playerIdx){
+    const p = players[playerIdx];
+    const equipDie = dice[3];
+    const equipType = EQUIP_FACE_TYPES[equipDie.resultIndex];
+    if(equipType === 'x') return '';
+    const equipValue = (EQUIP_VALUE[equipType]||0) + (p.bankedEquipPips||0);
+
+    const attackCount = labels.filter(l => STATIC_CATEGORY[l]==='attack' || (l==='UFO' && ufoAs==='attack')).length;
+    const defenseCount = labels.filter(l => STATIC_CATEGORY[l]==='defense' || (l==='UFO' && ufoAs==='defense')).length;
+
+    const atkGain = attackCount * equipValue;
+    const defGain = defenseCount * equipValue;
+
+    if(atkGain>0) p.atk += atkGain;
+    if(defGain>0) p.def += defGain;
     updateScoreboard();
-    return { atkGain, defGain };
+
+    const parts = [];
+    if(atkGain>0) parts.push('ATK +'+atkGain);
+    if(defGain>0) parts.push('DEF +'+defGain);
+    return parts.length ? ('⚙ FINAL HAND SCORED — ' + parts.join('  ')) : '';
   }
 
-  // Resolves the attack/defense bonus for a roll once we know how any UFOs
-  // in it should be counted (ufoAs is null when there were no UFOs to ask about).
-  function resolveBonusForRoll(labels, faction, equipValue, playerIdx, ufoAs){
-    if(faction){
-      players[playerIdx].factionEstablished = true;
-    }
+  function finalizeHandScoring(playerIdx, onComplete){
+    const labels = dice.slice(0,3).map(d=>FACE_LABELS[d.resultIndex]);
+    const faction = getFaction(labels);
+    const equipType = EQUIP_FACE_TYPES[dice[3].resultIndex];
 
-    const a = labels.filter(l => STATIC_CATEGORY[l]==='attack' || (l==='UFO' && ufoAs==='attack')).length;
-    const d = labels.filter(l => STATIC_CATEGORY[l]==='defense' || (l==='UFO' && ufoAs==='defense')).length;
-
-    let type = 'none';
-    if(a===3) type = 'triple-attack';
-    else if(d===3) type = 'triple-defense';
-    else if(a>=2) type = 'equip-attack';
-    else if(d>=2) type = 'equip-defense';
-
-    if(type !== 'none' && !players[playerIdx].factionEstablished){
-      tbBonus.textContent = '⚠ NO FACTION ESTABLISHED — BONUS WITHHELD';
-      concludeRollResolution();
+    if(!faction){
+      onComplete('⚠ NO FACTION FORMED — NOTHING SCORED');
       return;
     }
 
-    if(type === 'triple-attack'){
-      players[playerIdx].atk += 1;
-      applyDamage(playerIdx, 1);
-      tbBonus.textContent = '⚔ TRIPLE ATTACK — ATK +1';
-    } else if(type === 'triple-defense'){
-      const p = players[playerIdx];
-      const before = p.gdp;
-      p.gdp = Math.min(GDP_MAX, p.gdp + 3);
-      updateScoreboard();
-      tbBonus.textContent = '🛡 TRIPLE DEFENSE — GDP +' + (p.gdp-before);
-    } else if(type === 'equip-attack'){
-      const { atkGain } = applyEquipAwards(['attack'], equipValue, playerIdx);
-      tbBonus.textContent = atkGain>0 ? ('⚙ EQUIP — ATK +'+atkGain) : '⚙ EQUIP TRIGGERED — BLANK ROLL';
-    } else if(type === 'equip-defense'){
-      const { defGain } = applyEquipAwards(['defense'], equipValue, playerIdx);
-      tbBonus.textContent = defGain>0 ? ('⚙ EQUIP — DEF +'+defGain) : '⚙ EQUIP TRIGGERED — BLANK ROLL';
+    if(equipType === 'x'){
+      // X already ended the turn with nothing to score — no point asking
+      // the player to declare a UFO that won't affect anything.
+      onComplete('');
+      return;
     }
 
-    concludeRollResolution();
+    const ufoCount = labels.filter(l=>l==='UFO').length;
+    if(ufoCount > 0){
+      pendingUfoChoice = { labels, playerIdx, onComplete };
+      tbBonus.textContent = '⚙ UFO ROLLED — CALL IT ATK OR DEF (FINAL HAND)';
+      textbox.classList.add('show');
+      choicePrompt.classList.add('show');
+      cpuMaybeAct();
+      return;
+    }
+
+    const message = applyFinalScoring(labels, null, playerIdx);
+    onComplete(message);
   }
 
   let pendingUfoChoice = null;
@@ -2310,24 +2462,88 @@
 
   function resolveUfoChoice(kind){
     if(!pendingUfoChoice) return;
-    const { labels, faction, equipValue, playerIdx } = pendingUfoChoice;
+    const { labels, playerIdx, onComplete } = pendingUfoChoice;
     pendingUfoChoice = null;
     choicePrompt.classList.remove('show');
-    resolveBonusForRoll(labels, faction, equipValue, playerIdx, kind);
+    const message = applyFinalScoring(labels, kind, playerIdx);
+    onComplete(message);
   }
 
   let awaitingTurnEnd = false;
+  let awaitingCpuStepTap = false;
 
   function requestTurnEnd(){
     awaitingTurnEnd = true;
     hint.classList.remove('fade');
     hint.textContent = 'TAP ANYWHERE TO END TURN';
+    cpuMaybeAct();
   }
 
   function concludeRollResolution(){
     if(gameOver) return;
     if(rollCount >= MAX_ROLLS){
       requestTurnEnd();
+    } else if(isCurrentPlayerCpu()){
+      // Pause so the human watching can see what the CPU just rolled
+      // before it decides what to lock and roll again.
+      awaitingCpuStepTap = true;
+      hint.classList.remove('fade');
+      hint.textContent = 'TAP TO LET THE CPU ROLL AGAIN';
+    } else {
+      cpuMaybeAct();
+    }
+  }
+
+  // ---------- CPU opponent (default for Player 2 unless manual mode is on) ----------
+  let cpuThinking = false;
+
+  function isCurrentPlayerCpu(){
+    return gameStarted && !gameOver && !cutsceneActive && isCpuPlayer[currentPlayer];
+  }
+
+  function scheduleCpuAction(delay, fn){
+    cpuThinking = true;
+    setTimeout(()=>{
+      cpuThinking = false;
+      fn();
+    }, delay);
+  }
+
+  function cpuMaybeAct(){
+    if(!isCurrentPlayerCpu() || cpuThinking) return;
+
+    // The end-of-turn "read what happened" pause always waits for a real
+    // human tap, even when the outgoing player was the CPU — that's the
+    // whole point of being able to watch it play.
+    if(pendingBattleTransition) return;
+    if(pendingUfoChoice){
+      scheduleCpuAction(700, ()=>{ resolveUfoChoice('attack'); });
+      return;
+    }
+    if(awaitingTurnEnd){
+      scheduleCpuAction(700, ()=>{ awaitingTurnEnd=false; endTurn(); });
+      return;
+    }
+    if(awaitingCpuStepTap) return; // waiting on the human to tap through this roll
+    if(rolling) return;
+
+    if(rollCount === 0){
+      scheduleCpuAction(800, ()=> rollDice());
+      return;
+    }
+    if(rollCount < MAX_ROLLS){
+      // Simple heuristic: hold onto attack-leaning faction symbols and
+      // re-roll the rest, chasing a bonus pattern.
+      dice.slice(0,3).forEach(d=>{
+        const label = FACE_LABELS[d.resultIndex];
+        const isAttack = (label==='HAMMER' || label==='PLANE' || label==='SWORD');
+        if(isAttack && !d.locked) toggleLock(d);
+      });
+      if(dice.every(d=>d.locked)){
+        scheduleCpuAction(700, ()=>{ awaitingTurnEnd=false; endTurn(); });
+      } else {
+        scheduleCpuAction(800, ()=> rollDice());
+      }
     }
   }
 
@@ -2657,6 +2873,139 @@
     });
   }
 
+  // ---------- Attack cutscene: jump to the boxing ring, charge, impact, debris burst ----------
+  const DEBRIS_COUNT = 14;
+  const debrisPool = [];
+  (function initDebrisPool(){
+    const debrisGeo = new THREE.BoxGeometry(0.22,0.22,0.22);
+    const debrisColors = [0xf5f0e6,0xc9a227,0x8a1f1f,0x2e4fa0,0x2e7a4a,0x6a3f9e];
+    for(let i=0;i<DEBRIS_COUNT;i++){
+      const mat = new THREE.MeshPhongMaterial({ color: debrisColors[i%debrisColors.length], flatShading:true, shininess:10, transparent:true });
+      const mesh = new THREE.Mesh(debrisGeo, mat);
+      mesh.visible = false;
+      scene.add(mesh);
+      debrisPool.push({ mesh, vel:new THREE.Vector3(), active:false, age:0 });
+    }
+  })();
+
+  function spawnDebrisBurst(x,y,z){
+    debrisPool.forEach(d=>{
+      const ang = Math.random()*Math.PI*2;
+      const speed = 2.5+Math.random()*3.5;
+      d.vel.set(Math.cos(ang)*speed, 3+Math.random()*3, Math.sin(ang)*speed);
+      d.mesh.position.set(x,y,z);
+      d.mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      d.mesh.material.opacity = 1;
+      d.mesh.visible = true;
+      d.active = true;
+      d.age = 0;
+    });
+  }
+
+  let cutsceneActive = false;
+  let attackCutscene = null;
+  let shakeEndTime = 0, shakeMag = 0;
+
+  function startBoxingCutscene(attackerIdx, headline, breakdown, rounds, isFinal, onComplete){
+    cutsceneActive = true;
+    textbox.classList.remove('show');
+    switchToEnv(titleEnv);
+
+    const ringTopY = 0.9 + 0.22 + 0.25; // matches the boxing ring mat surface + die half-height
+    const startSide = attackerIdx===0 ? -1 : 1;
+
+    animateCameraTo(6.0, Math.PI*0.5, Math.PI*0.34, 500, ()=>{
+      tbBody.textContent = '';
+      tbSyms.textContent = '';
+      tbBonus.textContent = '';
+      textbox.classList.add('show');
+      typeText(tbBody, headline, ()=>{
+        if(breakdown) tbBonus.textContent = breakdown;
+      });
+
+      dice.forEach((d,i)=>{
+        d.mesh.visible = true;
+        d.mesh.position.set(startSide*2.4, ringTopY + (i-1.5)*0.05, (i-1.5)*0.32);
+      });
+
+      attackCutscene = {
+        phase:'charge', phaseStart: performance.now(),
+        startSide, ringTopY, attackerIdx, onComplete,
+        isFinal, roundsRemaining: rounds
+      };
+    });
+  }
+
+  function playAttackCutscene(attackerIdx, amount, breakdown, onComplete){
+    startBoxingCutscene(attackerIdx, 'PLAYER ' + (attackerIdx+1) + ' ATTACKS FOR ' + amount + '!', breakdown, 1, false, onComplete);
+  }
+
+  function playFinalBoxingMatch(attackerIdx, amount, breakdown, onComplete){
+    startBoxingCutscene(attackerIdx, 'THE FINAL ROUND!', breakdown, 3, true, onComplete);
+  }
+
+  function updateAttackCutscene(now, dt){
+    if(!attackCutscene) return;
+    const cs = attackCutscene;
+    const elapsed = now - cs.phaseStart;
+
+    if(cs.phase === 'charge'){
+      const dur = 480;
+      const t = Math.min(1, elapsed/dur);
+      const eased = t*t;
+      dice.forEach(d=>{
+        d.mesh.position.x = THREE.MathUtils.lerp(cs.startSide*2.4, 0, eased);
+        d.mesh.rotateOnAxis(d.spinAxis, 22*dt);
+      });
+      if(t>=1){
+        spawnDebrisBurst(0, cs.ringTopY, 0);
+        beep(85, 0.22, 0.2, 'square');
+        beep(50, 0.3, 0.15, 'sawtooth');
+        shakeEndTime = now + 260;
+        shakeMag = cs.isFinal ? 0.22 : 0.14;
+        cs.phase = 'impact';
+        cs.phaseStart = now;
+      }
+    } else if(cs.phase === 'impact'){
+      if(elapsed > 750){
+        if(cs.isFinal && cs.roundsRemaining > 1){
+          cs.roundsRemaining--;
+          cs.startSide *= -1;
+          dice.forEach((d,i)=>{
+            d.mesh.visible = true;
+            d.mesh.position.set(cs.startSide*2.4, cs.ringTopY + (i-1.5)*0.05, (i-1.5)*0.32);
+          });
+          cs.phase = 'charge';
+          cs.phaseStart = now;
+        } else {
+          dice.forEach(d=>{ d.mesh.visible = false; });
+          if(cs.isFinal){
+            tbBody.textContent = '';
+            typeText(tbBody, 'K.O.!');
+            tbBonus.textContent = 'PLAYER ' + (cs.attackerIdx+1) + ' WINS THE MATCH!';
+            beep(60, 0.5, 0.25, 'sawtooth');
+          }
+          cs.phase = 'awaiting-tap';
+          cs.phaseStart = now;
+          hint.textContent = 'TAP ANYWHERE TO CONTINUE';
+          hint.classList.remove('fade');
+          hintFaded = false;
+        }
+      }
+    }
+    // 'awaiting-tap' phase just sits here — advanced by the pointerup handler.
+  }
+
+  function advanceAttackCutscene(){
+    if(!attackCutscene || attackCutscene.phase !== 'awaiting-tap') return false;
+    const cs = attackCutscene;
+    attackCutscene = null;
+    cutsceneActive = false;
+    const cb = cs.onComplete;
+    if(cb) cb();
+    return true;
+  }
+
   // ---------- Audio ----------
   let AC;
   function getAC(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
@@ -2708,21 +3057,31 @@
   }
 
   function toggleLock(d){
-    if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd || cutsceneActive || awaitingCpuStepTap) return;
     d.locked = !d.locked;
     d.lockRing.visible = d.locked;
     beep(d.locked ? 880 : 440, 0.05, 0.05, 'square');
   }
 
+  let turnNumber = 1;
+
   function updateRollCounter(){
-    rollCounterEl.textContent = 'ROLL ' + rollCount + ' / ' + MAX_ROLLS;
+    rollCounterEl.textContent = 'TURN ' + turnNumber + '   ROLL ' + rollCount + ' / ' + MAX_ROLLS;
     rollCounterEl.classList.add('pulse');
     setTimeout(()=>rollCounterEl.classList.remove('pulse'), 200);
     skipBtn.disabled = !(gameStarted && !gameOver && rollCount >= 1);
   }
 
   function rollDice(){
-    if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd || cutsceneActive || awaitingCpuStepTap) return;
+    if(dice.every(d => d.locked)){
+      // Locking every die and tapping "roll" changes nothing — treat it
+      // exactly like choosing not to roll again: no points, no roll spent.
+      hint.textContent = 'ALL DICE LOCKED — UNLOCK ONE OR TAP SKIP TO CLOSE OUT YOUR HAND';
+      hint.classList.remove('fade');
+      hintFaded = false;
+      return;
+    }
     rolling = true;
     textbox.classList.remove('show');
     hint.classList.add('fade');
@@ -2796,28 +3155,28 @@
       return;
     }
 
-    const equipValue = EQUIP_VALUE[equipType];
+    const messages = [];
 
-    // Bonuses only score on a roll where every die was actually rolled.
-    // Holding dice back is purely a tool for shaping your hand toward a
-    // combo — it doesn't pay out until you commit with a full, fresh roll.
-    const allDiceFresh = dice.every(d => !d.locked);
-    if(!allDiceFresh){
-      tbBonus.textContent = '🎯 DICE HELD BACK — NO BONUS THIS ROLL';
-      concludeRollResolution();
-      return;
+    // Rule 1: three identical faces = flat GDP +3, immediate, untouched by
+    // the equip die's value.
+    if(labels[0]===labels[1] && labels[1]===labels[2]){
+      const p = players[currentPlayer];
+      const before = p.gdp;
+      p.gdp = p.gdp + 3;
+      updateScoreboard();
+      messages.push('🎯 TRIPLE ' + labels[0] + ' — GDP +' + (p.gdp - before));
     }
 
-    const ufoCount = labels.filter(l => l==='UFO').length;
-
-    if(ufoCount > 0){
-      pendingUfoChoice = { labels, faction, equipValue, playerIdx: currentPlayer };
-      tbBonus.textContent = '⚙ UFO ROLLED — CALL IT ATK OR DEF';
-      choicePrompt.classList.add('show');
-      return; // wait for the player's choice before continuing the turn
+    // Rule 2: rolling your own declared faction adds a pip to this turn's
+    // equip multiplier, banked until the hand is finally scored.
+    if(faction && players[currentPlayer].faction && faction === players[currentPlayer].faction){
+      players[currentPlayer].bankedEquipPips += 1;
+      messages.push('🎖 OWN FACTION ROLLED — EQUIP DIE +1 PIP THIS TURN');
     }
 
-    resolveBonusForRoll(labels, faction, equipValue, currentPlayer, null);
+    if(messages.length) tbBonus.textContent = messages.join('  /  ');
+
+    concludeRollResolution();
   }
 
   // ---------- Camera orbit controls ----------
@@ -2912,6 +3271,19 @@
     const elapsed = performance.now() - downTime;
     if(dragDistance <= TAP_MAX_DIST && elapsed <= TAP_MAX_TIME){
       fadeHint();
+      if(attackCutscene && attackCutscene.phase === 'awaiting-tap'){
+        advanceAttackCutscene();
+        return;
+      }
+      if(pendingBattleTransition){
+        commenceBattleTransition();
+        return;
+      }
+      if(awaitingCpuStepTap){
+        awaitingCpuStepTap = false;
+        cpuMaybeAct();
+        return;
+      }
       if(awaitingTurnEnd){
         awaitingTurnEnd = false;
         endTurn();
@@ -3096,6 +3468,23 @@
       }
     }
 
+    debrisPool.forEach(d=>{
+      if(!d.active) return;
+      d.vel.y -= 9.0*dt;
+      d.mesh.position.addScaledVector(d.vel, dt);
+      d.mesh.rotation.x += dt*6; d.mesh.rotation.y += dt*4;
+      d.age += dt;
+      const life = 1.1;
+      if(d.age > life){
+        d.active = false;
+        d.mesh.visible = false;
+      } else if(d.age > life*0.6){
+        d.mesh.material.opacity = 1 - (d.age-life*0.6)/(life*0.4);
+      }
+    });
+
+    updateAttackCutscene(now, dt);
+
     if(cameraAnim){
       const t = Math.min(1, (now - cameraAnim.startTime) / cameraAnim.duration);
       const eased = 1 - Math.pow(1-t, 2);
@@ -3112,6 +3501,13 @@
       updateCamera();
       cameraDirty = false;
     }
+
+    if(now < shakeEndTime){
+      const remaining = (shakeEndTime-now)/260;
+      camera.position.x += (Math.random()-0.5)*shakeMag*remaining;
+      camera.position.y += (Math.random()-0.5)*shakeMag*remaining;
+    }
+
     renderer.render(scene, camera);
   }
   function startLoop(){
