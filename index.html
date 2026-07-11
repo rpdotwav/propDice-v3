@@ -56,26 +56,11 @@
     background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(5,5,15,0.55) 100%);
   }
 
-  #lore{
+  #top-left-btns{
     position:fixed; left:24px; top:calc(24px + env(safe-area-inset-top, 0px)); z-index:10;
-    max-width:260px;
-    color:#f4ecd8;
-    text-shadow:0 2px 6px rgba(0,0,0,0.6);
+    display:flex; gap:10px;
   }
-  #lore .eyebrow{
-    font-family:'Press Start 2P', monospace;
-    font-size:8px; letter-spacing:0.12em; color:var(--gold);
-    margin-bottom:8px;
-  }
-  #lore h1{
-    font-size:22px; font-weight:700; margin:0 0 8px 0; letter-spacing:0.02em;
-  }
-  #lore p{
-    font-size:12px; line-height:1.6; margin:0; opacity:0.88;
-  }
-
   #scene-btn{
-    position:fixed; right:24px; top:calc(24px + env(safe-area-inset-top, 0px)); z-index:10;
     font-family:'Press Start 2P', monospace;
     font-size:9px; letter-spacing:0.06em; color:#f4ecd8;
     background:rgba(10,10,15,0.45);
@@ -89,30 +74,12 @@
   #scene-btn:hover{ background:rgba(232,196,104,0.18); border-color:var(--gold); }
   #scene-btn:active{ transform:translateY(2px); }
 
-  #skip-btn{
-    position:fixed; right:24px; top:calc(66px + env(safe-area-inset-top, 0px)); z-index:10;
-    font-family:'Press Start 2P', monospace;
-    font-size:8px; letter-spacing:0.06em; color:#f4ecd8;
-    background:rgba(10,10,15,0.45);
-    border:2px solid rgba(159,180,224,0.55);
-    padding:9px 13px;
-    cursor:pointer;
-    text-shadow:0 2px 4px rgba(0,0,0,0.6);
-    backdrop-filter:blur(4px);
-    transition:background 0.2s ease, border-color 0.2s ease, transform 0.08s ease, opacity 0.2s ease;
-  }
-  #skip-btn:hover{ background:rgba(159,180,224,0.18); border-color:#9fb4e0; }
-  #skip-btn:active{ transform:translateY(2px); }
-  #skip-btn:disabled{ opacity:0.35; cursor:default; }
-  #skip-btn:disabled:hover{ background:rgba(10,10,15,0.45); border-color:rgba(159,180,224,0.55); }
-
   #autoplay-btn{
-    position:fixed; right:24px; top:calc(108px + env(safe-area-inset-top, 0px)); z-index:10;
     font-family:'Press Start 2P', monospace;
     font-size:8px; letter-spacing:0.06em; color:#f4ecd8;
     background:rgba(10,10,15,0.45);
     border:2px solid rgba(122,196,140,0.5);
-    padding:9px 13px;
+    padding:10px 13px;
     cursor:pointer;
     text-shadow:0 2px 4px rgba(0,0,0,0.6);
     backdrop-filter:blur(4px);
@@ -124,10 +91,42 @@
     background:rgba(122,196,140,0.22); border-color:#7ac48c; color:#c8f0d4;
   }
 
+  #diceguide-btn{
+    position:fixed; right:24px; top:calc(24px + env(safe-area-inset-top, 0px)); z-index:10;
+    font-family:'Press Start 2P', monospace;
+    font-size:9px; letter-spacing:0.06em; color:#f4ecd8;
+    background:rgba(10,10,15,0.45);
+    border:2px solid rgba(159,180,224,0.55);
+    padding:10px 14px;
+    cursor:pointer;
+    text-shadow:0 2px 4px rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.08s ease;
+  }
+  #diceguide-btn:hover{ background:rgba(159,180,224,0.18); border-color:#9fb4e0; }
+  #diceguide-btn:active{ transform:translateY(2px); }
+
+  #skip-btn{
+    font-family:'Press Start 2P', monospace;
+    font-size:8px; letter-spacing:0.06em; color:#f4ecd8;
+    background:rgba(10,10,15,0.45);
+    border:2px solid rgba(159,180,224,0.55);
+    padding:9px 13px;
+    cursor:pointer;
+    text-shadow:0 2px 4px rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    transition:background 0.2s ease, border-color 0.2s ease, transform 0.08s ease, opacity 0.2s ease;
+    flex-shrink:0; white-space:nowrap;
+  }
+  #skip-btn:hover{ background:rgba(159,180,224,0.18); border-color:#9fb4e0; }
+  #skip-btn:active{ transform:translateY(2px); }
+  #skip-btn:disabled{ opacity:0.35; cursor:default; }
+  #skip-btn:disabled:hover{ background:rgba(10,10,15,0.45); border-color:rgba(159,180,224,0.55); }
+
   .pregame-hidden{ display:none !important; }
 
   #turn-indicator{
-    position:fixed; top:calc(24px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
+    position:fixed; top:calc(66px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; text-align:center;
     text-shadow:0 2px 6px rgba(0,0,0,0.7);
     transition:opacity 0.3s ease;
@@ -143,7 +142,7 @@
   }
 
   #scoreboard{
-    position:fixed; top:calc(78px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
+    position:fixed; top:calc(100px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
     z-index:10; display:flex; align-items:center; gap:22px;
     text-shadow:0 2px 6px rgba(0,0,0,0.75);
   }
@@ -181,14 +180,18 @@
   }
   #hint.fade{opacity:0;}
 
+  #roll-row{
+    position:fixed; top:calc(208px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
+    z-index:10; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; white-space:nowrap;
+  }
   #roll-counter{
-    position:fixed; top:calc(186px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%);
-    z-index:10; font-family:'Press Start 2P', monospace;
+    font-family:'Press Start 2P', monospace;
     font-size:9px; letter-spacing:0.12em; color:var(--gold);
     text-shadow:0 2px 4px rgba(0,0,0,0.8);
     opacity:0.95; transition:opacity 0.3s ease, transform 0.2s ease;
+    white-space:nowrap; flex-shrink:0;
   }
-  #roll-counter.pulse{ transform:translateX(-50%) scale(1.15); }
+  #roll-counter.pulse{ transform:scale(1.15); }
 
   /* Zelda-style dialogue box */
   #textbox{
@@ -395,43 +398,92 @@
   }
   #howto-back-btn:hover{ transform:translateY(-2px); }
 
+  #diceguide-overlay{
+    position:fixed; inset:0; z-index:28;
+    background:rgba(6,6,10,0.85); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  #diceguide-overlay.show{ display:flex; }
+  #diceguide-card{
+    width:min(520px, 92vw); max-height:82vh; overflow-y:auto;
+    background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
+    border:3px solid var(--box-blue-light);
+    box-shadow:0 0 0 2px #0a1430, 0 10px 40px rgba(0,0,0,0.7);
+    padding:28px 30px;
+  }
+  #diceguide-card h2{
+    font-family:'Cinzel', serif; color:var(--gold); font-size:22px; margin:0 0 16px 0;
+  }
+  #diceguide-card h3{
+    font-family:'Press Start 2P', monospace; font-size:10px; color:var(--gold);
+    letter-spacing:0.08em; margin:22px 0 10px 0;
+  }
+  #diceguide-card li{
+    font-family:'Cinzel', serif; font-size:13px; color:#dfe6f0; line-height:1.65;
+  }
+  #diceguide-card ul{ margin:0; padding-left:20px; }
+  #diceguide-back-btn{
+    margin-top:26px; font-family:'Press Start 2P', monospace; font-size:10px;
+    padding:12px 20px; background:var(--gold); color:#0a0a0b;
+    border:2px solid #8a6a2e; cursor:pointer;
+  }
+  #diceguide-back-btn:hover{ transform:translateY(-2px); }
+
+  #confirm-overlay{
+    position:fixed; inset:0; z-index:29;
+    background:rgba(6,6,10,0.82); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  #confirm-overlay.show{ display:flex; }
+  #confirm-card{
+    width:min(440px, 90vw); text-align:center;
+    background:linear-gradient(180deg, var(--box-blue-dark) 0%, #142a5c 100%);
+    border:3px solid var(--box-blue-light);
+    box-shadow:0 0 0 2px #0a1430, 0 10px 40px rgba(0,0,0,0.7);
+    padding:28px 26px;
+  }
+  #confirm-card p{
+    font-family:'Cinzel', serif; font-size:14px; color:#f4ecd8; margin:0 0 22px 0;
+  }
+  #confirm-buttons{ display:flex; gap:12px; }
+  #confirm-buttons button{
+    flex:1; font-family:'Press Start 2P', monospace; font-size:9px;
+    padding:12px 8px; cursor:pointer; border:2px solid var(--gold);
+  }
+  #confirm-yes-btn{ background:var(--gold); color:#0a0a0b; }
+  #confirm-no-btn{ background:rgba(255,255,255,0.05); color:#f4ecd8; }
+  #confirm-buttons button:hover{ transform:translateY(-2px); }
+
   /* Narrow viewports (phones, iOS Safari): stack the top widgets vertically
      instead of trying to fit them side-by-side, which is what caused overlap. */
   @media (max-width: 700px){
-    #lore{
-      max-width:42vw;
+    #top-left-btns{
       left:10px;
       top:calc(10px + env(safe-area-inset-top, 0px));
+      gap:6px;
     }
-    #lore .eyebrow{ font-size:6.5px; margin-bottom:4px; }
-    #lore h1{ font-size:15px; margin:0; }
-
     #scene-btn{
+      font-size:7.5px; padding:7px 9px;
+    }
+    #autoplay-btn{
+      font-size:6.5px; padding:7px 9px;
+    }
+    #diceguide-btn{
       right:10px;
       top:calc(10px + env(safe-area-inset-top, 0px));
       font-size:7.5px; padding:7px 9px;
     }
 
-    #skip-btn{
-      right:10px;
-      top:calc(44px + env(safe-area-inset-top, 0px));
-      font-size:6.5px; padding:6px 8px;
-    }
-
-    #autoplay-btn{
-      right:10px;
-      top:calc(78px + env(safe-area-inset-top, 0px));
-      font-size:6.5px; padding:6px 8px;
-    }
-
     #turn-indicator{
-      top:calc(74px + env(safe-area-inset-top, 0px));
+      top:calc(46px + env(safe-area-inset-top, 0px));
     }
     #turn-indicator .ti-player{ font-size:6.5px; margin-bottom:2px; }
     #turn-indicator .ti-faction{ font-size:10px; }
 
     #scoreboard{
-      top:calc(102px + env(safe-area-inset-top, 0px));
+      top:calc(76px + env(safe-area-inset-top, 0px));
       gap:12px;
     }
     #scoreboard .sb-col{ min-width:100px; padding:8px 12px; }
@@ -439,10 +491,12 @@
     #scoreboard .sb-row{ font-size:9px; }
     #scoreboard .sb-vs{ font-size:12px; }
 
-    #roll-counter{
-      top:calc(184px + env(safe-area-inset-top, 0px));
-      font-size:7.5px;
+    #roll-row{
+      top:calc(158px + env(safe-area-inset-top, 0px));
+      gap:8px;
     }
+    #roll-counter{ font-size:7.5px; }
+    #skip-btn{ font-size:6.5px; padding:6px 8px; }
 
     #hint{
       font-size:6.5px;
@@ -462,15 +516,13 @@
   }
 
   @media (max-width: 420px){
-    #lore{ max-width:38vw; }
-    #lore h1{ font-size:13px; }
     #scoreboard{ gap:8px; }
     #scoreboard .sb-col{ min-width:84px; padding:7px 9px; }
     #scoreboard .sb-label{ font-size:7.5px; }
     #scoreboard .sb-row{ font-size:8px; }
-    #turn-indicator{ top:calc(72px + env(safe-area-inset-top, 0px)); }
-    #scoreboard{ top:calc(100px + env(safe-area-inset-top, 0px)); }
-    #roll-counter{ top:calc(178px + env(safe-area-inset-top, 0px)); }
+    #turn-indicator{ top:calc(44px + env(safe-area-inset-top, 0px)); }
+    #scoreboard{ top:calc(72px + env(safe-area-inset-top, 0px)); }
+    #roll-row{ top:calc(150px + env(safe-area-inset-top, 0px)); }
   }
 
   #loading{
@@ -490,14 +542,11 @@
 <div id="sunglow"></div>
 <div id="vignette"></div>
 
-<div id="lore">
-  <div class="eyebrow" id="lore-eyebrow">◆ THE SHRINE ◆</div>
-  <h1 id="lore-title">PropaganDICE</h1>
+<div id="top-left-btns">
+  <button id="scene-btn">⟳ NEW GAME</button>
+  <button id="autoplay-btn">▶ AUTOPLAY: OFF</button>
 </div>
-
-<button id="scene-btn">⟳ NEW GAME</button>
-<button id="skip-btn" disabled>⏭ SKIP ROLLS</button>
-<button id="autoplay-btn">▶ AUTOPLAY: OFF</button>
+<button id="diceguide-btn">🎲 DICE GUIDE</button>
 
 <div id="turn-indicator" class="pregame-hidden">
   <div class="ti-player" id="ti-player">PLAYER 1</div>
@@ -518,7 +567,10 @@
   </div>
 </div>
 
-<div id="roll-counter" class="pregame-hidden">TURN 1   ROLL 0 / 3</div>
+<div id="roll-row">
+  <div id="roll-counter" class="pregame-hidden">TURN 1   ROLL 0 / 3</div>
+  <button id="skip-btn" class="pregame-hidden" disabled>END TURN</button>
+</div>
 <div id="hint">TAP A DIE TO LOCK IT · TAP ELSEWHERE TO ROLL</div>
 
 <div id="textbox">
@@ -620,6 +672,49 @@
   </div>
 </div>
 
+<div id="diceguide-overlay">
+  <div id="diceguide-card">
+    <h2>Dice Face Guide</h2>
+
+    <h3>◆ FACTION DICE</h3>
+    <ul>
+      <li><b>Hammer, Plane, Sword</b> — Attack symbols</li>
+      <li><b>Sickle, Gun</b> — Defense symbols</li>
+      <li><b>UFO</b> — your choice, Attack or Defense, called once when your hand is finally scored</li>
+    </ul>
+
+    <h3>◆ FACTION CLAIMS</h3>
+    <ul>
+      <li>2+ Sickle/Hammer (or one of each) — Party Boss</li>
+      <li>2+ Gun/Plane (or one of each) — Industry Captain</li>
+      <li>2+ Sword — Knight</li>
+      <li>2+ UFO — Prefect Zorb</li>
+    </ul>
+
+    <h3>◆ EQUIP DIE</h3>
+    <ul>
+      <li><b>I</b> (×2 faces) — multiplier of 1</li>
+      <li><b>II</b> — multiplier of 2</li>
+      <li><b>III</b> — multiplier of 3</li>
+      <li><b>O</b> — blank, multiplier of 0 (rolling continues)</li>
+      <li><b>X</b> — turn ends immediately</li>
+    </ul>
+
+    <button id="diceguide-back-btn">BACK</button>
+  </div>
+</div>
+
+<div id="confirm-overlay">
+  <div id="confirm-card">
+    <div class="setup-eyebrow">◆ ARE YOU SURE? ◆</div>
+    <p id="confirm-message">Starting a new game will end the one in progress.</p>
+    <div id="confirm-buttons">
+      <button id="confirm-yes-btn">YES, NEW GAME</button>
+      <button id="confirm-no-btn">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -632,8 +727,12 @@
   const sceneBtn = document.getElementById('scene-btn');
   const skipBtn = document.getElementById('skip-btn');
   const autoplayBtn = document.getElementById('autoplay-btn');
-  const loreEyebrow = document.getElementById('lore-eyebrow');
-  const loreTitle = document.getElementById('lore-title');
+  const diceguideBtn = document.getElementById('diceguide-btn');
+  const diceguideOverlay = document.getElementById('diceguide-overlay');
+  const diceguideBackBtn = document.getElementById('diceguide-back-btn');
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  const confirmYesBtn = document.getElementById('confirm-yes-btn');
+  const confirmNoBtn = document.getElementById('confirm-no-btn');
   const rollCounterEl = document.getElementById('roll-counter');
   const turnIndicator = document.getElementById('turn-indicator');
   const scoreboardEl = document.getElementById('scoreboard');
@@ -1218,7 +1317,7 @@
       return h;
     }
 
-    const groundSize = 64, segs = 48;
+    const groundSize = 64, segs = 44;
     const groundGeo = new THREE.PlaneGeometry(groundSize, groundSize, segs, segs);
     const posAttr = groundGeo.attributes.position;
     const colors = [];
@@ -1292,7 +1391,7 @@
     const crystalMatricesByColor = clusterMats.map(()=>[]);
     const crystal2MatricesByColor = clusterMats.map(()=>[]);
 
-    function placeCluster(x,z){
+    function placeCluster(x,z,withLight){
       const h = terrainHeight(x,z);
       const scale = 0.7 + Math.random()*0.6;
       const colorIdx = Math.floor(Math.random()*clusterMats.length);
@@ -1325,10 +1424,17 @@
 
       addBlob(x, z, 1.3*scale, group);
 
-      const light = new THREE.PointLight(mat.color.getHex(), 0.5, 2.2, 2);
-      light.position.set(x, h+0.85*scale, z);
-      group.add(light);
-      lights.push({ flame:{scale:null}, light, baseIntensity:0.5 });
+      // Every cluster glows on its own via the emissive material above —
+      // a real dynamic light on all 26 would mean every fragment in the
+      // scene pays for 26 light-loop iterations every frame. Lighting only
+      // every 4th cluster (7 lights, plus the 2 landing-pad orbs) keeps the
+      // same scattered-glow look for a fraction of the GPU cost.
+      if(withLight){
+        const light = new THREE.PointLight(mat.color.getHex(), 0.5, 2.2, 2);
+        light.position.set(x, h+0.85*scale, z);
+        group.add(light);
+        lights.push({ flame:{scale:null}, light, baseIntensity:0.5 });
+      }
     }
 
     let placed = 0, attempts = 0;
@@ -1337,7 +1443,7 @@
       const ang = Math.random()*Math.PI*2;
       const dist = 6 + Math.random()*20;
       const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
-      placeCluster(x,z);
+      placeCluster(x,z, placed % 4 === 0);
       placed++;
     }
 
@@ -1955,11 +2061,13 @@
     const pipMats = [1,2,3,4,5,6].map(n => new THREE.MeshPhongMaterial({ map: makePipFaceTexture(n), flatShading:true, shininess:14 }));
     const standardDieMats = [pipMats[0],pipMats[5],pipMats[1],pipMats[4],pipMats[2],pipMats[3]];
     const decoGeo = new THREE.BoxGeometry(0.5,0.5,0.5);
+    const decorDice = [];
     [[-0.6,0.3],[0.55,-0.35],[0.05,0.6]].forEach(([dx,dz])=>{
       const dmesh = new THREE.Mesh(decoGeo, standardDieMats);
       dmesh.position.set(dx, ringHeight+0.22+0.25, dz);
       dmesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
       group.add(dmesh);
+      decorDice.push(dmesh);
     });
 
     // ---- crowd of traditional dice, packed into tiered stadium seating ----
@@ -2047,7 +2155,7 @@
     makeRingSpot(0, 4);
 
     return {
-      group, lights, smoke, precip, flashers,
+      group, lights, smoke, precip, flashers, decorDice,
       fog:{color:0x0e0d12, near:14, far:30},
       hemi:{sky:0x3a3a48, ground:0x0a0a0c, intensity:0.55},
       sun:{color:0xf0ece0, intensity:0.4},
@@ -2092,8 +2200,6 @@
     fillCool.intensity = env.fillCool.intensity;
     document.body.classList.remove('env-shrine','env-factory','env-alien','env-farm','env-title');
     document.body.classList.add(env.bodyClass);
-    loreEyebrow.textContent = env.lore.eyebrow;
-    loreTitle.textContent = env.lore.title;
   }
   applyEnvironment(currentEnv);
 
@@ -2220,6 +2326,7 @@
     manualMode = !manualMode;
     updateModeToggleLabel();
     autoplayBtn.classList.toggle('pregame-hidden', manualMode);
+    setAutoplay(!manualMode);
   });
 
   function beginSetup(){
@@ -2227,9 +2334,9 @@
     gameOver = false;
     awaitingTurnEnd = false;
     awaitingCpuStepTap = false;
-    autoplayEnabled = false;
-    autoplayBtn.textContent = '▶ AUTOPLAY: OFF';
-    autoplayBtn.classList.remove('on');
+    endingTurn = false;
+    cancelCpuAction();
+    setAutoplay(!manualMode);
     autoplayBtn.classList.toggle('pregame-hidden', manualMode);
     cutsceneActive = false;
     attackCutscene = null;
@@ -2306,7 +2413,20 @@
     btn.addEventListener('click', ()=> selectFaction(btn.dataset.key));
   });
 
-  sceneBtn.addEventListener('click', beginSetup);
+  sceneBtn.addEventListener('click', ()=>{
+    if(gameStarted && !gameOver){
+      confirmOverlay.classList.add('show');
+    } else {
+      beginSetup();
+    }
+  });
+  confirmYesBtn.addEventListener('click', ()=>{
+    confirmOverlay.classList.remove('show');
+    beginSetup();
+  });
+  confirmNoBtn.addEventListener('click', ()=>{
+    confirmOverlay.classList.remove('show');
+  });
   playAgainBtn.addEventListener('click', beginSetup);
 
   startGameBtn.addEventListener('click', ()=>{
@@ -2314,6 +2434,7 @@
     turnIndicator.classList.remove('pregame-hidden');
     scoreboardEl.classList.remove('pregame-hidden');
     rollCounterEl.classList.remove('pregame-hidden');
+    skipBtn.classList.remove('pregame-hidden');
     dice.forEach(d=>{ d.mesh.visible = true; });
     beginSetup();
   });
@@ -2323,9 +2444,15 @@
   howtoBackBtn.addEventListener('click', ()=>{
     howtoOverlay.classList.remove('show');
   });
+  diceguideBtn.addEventListener('click', ()=>{
+    diceguideOverlay.classList.add('show');
+  });
+  diceguideBackBtn.addEventListener('click', ()=>{
+    diceguideOverlay.classList.remove('show');
+  });
 
   function skipRemainingRolls(){
-    if(!gameStarted || gameOver || rolling || pendingUfoChoice || cutsceneActive || awaitingCpuStepTap) return;
+    if(!gameStarted || gameOver || rolling || pendingUfoChoice || cutsceneActive || awaitingCpuStepTap || isCurrentPlayerCpu()) return;
     if(rollCount < 1) return;
     awaitingTurnEnd = false;
     choicePrompt.classList.remove('show');
@@ -2385,8 +2512,11 @@
     return true;
   }
 
+  let endingTurn = false;
+
   function endTurn(){
-    if(gameOver || cutsceneActive) return;
+    if(gameOver || cutsceneActive || endingTurn || pendingBattleTransition) return;
+    endingTurn = true;
     awaitingTurnEnd = false;
 
     const outgoingPlayer = currentPlayer;
@@ -2406,6 +2536,7 @@
       hint.textContent = gameOver ? 'TAP TO GO TO THE FINAL ROUND' : (hasBattle ? 'TAP TO GO TO BATTLE' : 'TAP TO CONTINUE');
       hint.classList.remove('fade');
       hintFaded = false;
+      endingTurn = false;
       cpuMaybeAct();
     });
   }
@@ -2529,7 +2660,14 @@
 
   // ---------- CPU opponent (default for Player 2 unless manual mode is on) ----------
   let cpuThinking = false;
+  let cpuActionTimer = null;
   let autoplayEnabled = false;
+
+  function setAutoplay(enabled){
+    autoplayEnabled = enabled;
+    autoplayBtn.textContent = autoplayEnabled ? '▶ AUTOPLAY: ON' : '▶ AUTOPLAY: OFF';
+    autoplayBtn.classList.toggle('on', autoplayEnabled);
+  }
 
   function isCurrentPlayerCpu(){
     return gameStarted && !gameOver && !cutsceneActive && isCpuPlayer[currentPlayer];
@@ -2537,18 +2675,37 @@
 
   function scheduleCpuAction(delay, fn){
     cpuThinking = true;
-    setTimeout(()=>{
+    if(cpuActionTimer !== null) clearTimeout(cpuActionTimer);
+    cpuActionTimer = setTimeout(()=>{
+      cpuActionTimer = null;
       cpuThinking = false;
       fn();
     }, delay);
   }
 
+  // Cancels any CPU action still waiting to fire, so a leftover timer from
+  // one game can't reach into a freshly-reset one.
+  function cancelCpuAction(){
+    if(cpuActionTimer !== null){
+      clearTimeout(cpuActionTimer);
+      cpuActionTimer = null;
+    }
+    cpuThinking = false;
+  }
+
   autoplayBtn.addEventListener('click', ()=>{
-    autoplayEnabled = !autoplayEnabled;
-    autoplayBtn.textContent = autoplayEnabled ? '▶ AUTOPLAY: ON' : '▶ AUTOPLAY: OFF';
-    autoplayBtn.classList.toggle('on', autoplayEnabled);
+    setAutoplay(!autoplayEnabled);
     cpuMaybeAct();
   });
+
+  // Which raw symbols contribute to each faction claim, used by the CPU
+  // to decide which faction dice to hold onto.
+  const CPU_FACTION_SYMBOLS = {
+    'PARTY BOSS': ['SICKLE','HAMMER'],
+    'INDUSTRY CAPTAIN': ['GUN','PLANE'],
+    'KNIGHT': ['SWORD'],
+    'PREFECT ZORB': ['UFO']
+  };
 
   function cpuMaybeAct(){
     if(!isCurrentPlayerCpu() || cpuThinking) return;
@@ -2579,13 +2736,32 @@
       return;
     }
     if(rollCount < MAX_ROLLS){
-      // Simple heuristic: hold onto attack-leaning faction symbols and
-      // re-roll the rest, chasing a bonus pattern.
-      dice.slice(0,3).forEach(d=>{
+      // Always hold a strong equip roll (II or III).
+      const equipDie = dice[3];
+      const equipValue = EQUIP_VALUE[EQUIP_FACE_TYPES[equipDie.resultIndex]] || 0;
+      const equipShouldLock = equipValue >= 2;
+      if(equipShouldLock !== equipDie.locked) toggleLock(equipDie);
+
+      // Always hold whichever faction dice are forming a faction right now.
+      // The odd one out only gets re-rolled if it isn't already part of
+      // that faction and isn't itself a Sword or UFO (those are worth
+      // keeping on their own merit regardless of the current faction).
+      const factionDice = dice.slice(0,3);
+      const labels = factionDice.map(d=>FACE_LABELS[d.resultIndex]);
+      const faction = getFaction(labels);
+      factionDice.forEach(d=>{
         const label = FACE_LABELS[d.resultIndex];
-        const isAttack = (label==='HAMMER' || label==='PLANE' || label==='SWORD');
-        if(isAttack && !d.locked) toggleLock(d);
+        let shouldLock;
+        if(faction){
+          const belongsToFaction = (CPU_FACTION_SYMBOLS[faction]||[]).includes(label);
+          const isSpecial = (label==='SWORD' || label==='UFO');
+          shouldLock = belongsToFaction || isSpecial;
+        } else {
+          shouldLock = (label==='HAMMER' || label==='PLANE' || label==='SWORD');
+        }
+        if(shouldLock !== d.locked) toggleLock(d);
       });
+
       if(dice.every(d=>d.locked)){
         scheduleCpuAction(700, ()=>{ awaitingTurnEnd=false; endTurn(); });
       } else {
@@ -2609,30 +2785,35 @@
   let BODY = '#d8c9a3';
 
   function drawSickle(ctx){
-    const outerC=[0,-0.05], outerR=0.60;
-    const innerC=[0.22,-0.18], innerR=0.32;
-    const start=Math.PI*1.02, end=-Math.PI*0.12;
-    const steps=28;
+    ctx.save();
     ctx.fillStyle = INK;
+
+    // Crescent blade: a full circle with a second, offset circle painted
+    // over it in the background color — a real cutout revealing the die
+    // face behind it, not a transparency punch that erases through to
+    // nothing (which is what "destination-out" was doing).
+    const outerCx=-0.16, outerCy=0, outerR=0.55;
+    const innerCx=0.19, innerCy=0, innerR=0.50;
+
     ctx.beginPath();
-    for(let i=0;i<=steps;i++){
-      const t = start+(end-start)*(i/steps);
-      const x = outerC[0]+Math.cos(t)*outerR, y = outerC[1]+Math.sin(t)*outerR;
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    }
-    for(let i=steps;i>=0;i--){
-      const t = start+(end-start)*(i/steps);
-      const x = innerC[0]+Math.cos(t)*innerR, y = innerC[1]+Math.sin(t)*innerR;
-      ctx.lineTo(x,y);
-    }
-    ctx.closePath();
+    ctx.arc(outerCx, outerCy, outerR, 0, Math.PI*2);
     ctx.fill();
 
+    ctx.fillStyle = BODY;
+    ctx.beginPath();
+    ctx.arc(innerCx, innerCy, innerR, 0, Math.PI*2);
+    ctx.fill();
+
+    // Handle, attached at the crescent's bottom tip (where the two circles
+    // meet), running close to straight down.
+    ctx.fillStyle = INK;
     ctx.save();
-    ctx.translate(-0.34, -0.10);
-    ctx.rotate(-0.95);
-    ctx.fillRect(-0.075, 0, 0.15, 0.62);
-    ctx.fillRect(-0.13, -0.02, 0.26, 0.09);
+    ctx.translate(0.09, 0.49);
+    ctx.rotate(0.14);
+    ctx.fillRect(-0.09, 0, 0.18, 0.42);
+    ctx.fillRect(-0.14, -0.03, 0.28, 0.10);
+    ctx.restore();
+
     ctx.restore();
   }
 
@@ -2797,7 +2978,7 @@
     tex.magFilter = THREE.LinearFilter;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     tex.generateMipmaps = true;
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     return tex;
   }
 
@@ -2855,7 +3036,7 @@
     tex.magFilter = THREE.LinearFilter;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     tex.generateMipmaps = true;
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     return tex;
   }
 
@@ -2967,6 +3148,8 @@
   function startBoxingCutscene(attackerIdx, headline, breakdown, rounds, isFinal, onComplete){
     cutsceneActive = true;
     textbox.classList.remove('show');
+    dice.forEach(d=>{ d.mesh.visible = false; });
+    titleEnv.decorDice.forEach(m=>{ m.visible = false; });
     switchToEnv(titleEnv);
 
     // Ring platform is a 0.22-tall box centered at y=0.9 (see buildTitleEnvironment),
@@ -2985,9 +3168,9 @@
         if(breakdown) tbBonus.textContent = breakdown;
       });
 
-      dice.forEach((d)=>{
+      dice.forEach((d,i)=>{
         d.mesh.visible = true;
-        d.mesh.position.set(startSide*2.4, ringTopY, 0);
+        d.mesh.position.set(startSide*2.4, ringTopY, (i-1.5)*0.75);
       });
       placeTargetDice(defenderIdx, 0, ringTopY, 0);
 
@@ -3034,9 +3217,9 @@
         if(cs.isFinal && cs.roundsRemaining > 1){
           cs.roundsRemaining--;
           cs.startSide *= -1;
-          dice.forEach((d)=>{
+          dice.forEach((d,i)=>{
             d.mesh.visible = true;
-            d.mesh.position.set(cs.startSide*2.4, cs.ringTopY, 0);
+            d.mesh.position.set(cs.startSide*2.4, cs.ringTopY, (i-1.5)*0.75);
           });
           placeTargetDice(cs.defenderIdx, 0, cs.ringTopY, 0);
           cs.phase = 'charge';
@@ -3134,7 +3317,7 @@
     rollCounterEl.textContent = 'TURN ' + turnNumber + '   ROLL ' + rollCount + ' / ' + MAX_ROLLS;
     rollCounterEl.classList.add('pulse');
     setTimeout(()=>rollCounterEl.classList.remove('pulse'), 200);
-    skipBtn.disabled = !(gameStarted && !gameOver && rollCount >= 1);
+    skipBtn.disabled = !(gameStarted && !gameOver && rollCount >= 1 && !isCurrentPlayerCpu());
   }
 
   function rollDice(){
@@ -3222,9 +3405,15 @@
 
     const messages = [];
 
+    // Both bonuses below are about what you just rolled — if all 3 faction
+    // dice are locked (only the equip die actually moved), nothing about
+    // the faction hand changed this time, so neither should re-fire just
+    // because the same held dice still match.
+    const factionDiceRolledThisTime = factionDice.some(d => !d.locked);
+
     // Rule 1: three identical faces = flat GDP +3, immediate, untouched by
     // the equip die's value.
-    if(labels[0]===labels[1] && labels[1]===labels[2]){
+    if(factionDiceRolledThisTime && labels[0]===labels[1] && labels[1]===labels[2]){
       const p = players[currentPlayer];
       const before = p.gdp;
       p.gdp = p.gdp + 3;
@@ -3234,7 +3423,7 @@
 
     // Rule 2: rolling your own declared faction adds a pip to this turn's
     // equip multiplier, banked until the hand is finally scored.
-    if(faction && players[currentPlayer].faction && faction === players[currentPlayer].faction){
+    if(factionDiceRolledThisTime && faction && players[currentPlayer].faction && faction === players[currentPlayer].faction){
       players[currentPlayer].bankedEquipPips += 1;
       messages.push('🎖 OWN FACTION ROLLED — EQUIP DIE +1 PIP THIS TURN');
     }
@@ -3401,20 +3590,64 @@
   let rafId = null;
   let loopRunning = false;
   const TARGET_FPS = 30;
+  const IDLE_FPS = 12;
   const FRAME_INTERVAL = 1000 / TARGET_FPS;
+  const IDLE_FRAME_INTERVAL = 1000 / IDLE_FPS;
+  const FULL_STOP_TIMEOUT = 10000; // fully stop rendering after this long with nothing to do
   let lastFrameTime = 0;
   let frameParity = 0;
+  let lastActivityTime = performance.now();
+
+  // True whenever something is actually mid-motion: a drag in progress, the
+  // camera easing between views, dice tumbling or flying apart, or a battle
+  // cutscene mid-charge/impact. Ambient touches (torch flicker, falling
+  // snow) don't need the full frame rate to read smoothly, so everything
+  // else — including a cutscene that's already resolved and is just
+  // sitting on "tap to continue" — can drop to IDLE_FPS until one of
+  // these becomes true again.
+  function isSceneActive(){
+    return isDragging
+      || cameraAnim !== null
+      || (attackCutscene !== null && attackCutscene.phase !== 'awaiting-tap')
+      || dice.some(d => d.active)
+      || targetDicePool.some(t => t.active)
+      || performance.now() < shakeEndTime;
+  }
+
+  // Any real interaction resets the idle clock and restarts the loop if it
+  // had fully stopped. Bound broadly (pointerdown/keydown/wheel) rather
+  // than to specific buttons, so nothing needs to remember to call this.
+  function wakeLoop(){
+    lastActivityTime = performance.now();
+    if(!loopRunning) startLoop();
+  }
+  window.addEventListener('pointerdown', wakeLoop, {passive:true});
+  window.addEventListener('keydown', wakeLoop);
+  window.addEventListener('wheel', wakeLoop, {passive:true});
 
   function animate(){
     rafId = requestAnimationFrame(animate);
 
+    const nowRaw = performance.now();
+
+    // Fully stop rendering — same as the tab-hidden pause, just triggered
+    // by inactivity instead. Only kicks in once nothing is animating and
+    // no CPU action is scheduled (cpuThinking covers that), so it can
+    // never cut off a cutscene or an in-flight CPU turn. wakeLoop() above
+    // restarts it the instant there's real input again.
+    if(!isSceneActive() && !cpuThinking && (nowRaw - lastActivityTime) > FULL_STOP_TIMEOUT){
+      stopLoop();
+      return;
+    }
+
     // Cap the render rate. Ambient effects (torch flicker, falling snow,
     // camera orbit) don't need a 120Hz+ display's full refresh rate, so this
     // cuts CPU/GPU work substantially on high-refresh screens with zero
-    // visible difference for this kind of scene.
-    const nowRaw = performance.now();
-    if(nowRaw - lastFrameTime < FRAME_INTERVAL) return;
-    lastFrameTime = nowRaw - ((nowRaw - lastFrameTime) % FRAME_INTERVAL);
+    // visible difference for this kind of scene. Drop further still to
+    // IDLE_FPS whenever nothing is actually mid-animation.
+    const frameInterval = isSceneActive() ? FRAME_INTERVAL : IDLE_FRAME_INTERVAL;
+    if(nowRaw - lastFrameTime < frameInterval) return;
+    lastFrameTime = nowRaw - ((nowRaw - lastFrameTime) % frameInterval);
 
     const dt = Math.min(clock.getDelta(), 0.05);
     const now = performance.now();
