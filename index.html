@@ -648,7 +648,7 @@
     <p>Tap a die to lock it before your next roll. Tap anywhere else to roll the unlocked dice. You get 3 rolls per turn — after the 3rd roll (or if the equip die shows an X), tap anywhere to end your turn. Locking every die and tapping "roll" does nothing — it's treated exactly like choosing not to roll again.</p>
 
     <h3>◆ DURING THE TURN</h3>
-    <p>Only two things happen immediately, on any roll:</p>
+    <p>Only two things happen immediately, on any roll — each can only trigger once per turn, no matter how many times you keep re-rolling into a hand that still qualifies:</p>
     <ul>
       <li>All 3 faction dice show the <b>same face</b> → GDP +3, flat, unaffected by the equip die.</li>
       <li>The roll claims <b>your own declared faction</b> → +1 pip banked onto this turn's equip value (skipped if the equip die shows X).</li>
@@ -2214,8 +2214,8 @@
 
   // ---------- Two-player faction setup ----------
   const players = [
-    { faction:null, gdp:20, atk:0, def:0, turnsCompleted:0, bankedEquipPips:0 },
-    { faction:null, gdp:20, atk:0, def:0, turnsCompleted:0, bankedEquipPips:0 }
+    { faction:null, gdp:20, atk:0, def:0, turnsCompleted:0, bankedEquipPips:0, tripleClaimedThisTurn:false, ownFactionClaimedThisTurn:false },
+    { faction:null, gdp:20, atk:0, def:0, turnsCompleted:0, bankedEquipPips:0, tripleClaimedThisTurn:false, ownFactionClaimedThisTurn:false }
   ];
   let currentPlayer = 0;
   let setupStep = 0;
@@ -2239,7 +2239,7 @@
   }
 
   function resetStats(){
-    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; p.turnsCompleted = 0; p.bankedEquipPips = 0; });
+    players.forEach(p=>{ p.gdp = GDP_MAX; p.atk = 0; p.def = 0; p.turnsCompleted = 0; p.bankedEquipPips = 0; p.tripleClaimedThisTurn = false; p.ownFactionClaimedThisTurn = false; });
     updateScoreboard();
   }
 
@@ -2477,6 +2477,8 @@
         p.def = 0;
       }
       p.bankedEquipPips = 0;
+      p.tripleClaimedThisTurn = false;
+      p.ownFactionClaimedThisTurn = false;
       dice.forEach((d,i)=>{
         d.locked=false; d.lockRing.visible=false;
         d.mesh.visible = true;
@@ -2569,7 +2571,9 @@
     const equipDie = dice[3];
     const equipType = EQUIP_FACE_TYPES[equipDie.resultIndex];
     if(equipType === 'x') return '';
-    const equipValue = (EQUIP_VALUE[equipType]||0) + (p.bankedEquipPips||0);
+    const baseEquipValue = EQUIP_VALUE[equipType] || 0;
+    const pipBonus = p.bankedEquipPips || 0;
+    const equipValue = baseEquipValue + pipBonus;
 
     const attackCount = labels.filter(l => STATIC_CATEGORY[l]==='attack' || (l==='UFO' && ufoAs==='attack')).length;
     const defenseCount = labels.filter(l => STATIC_CATEGORY[l]==='defense' || (l==='UFO' && ufoAs==='defense')).length;
@@ -2584,7 +2588,16 @@
     const parts = [];
     if(atkGain>0) parts.push('ATK +'+atkGain);
     if(defGain>0) parts.push('DEF +'+defGain);
-    return parts.length ? ('⚙ FINAL HAND SCORED — ' + parts.join('  ')) : '';
+    if(!parts.length) return '';
+
+    // Spell out how the multiplier was built so a pip bonus from rolling
+    // your own faction earlier in the turn doesn't look like it came out
+    // of nowhere.
+    let multiplierNote = 'equip ' + EQUIP_DISPLAY[equipType] + '=' + baseEquipValue;
+    if(pipBonus > 0) multiplierNote += ' +' + pipBonus + ' pip' + (pipBonus>1?'s':'') + ' (own faction)';
+    multiplierNote += ' = ×' + equipValue;
+
+    return '⚙ FINAL HAND SCORED — ' + parts.join('  ') + '  (' + multiplierNote + ')';
   }
 
   function finalizeHandScoring(playerIdx, onComplete){
@@ -3125,7 +3138,7 @@
       t.mesh.material = set;
       t.mesh.visible = true;
       t.active = false;
-      t.mesh.position.set(x + (i-1)*0.42, y, z + (i%2===0 ? 0.12 : -0.12));
+      t.mesh.position.set(x + (i-1)*0.85, y, z + (i%2===0 ? 0.18 : -0.18));
       t.mesh.rotation.set(0, Math.random()*Math.PI*2, 0);
     });
   }
@@ -3306,6 +3319,7 @@
 
   function toggleLock(d){
     if(!gameStarted || gameOver || rolling || pendingUfoChoice || awaitingTurnEnd || cutsceneActive || awaitingCpuStepTap) return;
+    if(rollCount < 1) return; // nothing to hold onto yet — these dice are still showing the last player's results
     d.locked = !d.locked;
     d.lockRing.visible = d.locked;
     beep(d.locked ? 880 : 440, 0.05, 0.05, 'square');
@@ -3404,27 +3418,30 @@
     }
 
     const messages = [];
+    const p = players[currentPlayer];
 
-    // Both bonuses below are about what you just rolled — if all 3 faction
-    // dice are locked (only the equip die actually moved), nothing about
-    // the faction hand changed this time, so neither should re-fire just
-    // because the same held dice still match.
+    // Both bonuses below are about genuinely rolling into a qualifying
+    // hand — not about however many extra times you happen to re-roll
+    // while holding dice that already satisfy it. Each one can only ever
+    // fire once per turn, and still requires at least one faction die to
+    // have actually been part of this roll (not all 3 sitting locked).
     const factionDiceRolledThisTime = factionDice.some(d => !d.locked);
 
     // Rule 1: three identical faces = flat GDP +3, immediate, untouched by
     // the equip die's value.
-    if(factionDiceRolledThisTime && labels[0]===labels[1] && labels[1]===labels[2]){
-      const p = players[currentPlayer];
+    if(!p.tripleClaimedThisTurn && factionDiceRolledThisTime && labels[0]===labels[1] && labels[1]===labels[2]){
       const before = p.gdp;
       p.gdp = p.gdp + 3;
+      p.tripleClaimedThisTurn = true;
       updateScoreboard();
       messages.push('🎯 TRIPLE ' + labels[0] + ' — GDP +' + (p.gdp - before));
     }
 
     // Rule 2: rolling your own declared faction adds a pip to this turn's
     // equip multiplier, banked until the hand is finally scored.
-    if(factionDiceRolledThisTime && faction && players[currentPlayer].faction && faction === players[currentPlayer].faction){
-      players[currentPlayer].bankedEquipPips += 1;
+    if(!p.ownFactionClaimedThisTurn && factionDiceRolledThisTime && faction && p.faction && faction === p.faction){
+      p.bankedEquipPips += 1;
+      p.ownFactionClaimedThisTurn = true;
       messages.push('🎖 OWN FACTION ROLLED — EQUIP DIE +1 PIP THIS TURN');
     }
 
