@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>Dice Foundry</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dice Foundry">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#131218;
+  --surface:#1d1c24;
+  --surface2:#26242f;
+  --border:#37343f;
+  --text:#eee8de;
+  --muted:#938d9c;
+  --accent:#d9a441;
+  --accent-dim:#a67c2f;
+  --accent-ink:#241b06;
+  --danger:#dd5a42;
+  --ok:#7fae6f;
+  --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);}
+body{
+  font-family:'Inter',sans-serif;
+  min-height:100dvh;
+  display:flex;flex-direction:column;
+  overscroll-behavior:none;
+}
+.app{display:flex;flex-direction:column;min-height:100dvh;}
+
+/* Background texture: subtle diagonal casting-sprue lines */
+body{
+  background-image:
+    linear-gradient(160deg, rgba(217,164,65,0.05) 0%, transparent 30%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 90px);
+}
+
+.topbar{
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 12px;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,#18171e,#131218);
+  flex-shrink:0;
+}
+.topbar h1{
+  font-family:'Big Shoulders Display',sans-serif;
+  font-weight:800;
+  font-size:28px;
+  letter-spacing:2px;
+  margin:0;
+  color:var(--accent);
+  text-transform:uppercase;
+}
+.topbar h1 .dot{color:var(--text);}
+.topbar .subtitle{
+  margin:2px 0 0;
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.5px;
+}
+
+main{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:16px 14px calc(env(safe-area-inset-bottom,0px) + 92px);
+}
+
+.tabbar{
+  position:sticky;bottom:0;left:0;right:0;
+  display:flex;
+  background:#18171ee6;
+  backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);
+  padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 8px);
+  gap:10px;
+  flex-shrink:0;
+}
+.tab-btn{
+  flex:1;
+  padding:11px 0;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--muted);
+  font-family:'Inter',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  min-height:44px;
+}
+.tab-btn.active{
+  background:var(--accent);
+  color:var(--accent-ink);
+  border-color:var(--accent);
+}
+
+/* ---- Cards ---- */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:16px;
+  overflow:hidden;
+}
+.card-head{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.name-input{
+  flex:1;
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-family:'Big Shoulders Display',sans-serif;
+  font-weight:700;
+  font-size:19px;
+  letter-spacing:.5px;
+  padding:6px 4px;
+  min-width:0;
+}
+.name-input:focus{outline:none;}
+.icon-btn{
+  width:38px;height:38px;flex-shrink:0;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--muted);
+  font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.icon-btn.danger{color:var(--danger);border-color:#4a2c26;}
+
+.card-body{padding:12px;}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.row-label{font-size:13px;color:var(--muted);font-weight:500;}
+
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface2);}
+.stepper button{
+  width:36px;height:36px;border:none;background:transparent;color:var(--accent);
+  font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.stepper button:active{background:#00000030;}
+.stepper .val{
+  min-width:34px;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--text);
+}
+
+.sides-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;color:var(--accent);
+  background:#d9a44118;border:1px solid #d9a44140;
+  padding:3px 9px;border-radius:20px;
+  white-space:nowrap;
+}
+.sides-badge.warn{color:var(--danger);background:#dd5a4218;border-color:#dd5a4240;}
+
+.faces-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.face-row{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:7px;
+}
+.face-thumb{
+  width:42px;height:42px;flex-shrink:0;
+  border-radius:8px;
+  background:#000;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+  color:var(--text);
+  font-size:15px;font-weight:700;
+}
+.face-thumb img{width:100%;height:100%;object-fit:cover;}
+.face-thumb input[type=file]{
+  position:absolute;inset:0;opacity:0;width:100%;height:100%;
+}
+.face-thumb .upload-hint{font-size:9px;color:var(--muted);text-align:center;line-height:1.1;padding:2px;}
+
+.face-fields{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+.face-text-input{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:7px;
+  color:var(--text);
+  font-size:15px;
+  padding:7px 8px;
+  font-family:'Inter',sans-serif;
+}
+.face-text-input:focus{outline:1px solid var(--accent);}
+.face-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.mode-toggle{
+  display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;
+}
+.mode-toggle button{
+  border:none;background:var(--surface);color:var(--muted);
+  font-size:10.5px;font-weight:600;padding:5px 8px;letter-spacing:.3px;
+}
+.mode-toggle button.active{background:var(--accent-dim);color:#fff;}
+
+.face-stepper{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.face-stepper button{
+  width:26px;height:26px;border-radius:6px;border:1px solid var(--border);
+  background:var(--surface);color:var(--accent);font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.face-remove{
+  width:30px;height:30px;flex-shrink:0;border-radius:8px;border:none;
+  background:transparent;color:var(--muted);font-size:15px;
+}
+
+.add-face-btn, .add-type-btn{
+  width:100%;
+  padding:11px 0;
+  border-radius:10px;
+  border:1.5px dashed var(--border);
+  background:transparent;
+  color:var(--accent);
+  font-weight:600;font-size:13.5px;
+  margin-top:10px;
+  min-height:44px;
+}
+.add-type-btn{border-color:var(--accent-dim);}
+
+.empty-state{
+  text-align:center;color:var(--muted);font-size:13.5px;
+  padding:30px 16px;line-height:1.6;
+}
+.empty-state b{color:var(--text);}
+
+/* ---- Roll tab ---- */
+.roll-all-btn{
+  width:100%;
+  padding:15px 0;
+  border-radius:14px;
+  border:none;
+  background:linear-gradient(180deg,#e6b354,var(--accent));
+  color:var(--accent-ink);
+  font-family:'Big Shoulders Display',sans-serif;
+  font-weight:800;font-size:19px;letter-spacing:1.5px;
+  margin-bottom:18px;
+  box-shadow:0 4px 0 var(--accent-dim);
+}
+.roll-all-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--accent-dim);}
+
+.type-section{margin-bottom:22px;}
+.type-head-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.type-title{
+  font-family:'Big Shoulders Display',sans-serif;
+  font-weight:700;font-size:16px;letter-spacing:.5px;
+  color:var(--text);margin:0 0 0 2px;
+  display:flex;align-items:center;gap:8px;
+}
+.type-title .n{color:var(--accent);}
+.roll-set-btn{
+  flex-shrink:0;
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid var(--accent-dim);
+  background:transparent;
+  color:var(--accent);
+  font-weight:600;font-size:12.5px;
+  min-height:36px;
+}
+.roll-set-btn:active{background:#d9a44118;}
+
+.tray{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+.die-tile{
+  width:78px;height:78px;
+  border-radius:14px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  box-shadow:0 3px 0 #00000050, inset 0 1px 0 #ffffff0d;
+}
+.die-tile img{width:100%;height:100%;object-fit:cover;}
+.die-tile .sym{
+  font-size:15px;font-weight:700;text-align:center;padding:4px;
+  word-break:break-word;line-height:1.15;
+}
+.die-tile.rolling{animation:rollspin .5s ease-out;}
+@keyframes rollspin{
+  0%{transform:scale(1) rotate(0deg);}
+  35%{transform:scale(1.12) rotate(160deg);}
+  70%{transform:scale(0.94) rotate(300deg);}
+  100%{transform:scale(1) rotate(360deg);}
+}
+
+.results-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-size:13px;color:var(--muted);
+}
+.results-box .tally{color:var(--text);font-weight:600;}
+.results-box span.tag{
+  display:inline-block;background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:3px 10px;margin:3px 4px 0 0;font-size:12.5px;color:var(--text);
+}
+.results-box span.tag b{color:var(--accent);}
+
+.hint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>DICE<span class="dot">·</span>FOUNDRY</h1>
+    <p class="subtitle">design custom dice, then roll them</p>
+  </header>
+  <main id="content"></main>
+  <nav class="tabbar">
+    <button class="tab-btn active" data-action="tab" data-tab="build" id="tabBuildBtn">🛠 Build</button>
+    <button class="tab-btn" data-action="tab" data-tab="roll" id="tabRollBtn">🎲 Roll</button>
+  </nav>
+</div>
+
+<script>
+// ---------------- State ----------------
+const MAX_TYPES = 3;
+const MAX_QTY = 5;
+const MAX_FACES = 12;
+
+let state = {
+  activeTab: 'build',
+  types: [],
+  tray: {}      // typeId -> array of {faceId} current rolled face per instance index
+};
+let focusTarget = null; // faceId of a text input to focus right after the next render
+
+function uid(){return Math.random().toString(36).slice(2,9);}
+
+function defaultState(){
+  return {
+    activeTab:'build',
+    types:[
+      {
+        id: uid(), name:'D6', qty:2,
+        faces:[
+          {id:uid(), mode:'text', text:'⚔️', count:1},
+          {id:uid(), mode:'text', text:'🛡️', count:1},
+          {id:uid(), mode:'text', text:'★', count:1},
+          {id:uid(), mode:'text', text:'—', count:3}
+        ]
+      }
+    ],
+    tray:{}
+  };
+}
+
+// ---------------- Persistence ----------------
+// Storage bridge can occasionally hiccup (transient "Invalid response format"
+// errors) — saves are serialized, retried once, and always fail silently so
+// a flaky write never interrupts editing.
+let saveTimer=null;
+let saveInFlight=false;
+let saveQueued=false;
+
+async function attemptSave(retry){
+  if(!window.storage){ return; }
+  try{
+    await window.storage.set('dice-foundry-config', JSON.stringify({types:state.types}), false);
+  }catch(e){
+    if(retry){
+      await new Promise(r=>setTimeout(r,250));
+      return attemptSave(false);
+    }
+    // give up quietly — local state is still correct, we just skip persisting this change
+  }
+}
+
+async function runSave(){
+  if(saveInFlight){ saveQueued=true; return; }
+  saveInFlight=true;
+  await attemptSave(true);
+  saveInFlight=false;
+  if(saveQueued){ saveQueued=false; runSave(); }
+}
+
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(runSave, 350);
+}
+
+async function loadState(){
+  try{
+    if(window.storage){
+      const res = await window.storage.get('dice-foundry-config', false);
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        if(parsed && Array.isArray(parsed.types) && parsed.types.length){
+          state.types = parsed.types;
+          return;
+        }
+      }
+    }
+  }catch(e){ /* no saved data yet, or storage unavailable — start fresh */ }
+  const d = defaultState();
+  state.types = d.types;
+}
+
+// ---------------- Helpers ----------------
+function totalSides(type){
+  return type.faces.reduce((s,f)=>s+f.count,0);
+}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+
+function resizeImage(file, maxDim){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w=img.width, h=img.height;
+        if(w>h){ if(w>maxDim){h=Math.round(h*maxDim/w); w=maxDim;} }
+        else { if(h>maxDim){w=Math.round(w*maxDim/h); h=maxDim;} }
+        const c=document.createElement('canvas');
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',0.78));
+      };
+      img.onerror=reject;
+      img.src=reader.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------------- Actions: types ----------------
+function addType(){
+  if(state.types.length>=MAX_TYPES) return;
+  const f1=uid(), f2=uid();
+  state.types.push({
+    id:uid(), name:'New Die', qty:1,
+    faces:[
+      {id:f1, mode:'text', text:'', count:3},
+      {id:f2, mode:'text', text:'', count:3}
+    ]
+  });
+  focusTarget = f1;
+  scheduleSave(); render();
+}
+function removeType(id){
+  state.types = state.types.filter(t=>t.id!==id);
+  delete state.tray[id];
+  scheduleSave(); render();
+}
+function changeQty(id,delta){
+  const t = state.types.find(t=>t.id===id); if(!t) return;
+  t.qty = clamp(t.qty+delta,1,MAX_QTY);
+  scheduleSave(); render();
+}
+
+// ---------------- Actions: faces ----------------
+function addFace(typeId){
+  const t = state.types.find(t=>t.id===typeId); if(!t) return;
+  if(t.faces.length>=MAX_FACES) return;
+  const fid = uid();
+  t.faces.push({id:fid, mode:'text', text:'', count:1});
+  focusTarget = fid;
+  scheduleSave(); render();
+}
+function removeFace(typeId,faceId){
+  const t = state.types.find(t=>t.id===typeId); if(!t) return;
+  if(t.faces.length<=1) return;
+  t.faces = t.faces.filter(f=>f.id!==faceId);
+  scheduleSave(); render();
+}
+function changeFaceCount(typeId,faceId,delta){
+  const t = state.types.find(t=>t.id===typeId); if(!t) return;
+  const f = t.faces.find(f=>f.id===faceId); if(!f) return;
+  f.count = clamp(f.count+delta,1,20);
+  scheduleSave(); render();
+}
+function setFaceMode(typeId,faceId,mode){
+  const t = state.types.find(t=>t.id===typeId); if(!t) return;
+  const f = t.faces.find(f=>f.id===faceId); if(!f) return;
+  f.mode = mode;
+  scheduleSave(); render();
+}
+async function handleFaceImage(typeId,faceId,file){
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImage(file,160);
+    const t = state.types.find(t=>t.id===typeId); if(!t) return;
+    const f = t.faces.find(f=>f.id===faceId); if(!f) return;
+    f.img = dataUrl; f.mode='image';
+    scheduleSave(); render();
+  }catch(e){ console.warn('image failed',e); }
+}
+
+// ---------------- Rolling ----------------
+function weightedFace(type){
+  const bag=[];
+  type.faces.forEach(f=>{ for(let i=0;i<f.count;i++) bag.push(f.id); });
+  const pickId = bag[Math.floor(Math.random()*bag.length)];
+  return type.faces.find(f=>f.id===pickId);
+}
+
+function ensureTray(){
+  state.types.forEach(t=>{
+    let arr = state.tray[t.id] || [];
+    while(arr.length < t.qty) arr.push({faceId: t.faces[0] ? t.faces[0].id : null});
+    arr = arr.slice(0,t.qty);
+    state.tray[t.id]=arr;
+  });
+  Object.keys(state.tray).forEach(id=>{
+    if(!state.types.find(t=>t.id===id)) delete state.tray[id];
+  });
+}
+
+function rollAll(){
+  state.types.forEach(t=>{
+    if(!t.faces.length) return;
+    state.tray[t.id] = state.tray[t.id].map(()=>({faceId: weightedFace(t).id}));
+  });
+  render('all');
+}
+function rollType(typeId){
+  const t = state.types.find(t=>t.id===typeId); if(!t || !t.faces.length) return;
+  state.tray[typeId] = state.tray[typeId].map(()=>({faceId: weightedFace(t).id}));
+  render({typeId, idx:'all'});
+}
+function rollSingle(typeId, idx){
+  const t = state.types.find(t=>t.id===typeId); if(!t || !t.faces.length) return;
+  state.tray[typeId][idx] = {faceId: weightedFace(t).id};
+  render({typeId, idx});
+}
+
+// ---------------- Rendering ----------------
+function faceThumbHtml(f, size){
+  if(f.mode==='image' && f.img){
+    return `<img src="${f.img}" alt="">`;
+  }
+  const txt = (f.text||'').trim() || '?';
+  const fontSize = txt.length>3 ? '11px' : (size==='small' ? '15px':'22px');
+  return `<span class="sym" style="font-size:${fontSize}">${escapeHtml(txt)}</span>`;
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderBuild(){
+  if(!state.types.length){
+    return `<div class="empty-state">No dice yet.<br><b>Tap "Add Die Type" to design your first die.</b></div>
+      <button class="add-type-btn" data-action="add-type">+ Add Die Type (0/${MAX_TYPES})</button>`;
+  }
+
+  let html = state.types.map(t=>{
+    const sides = totalSides(t);
+    const warn = sides<2;
+    const facesHtml = t.faces.map(f=>{
+      const modeIsText = f.mode!=='image';
+      return `
+      <div class="face-row">
+        <div class="face-thumb">
+          ${faceThumbHtml(f,'small')}
+          <input type="file" accept="image/*" data-action="upload-face" data-type="${t.id}" data-face="${f.id}">
+        </div>
+        <div class="face-fields">
+          <input class="face-text-input" placeholder="Symbol / label" value="${escapeHtml(f.text||'')}"
+            data-action="face-text" data-type="${t.id}" data-face="${f.id}" ${f.mode==='image'?'':''}>
+          <div class="face-meta">
+            <div class="mode-toggle">
+              <button class="${modeIsText?'active':''}" data-action="face-mode" data-mode="text" data-type="${t.id}" data-face="${f.id}">TEXT</button>
+              <button class="${!modeIsText?'active':''}" data-action="face-mode" data-mode="image" data-type="${t.id}" data-face="${f.id}">ART</button>
+            </div>
+            <div class="face-stepper">
+              <button data-action="face-count" data-delta="-1" data-type="${t.id}" data-face="${f.id}">−</button>
+              <span class="val">${f.count}</span>
+              <button data-action="face-count" data-delta="1" data-type="${t.id}" data-face="${f.id}">+</button>
+            </div>
+          </div>
+        </div>
+        <button class="face-remove" data-action="remove-face" data-type="${t.id}" data-face="${f.id}">✕</button>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="card">
+      <div class="card-head">
+        <input class="name-input" value="${escapeHtml(t.name)}" data-action="type-name" data-type="${t.id}" maxlength="20">
+        <button class="icon-btn danger" data-action="remove-type" data-type="${t.id}">🗑</button>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <span class="row-label">Dice in tray</span>
+          <div class="stepper">
+            <button data-action="qty" data-delta="-1" data-type="${t.id}">−</button>
+            <span class="val">${t.qty}</span>
+            <button data-action="qty" data-delta="1" data-type="${t.id}">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="row-label">Faces</span>
+          <span class="sides-badge ${warn?'warn':''}">${sides}-sided${warn?' · add a face':''}</span>
+        </div>
+        <div class="faces-list">${facesHtml}</div>
+        <button class="add-face-btn" data-action="add-face" data-type="${t.id}" ${t.faces.length>=MAX_FACES?'disabled style="opacity:.4"':''}>+ Add Face (${t.faces.length}/${MAX_FACES})</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  html += `<button class="add-type-btn" data-action="add-type" ${state.types.length>=MAX_TYPES?'disabled style="opacity:.4"':''}>+ Add Die Type (${state.types.length}/${MAX_TYPES})</button>`;
+  html += `<p class="hint">Faces = how many sides show that symbol, e.g. 3+3 makes a fair coin-flip d6.</p>`;
+  return html;
+}
+
+function renderRoll(){
+  if(!state.types.length){
+    return `<div class="empty-state">No dice to roll yet.<br><b>Go to Build to design a die first.</b></div>`;
+  }
+  ensureTray();
+
+  let html = `<button class="roll-all-btn" data-action="roll-all">🎲 ROLL ALL</button>`;
+
+  state.types.forEach(t=>{
+    if(!t.faces.length) return;
+    const instances = state.tray[t.id] || [];
+    const tiles = instances.map((inst,idx)=>{
+      const f = t.faces.find(f=>f.id===inst.faceId) || t.faces[0];
+      return `<div class="die-tile" data-action="roll-one" data-type="${t.id}" data-idx="${idx}">${faceThumbHtml(f,'big')}</div>`;
+    }).join('');
+
+    // tally
+    const counts = {};
+    instances.forEach(inst=>{
+      const f = t.faces.find(f=>f.id===inst.faceId);
+      const label = f ? (f.mode==='image' ? (f.text||'art') : (f.text||'?')) : '?';
+      counts[label]=(counts[label]||0)+1;
+    });
+    const tags = Object.entries(counts).map(([label,n])=>`<span class="tag"><b>${n}×</b> ${escapeHtml(label)}</span>`).join('');
+
+    html += `
+    <div class="type-section">
+      <div class="type-head-row">
+        <p class="type-title">${escapeHtml(t.name)} <span class="n">(${instances.length})</span></p>
+        <button class="roll-set-btn" data-action="roll-type" data-type="${t.id}">🎲 Roll Set</button>
+      </div>
+      <div class="tray">${tiles}</div>
+      <div class="results-box">${tags || '<span>Tap a die, Roll Set, or Roll All</span>'}</div>
+    </div>`;
+  });
+
+  html += `<p class="hint">Tap a single die to reroll it · Roll Set rerolls one die type · Roll All rerolls everything.</p>`;
+  return html;
+}
+
+function render(rolling){
+  document.getElementById('tabBuildBtn').classList.toggle('active', state.activeTab==='build');
+  document.getElementById('tabRollBtn').classList.toggle('active', state.activeTab==='roll');
+  const content = document.getElementById('content');
+  content.innerHTML = state.activeTab==='build' ? renderBuild() : renderRoll();
+  if(rolling==='all'){
+    content.querySelectorAll('.die-tile').forEach(el=>{
+      el.classList.remove('rolling'); void el.offsetWidth; el.classList.add('rolling');
+    });
+  } else if(rolling && typeof rolling==='object'){
+    if(rolling.idx==='all'){
+      content.querySelectorAll(`.die-tile[data-type="${rolling.typeId}"]`).forEach(el=>{
+        el.classList.remove('rolling'); void el.offsetWidth; el.classList.add('rolling');
+      });
+    } else {
+      const el = content.querySelector(`.die-tile[data-type="${rolling.typeId}"][data-idx="${rolling.idx}"]`);
+      if(el){ el.classList.remove('rolling'); void el.offsetWidth; el.classList.add('rolling'); }
+    }
+  }
+  if(focusTarget){
+    const input = content.querySelector(`.face-text-input[data-face="${focusTarget}"]`);
+    if(input){ input.focus(); }
+    focusTarget = null;
+  }
+}
+
+// ---------------- Event delegation ----------------
+document.getElementById('content').addEventListener('click', e=>{
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.dataset.action;
+  const typeId = el.dataset.type;
+  const faceId = el.dataset.face;
+
+  if(action==='add-type') addType();
+  else if(action==='remove-type') removeType(typeId);
+  else if(action==='qty') changeQty(typeId, parseInt(el.dataset.delta));
+  else if(action==='add-face') addFace(typeId);
+  else if(action==='remove-face') removeFace(typeId,faceId);
+  else if(action==='face-count') changeFaceCount(typeId,faceId,parseInt(el.dataset.delta));
+  else if(action==='face-mode') setFaceMode(typeId,faceId,el.dataset.mode);
+  else if(action==='roll-all') rollAll();
+  else if(action==='roll-type') rollType(typeId);
+  else if(action==='roll-one') rollSingle(typeId, parseInt(el.dataset.idx));
+});
+
+document.getElementById('content').addEventListener('input', e=>{
+  const el = e.target;
+  if(el.dataset.action==='type-name'){
+    const t = state.types.find(t=>t.id===el.dataset.type);
+    if(t){ t.name = el.value; scheduleSave(); }
+  } else if(el.dataset.action==='face-text'){
+    const t = state.types.find(t=>t.id===el.dataset.type);
+    const f = t && t.faces.find(f=>f.id===el.dataset.face);
+    if(f){ f.text = el.value; scheduleSave();
+      // live-update just the thumbnail without full re-render (keeps focus)
+      const row = el.closest('.face-row');
+      if(row && f.mode!=='image'){
+        row.querySelector('.face-thumb').innerHTML = faceThumbHtml(f,'small') + row.querySelector('.face-thumb input').outerHTML;
+      }
+    }
+  }
+});
+
+document.getElementById('content').addEventListener('change', e=>{
+  if(e.target.dataset.action==='upload-face'){
+    const file = e.target.files[0];
+    handleFaceImage(e.target.dataset.type, e.target.dataset.face, file);
+  }
+});
+
+document.querySelector('.tabbar').addEventListener('click', e=>{
+  const el = e.target.closest('[data-action="tab"]');
+  if(!el) return;
+  state.activeTab = el.dataset.tab;
+  render();
+});
+
+// ---------------- Init ----------------
+(async function init(){
+  await loadState();
+  render();
+})();
+</script>
+</body>
+</html>
