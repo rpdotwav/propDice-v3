@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fiends or Faeries">
+<title>Fiends or Faeries — Court of Fate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #0b0a08;
+    --panel: #171310;
+    --panel-2: #211a13;
+    --line: #3a2f22;
+    --line-strong: #5c4a32;
+    --regime: #d4463a;
+    --regime-dim: #8f2f26;
+    --gold: #d4af37;
+    --gold-dim: #8f7423;
+    --bone: #d8d4c3;
+    --ash: #8a8072;
+    --glow-regime: rgba(212,70,58,0.45);
+    --glow-gold: rgba(212,175,55,0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    background:
+      radial-gradient(ellipse 120% 60% at 50% -10%, #241a10 0%, transparent 55%),
+      radial-gradient(ellipse 100% 55% at 50% 115%, #2a0e0c 0%, transparent 52%),
+      var(--void);
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--bone);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px);
+    opacity: 0.45;
+    z-index: 5000;
+  }
+
+  /* drifting embers — smoke of a ministry that never sleeps */
+  .embers { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .embers span {
+    position: absolute;
+    bottom: -20px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--regime);
+    opacity: 0;
+    filter: blur(1px);
+    box-shadow: 0 0 8px 2px rgba(212,70,58,0.35);
+    animation: emberRise linear infinite;
+  }
+  @keyframes emberRise {
+    0%   { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
+    12%  { opacity: 0.55; }
+    85%  { opacity: 0.28; }
+    100% { transform: translateY(-105vh) translateX(var(--sway, 30px)) scale(1.1); opacity: 0; }
+  }
+  .embers span:nth-child(1)  { left: 8%;  animation-duration: 14s; animation-delay: 0s;   --sway: 40px;  width: 3px; height: 3px; }
+  .embers span:nth-child(2)  { left: 22%; animation-duration: 18s; animation-delay: 3s;   --sway: -30px; background: var(--gold); box-shadow: 0 0 8px 2px rgba(212,175,55,0.3); }
+  .embers span:nth-child(3)  { left: 35%; animation-duration: 12s; animation-delay: 6s;   --sway: 25px;  width: 3px; height: 3px; }
+  .embers span:nth-child(4)  { left: 48%; animation-duration: 20s; animation-delay: 1.5s; --sway: -45px; }
+  .embers span:nth-child(5)  { left: 61%; animation-duration: 15s; animation-delay: 8s;   --sway: 35px;  width: 5px; height: 5px; }
+  .embers span:nth-child(6)  { left: 73%; animation-duration: 17s; animation-delay: 4s;   --sway: -20px; width: 3px; height: 3px; background: var(--gold); box-shadow: 0 0 8px 2px rgba(212,175,55,0.3); }
+  .embers span:nth-child(7)  { left: 85%; animation-duration: 13s; animation-delay: 10s;  --sway: 30px; }
+  .embers span:nth-child(8)  { left: 93%; animation-duration: 19s; animation-delay: 2s;   --sway: -35px; width: 3px; height: 3px; }
+  .embers span:nth-child(9)  { left: 15%; animation-duration: 16s; animation-delay: 12s;  --sway: 20px; }
+  @media (prefers-reduced-motion: reduce) { .embers { display: none; } }
+
+  .console {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(175deg, rgba(33,26,19,0.88) 0%, rgba(11,10,8,0.94) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line-strong);
+    border-radius: 20px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.7),
+      0 34px 80px rgba(0,0,0,0.8),
+      0 4px 16px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(212,175,55,0.1),
+      inset 0 0 60px rgba(212,70,58,0.03);
+    padding: 18px 18px 20px;
+    gap: 16px;
+    overflow: hidden;
+  }
+
+  /* creeping vines — the wild reclaiming the ministry */
+  .console::before, .console::after {
+    content: '';
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    pointer-events: none;
+    opacity: 0.4;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M2 2c30 4 38 20 40 44M2 2c16 26 8 40 26 58M2 2c44-2 60 12 66 34' fill='none' stroke='%235c4a32' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M42 46c5-2 9 1 9 6-6 2-9-1-9-6zM28 60c5 0 8 4 6 9-6 0-8-4-6-9zM68 36c5-1 9 2 8 7-6 1-9-2-8-7z' fill='%238f7423'/%3E%3C/svg%3E");
+  }
+  .console::before { top: -6px; left: -6px; }
+  .console::after { bottom: -6px; right: -6px; transform: rotate(180deg); }
+
+  /* ---------- Header ---------- */
+  .head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+  }
+  .head-id { min-width: 0; }
+  .head-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .head-title {
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: 1.5px;
+    color: var(--regime);
+    text-shadow:
+      0 1px 0 #8f2f26,
+      0 2px 0 #7a2620,
+      0 3px 0 #631d18,
+      0 4px 0 #4c1611,
+      0 5px 0 #350f0b,
+      0 7px 10px rgba(0,0,0,0.7),
+      0 0 26px var(--glow-regime);
+    text-transform: uppercase;
+    transform: rotate(-1.2deg);
+    transform-origin: left bottom;
+    margin: 0;
+  }
+  .head-sub {
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    color: var(--ash);
+    text-transform: uppercase;
+    margin-top: 5px;
+  }
+  .head-btns { display: flex; flex-direction: column; gap: 7px; flex: 0 0 auto; align-items: stretch; }
+
+  .chip-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    min-width: 46px;
+    padding: 8px 12px;
+    background: linear-gradient(180deg, #2e2114 0%, #1c140c 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    color: var(--bone);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #060504, 0 5px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,175,55,0.14);
+    transition: border-color .15s, box-shadow .12s, transform .1s, filter .15s;
+  }
+  .chip-btn:hover { border-color: var(--gold-dim); filter: brightness(1.12); }
+  .chip-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #060504, 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,175,55,0.1);
+  }
+
+  /* ---------- Containment window ---------- */
+  .containment {
+    position: relative;
+    z-index: 2;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background:
+      radial-gradient(ellipse 90% 120% at 50% 0%, rgba(212,70,58,0.06) 0%, transparent 55%),
+      #0e0b08;
+    padding: 22px 12px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    overflow: hidden;
+  }
+  .containment::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(212,175,55,0.025) 0 2px, transparent 2px 5px);
+    pointer-events: none;
+  }
+  .containment .bracket {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--gold-dim);
+    opacity: 0.85;
+  }
+  .bracket.tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+  .bracket.tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+  .bracket.bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+  .bracket.br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+  .directive-label {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .prev-roll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    letter-spacing: 0.6px;
+    color: var(--ash);
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 5px 10px;
+  }
+  .prev-label {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 9px;
+    color: var(--gold-dim);
+    flex-shrink: 0;
+  }
+  .prev-value {
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--bone);
+    letter-spacing: 1px;
+  }
+
+  /* ---------- 3D dice ---------- */
+  .dice-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px 12px;
+    padding: 6px 4px 12px;
+  }
+  .die-scene {
+    --hs: 27px;
+    width: 54px;
+    height: 54px;
+    position: relative;
+    perspective: 800px;
+  }
+  .die-scene::after {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: -9px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 70%);
+    transform: translateZ(-40px);
+  }
+  .die-cube {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(-10deg) rotateY(14deg);
+  }
+  .cube-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, #2c2013 0%, #1a130b 55%, #0e0b08 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    box-shadow: inset 0 1px 0 rgba(212,175,55,0.14), inset 0 -6px 12px rgba(0,0,0,0.45);
+    overflow: hidden;
+  }
+  .cube-face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, rgba(255,255,255,0.08) 0%, transparent 38%);
+    pointer-events: none;
+  }
+  .cube-face.fate-face { background: linear-gradient(155deg, #241736 0%, #150c22 55%, #0a0710 100%); }
+  .f-front  { transform: translateZ(var(--hs)); }
+  .f-back   { transform: rotateY(180deg) translateZ(var(--hs)); }
+  .f-right  { transform: rotateY(90deg) translateZ(var(--hs)); filter: brightness(0.75); }
+  .f-left   { transform: rotateY(-90deg) translateZ(var(--hs)); filter: brightness(0.6); }
+  .f-top    { transform: rotateX(90deg) translateZ(var(--hs)); filter: brightness(1.15); }
+  .f-bottom { transform: rotateX(-90deg) translateZ(var(--hs)); filter: brightness(0.45); }
+  .die-sym { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 24px; text-shadow: 0 0 8px rgba(212,175,55,0.35); }
+  .die-sym.k-fairy { color: var(--gold); }
+  .die-sym.k-goblin { color: var(--regime); }
+  .die-num { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 21px; color: var(--bone); text-shadow: 0 0 8px rgba(212,175,55,0.2); }
+
+  .die-scene.empty { border: 1px dashed var(--line); border-radius: 10px; }
+  .die-scene.empty::after { display: none; }
+
+  /* ---------- Dice animations ---------- */
+  @keyframes cubeSpin {
+    0%   { transform: rotateX(-10deg) rotateY(14deg) translateY(0); }
+    25%  { transform: rotateX(120deg) rotateY(200deg) translateY(-16px); }
+    50%  { transform: rotateX(240deg) rotateY(380deg) translateY(-4px); }
+    75%  { transform: rotateX(300deg) rotateY(560deg) translateY(-14px); }
+    100% { transform: rotateX(350deg) rotateY(734deg) translateY(0); }
+  }
+  .die-cube.tumbling { animation: cubeSpin 0.6s linear infinite; }
+
+  @keyframes landSettle {
+    0%   { transform: rotateX(140deg) rotateY(230deg) translateY(-22px) scale(0.85); }
+    60%  { transform: rotateX(-24deg) rotateY(4deg) translateY(3px) scale(1.08); }
+    80%  { transform: rotateX(-4deg) rotateY(18deg) translateY(-2px) scale(0.98); }
+    100% { transform: rotateX(-10deg) rotateY(14deg) translateY(0) scale(1); }
+  }
+  .die-cube.settling { animation: landSettle 0.5s cubic-bezier(.3,1.2,.4,1) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .die-cube.tumbling, .die-cube.settling { animation: none; }
+  }
+
+  .game-result {
+    min-height: 20px;
+    text-align: center;
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.8px;
+    color: var(--regime);
+    text-shadow: 0 0 12px var(--glow-regime);
+  }
+
+  /* ---------- Actions ---------- */
+  .game-actions { display: flex; gap: 12px; position: relative; z-index: 2; }
+  .action-btn {
+    flex: 1;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: linear-gradient(180deg, #3a2416 0%, #24160e 45%, #170e09 100%);
+    border: 1px solid #5c4a32;
+    border-radius: 13px;
+    color: var(--bone);
+    font-family: 'Chakra Petch', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow:
+      0 5px 0 #060504,
+      0 9px 20px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(212,175,55,0.22),
+      inset 0 -8px 14px rgba(0,0,0,0.35);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    transition: border-color .15s, box-shadow .12s, transform .1s, color .15s, filter .15s;
+  }
+  .action-btn:hover { border-color: var(--gold-dim); color: var(--gold); filter: brightness(1.12); }
+  .action-btn:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 1px 0 #060504,
+      0 3px 8px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(212,175,55,0.18),
+      inset 0 -4px 10px rgba(0,0,0,0.4);
+  }
+  .action-btn:disabled {
+    opacity: 0.4; cursor: default; transform: none; filter: none;
+    color: var(--bone); border-color: var(--line-strong);
+    box-shadow: 0 3px 0 #060504, inset 0 1px 0 rgba(212,175,55,0.08);
+  }
+  @keyframes pulseRegime {
+    0%, 100% { box-shadow: 0 5px 0 #060504, 0 9px 20px rgba(0,0,0,0.6), 0 0 0 0 var(--glow-regime), inset 0 1px 0 rgba(212,175,55,0.22); }
+    50% { box-shadow: 0 5px 0 #060504, 0 9px 20px rgba(0,0,0,0.6), 0 0 22px 5px var(--glow-regime), inset 0 1px 0 rgba(212,175,55,0.22); }
+  }
+  .action-btn.pulse { animation: pulseRegime 1.1s ease-in-out infinite; border-color: var(--regime); color: var(--regime); }
+</style>
+</head>
+<body>
+
+<div class="embers">
+  <span></span><span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span>
+</div>
+
+<div class="console">
+  <div class="head">
+    <div class="head-id">
+      <div class="head-eyebrow">Court of Fate</div>
+      <h1 class="head-title">Fiends or Faeries</h1>
+      <div class="head-sub">The dice decide who claims the night</div>
+    </div>
+  </div>
+
+  <div class="containment" id="containment">
+    <span class="bracket tl"></span><span class="bracket tr"></span>
+    <span class="bracket bl"></span><span class="bracket br"></span>
+    <div class="directive-label">Cast the fate die and the number dice</div>
+    <div class="prev-roll"><span class="prev-label">Previous Roll</span><span class="prev-value" id="prevValue">—</span></div>
+    <div class="dice-row" id="diceRow"></div>
+    <div class="game-result" id="resultCaption"></div>
+  </div>
+
+  <div class="game-actions">
+    <button class="action-btn pulse" id="shakeBtn">Roll the Dice</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var diceRow = document.getElementById('diceRow');
+  var resultCaption = document.getElementById('resultCaption');
+  var shakeBtn = document.getElementById('shakeBtn');
+  var prevValueEl = document.getElementById('prevValue');
+
+  // Fate die: 3 faeries, 3 fiends (goblins) — one entry per physical side
+  var FATE_FACES = [
+    { key:'fairy',  sym:'\ud83e\uddda\ud83c\udffb' },
+    { key:'fairy',  sym:'\ud83e\uddda\ud83c\udffb' },
+    { key:'fairy',  sym:'\ud83e\uddda\ud83c\udffb' },
+    { key:'goblin', sym:'\ud83d\udc7a' },
+    { key:'goblin', sym:'\ud83d\udc7a' },
+    { key:'goblin', sym:'\ud83d\udc7a' }
+  ];
+  // Number die: faces 1, 3, 4, 6, 6, 6 — one entry per physical side
+  var NUMBER_FACES = [1, 3, 4, 6, 6, 6];
+  var CUBE_FACES = ['f-front','f-back','f-right','f-left','f-top','f-bottom'];
+
+  var AC;
+  function getAC(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
+  function beep(f,d,v,t){ try{ var ac=getAC(), o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.type=t||'square'; o.frequency.value=f; g.gain.setValueAtTime(v||0.1, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+d); o.start(); o.stop(ac.currentTime+d); }catch(e){} }
+  function sfxRoll(){ [0,60,120].forEach(function(t){ setTimeout(function(){ beep(70+Math.random()*40,0.04,0.07,'sawtooth'); }, t); }); }
+  function sfxLand(i){ setTimeout(function(){ beep(220+i*70,0.05,0.09); }, i*90); }
+  function sfxBtn(){ beep(760,0.04,0.06); }
+
+  function randFace(){ return Math.floor(Math.random()*6); }
+
+  function fateFaceHTML(idx){
+    var f = FATE_FACES[idx];
+    return '<span class="die-sym k-'+f.key+'">'+f.sym+'</span>';
+  }
+  function numberFaceHTML(idx){
+    return '<span class="die-num">'+NUMBER_FACES[idx]+'</span>';
+  }
+  function faceHTML(isFate, idx){ return isFate ? fateFaceHTML(idx) : numberFaceHTML(idx); }
+
+  function dieCubeHTML(isFate, idx){
+    var inner = '';
+    for (var i=0;i<CUBE_FACES.length;i++){
+      inner += '<div class="cube-face'+(isFate?' fate-face':'')+' '+CUBE_FACES[i]+'">'+faceHTML(isFate, idx)+'</div>';
+    }
+    return '<div class="die-cube">'+inner+'</div>';
+  }
+  function setCubeFaces(scene, isFate, idx){
+    var faces = scene.querySelectorAll('.cube-face');
+    for (var i=0;i<faces.length;i++) faces[i].innerHTML = faceHTML(isFate, idx);
+  }
+
+  var nNumberDice = 3; // number dice; a fate die is always added
+  var diceState = []; // { isFate, face, sceneEl }
+  var hasRolled = false;
+  var shaking = false;
+
+  function buildDice(){
+    diceRow.innerHTML = '';
+    diceState = [];
+    var total = nNumberDice + 1;
+    for (var i=0;i<total;i++){
+      var isFate = (i === 0);
+      var face = randFace();
+      var scene = document.createElement('div');
+      scene.className = 'die-scene';
+      scene.innerHTML = dieCubeHTML(isFate, face);
+      diceRow.appendChild(scene);
+      var d = { isFate: isFate, face: face, sceneEl: scene };
+      d.sceneEl.addEventListener('pointerdown', (function(die){
+        return function(e){ e.stopPropagation(); rerollDie(die); };
+      })(d));
+      diceState.push(d);
+    }
+  }
+
+  function currentFateKey(){
+    var d = diceState.filter(function(d){ return d.isFate; })[0];
+    return d ? FATE_FACES[d.face].key : null;
+  }
+  function currentNumbers(){
+    return diceState.filter(function(d){ return !d.isFate; }).map(function(d){ return NUMBER_FACES[d.face]; });
+  }
+  function currentRollText(){
+    if (!hasRolled) return null;
+    var fate = currentFateKey();
+    var nums = currentNumbers();
+    if (!fate) return null;
+    var sym = fate === 'goblin' ? '👺' : '🧚🏻';
+    return sym + '  ' + nums.join(' ');
+  }
+  function detectResult(){
+    if (shaking || !hasRolled) return null;
+    var fate = currentFateKey();
+    var nums = currentNumbers();
+    if (!fate || nums.length < 1) return null;
+    if (fate === 'goblin' && nums.every(function(n){ return n === 6; })) return 'goblins';
+    if (fate === 'fairy' && nums.every(function(n){ return n === 1; })) return 'faeries';
+    return 'none';
+  }
+  function updateCaption(){
+    var r = detectResult();
+    if (r === 'goblins') resultCaption.textContent = 'THE FIENDS CLAIM THE NIGHT — 👺 666';
+    else if (r === 'faeries') resultCaption.textContent = 'THE FAERIES WEAVE FATE — 🧚🏻 111';
+    else if (r === 'none') resultCaption.textContent = 'THE OMENS ARE QUIET';
+    else resultCaption.textContent = '';
+  }
+
+  function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  function animateRoll(done){
+    shaking = true;
+    shakeBtn.disabled = true;
+    shakeBtn.classList.remove('pulse');
+    resultCaption.textContent = '';
+
+    var scenes = diceState.map(function(d){ return d.sceneEl; });
+    scenes.forEach(function(s){
+      var cube = s.querySelector('.die-cube');
+      cube.classList.remove('settling');
+      cube.classList.add('tumbling');
+    });
+
+    var flicker = setInterval(function(){
+      diceState.forEach(function(d){
+        var cube = d.sceneEl.querySelector('.die-cube');
+        if (cube.classList.contains('tumbling')) setCubeFaces(d.sceneEl, d.isFate, randFace());
+      });
+    }, 85);
+
+    sfxRoll();
+    diceState.forEach(function(d, i){
+      var finalFace = randFace();
+      d.face = finalFace;
+      setTimeout(function(){
+        var cube = d.sceneEl.querySelector('.die-cube');
+        cube.classList.remove('tumbling');
+        setCubeFaces(d.sceneEl, d.isFate, finalFace);
+        cube.classList.add('settling');
+        sfxLand(i);
+      }, 460 + i*140);
+    });
+
+    setTimeout(function(){
+      clearInterval(flicker);
+      shaking = false;
+      shakeBtn.disabled = false;
+      hasRolled = true;
+      done();
+    }, 460 + diceState.length*140 + 220);
+  }
+
+  function rerollDie(d){
+    if (shaking) return;
+    try{ getAC().resume(); }catch(e){}
+    sfxBtn();
+    var cube = d.sceneEl.querySelector('.die-cube');
+    cube.classList.remove('settling');
+    cube.classList.add('tumbling');
+    var flicker = setInterval(function(){
+      setCubeFaces(d.sceneEl, d.isFate, randFace());
+    }, 70);
+    setTimeout(function(){
+      clearInterval(flicker);
+      var finalFace = randFace();
+      d.face = finalFace;
+      cube.classList.remove('tumbling');
+      setCubeFaces(d.sceneEl, d.isFate, finalFace);
+      cube.classList.add('settling');
+      sfxLand(0);
+      hasRolled = true;
+      updateCaption();
+    }, 340);
+  }
+
+  shakeBtn.addEventListener('click', function(){
+    if (shaking) return;
+    try{ getAC().resume(); }catch(e){}
+    sfxBtn();
+    var prevText = currentRollText();
+    if (prevText) prevValueEl.textContent = prevText;
+    animateRoll(updateCaption);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key===' '||e.key==='Enter'){ try{getAC().resume();}catch(ex){} shakeBtn.click(); }
+  });
+
+  buildDice();
+})();
+</script>
+</body>
+</html>
