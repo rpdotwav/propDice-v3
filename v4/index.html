@@ -121,11 +121,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   text-shadow: 5px 5px 0 #7a0f1c, 0 0 44px rgba(200,16,30,0.55);
   margin:0; position:relative; z-index:1; line-height:0.95;
 }
-.title-tagline{
-  font-family:'Oswald', 'EB Garamond', sans-serif; font-weight:700;
-  text-transform:uppercase; letter-spacing:0.35em; font-size:0.72rem;
-  color:#e0bf8a; position:relative; z-index:1; margin-top:-0.6rem;
-}
 .subtitle{ color:var(--bone-dim); font-style:italic; font-size:1rem; max-width:32rem; }
 .title-buttons{ display:flex; flex-direction:column; gap:0.7rem; width:min(90vw,320px); position:relative; z-index:1; }
 .title-buttons .btn{
@@ -203,6 +198,21 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 .tutorial-buttons{ display:flex; gap:0.5rem; }
 .tutorial-buttons .modal-continue{ flex:1; font-size:0.78rem; padding:0.55rem; }
 
+/* ---------- coin flip ---------- */
+.coin-flip-stage{ display:flex; justify-content:center; align-items:center; height:120px; perspective:600px; margin:0.6rem 0; }
+.coin{ width:90px; height:90px; position:relative; transform-style:preserve-3d; }
+.coin-face{
+  position:absolute; inset:0; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'MedievalSharp',serif; font-size:1.6rem; font-weight:700;
+  background:linear-gradient(180deg, var(--amber-bright), var(--amber));
+  border:3px solid #8a6b1f; color:#241705;
+  backface-visibility:hidden;
+  box-shadow:0 6px 16px rgba(0,0,0,0.5);
+}
+.coin-face.coin-back{ transform:rotateY(180deg); background:linear-gradient(180deg, var(--blood-bright), var(--blood)); color:#ffffff; border-color:#5a1c28; }
+#coinflip-result-text{ font-weight:700; color:#ffffff; min-height:1.4rem; font-size:0.95rem; }
+
 
 .claim-banner{
   min-height:1.4rem; font-size:0.95rem; font-weight:700; color:#ffffff;
@@ -228,6 +238,10 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 }
 .side-panel.ally{ left:max(0.4rem, env(safe-area-inset-left)); }
 .side-panel.enemy{ right:max(0.4rem, env(safe-area-inset-right)); }
+/* Recruitment phase only: P1's panel is taller than P2's (it has the extra
+   lock button), so instead of centering both — which would misalign their
+   tops — anchor both from the same fixed top and let P1 run longer below it. */
+#p1-roster, #p2-roster{ top:max(9rem, calc(env(safe-area-inset-top) + 9rem)); transform:none; }
 
 .side-panel.active-turn{
   border-color:var(--amber-bright);
@@ -422,7 +436,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 <div class="ui-layer active" id="title-ui">
   <div class="title-star-shape"></div>
   <h1>PropaganDICE</h1>
-  <p class="title-tagline">Recruit. Roll. Report to the Bureau.</p>
   <div class="title-buttons">
     <button class="btn" id="begin-btn">Begin Recruitment</button>
     <button class="btn ghost" id="howto-btn">How to Play</button>
@@ -581,6 +594,21 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   </div>
 </div>
 
+<!-- ================= COIN FLIP ================= -->
+<div class="overlay" id="coinflip-overlay">
+  <div class="card" style="text-align:center; max-width:300px;">
+    <h2 style="color:var(--amber-bright);">Coin Flip</h2>
+    <p style="color:var(--bone-dim); font-size:0.85rem;">Winner starts the recruitment.</p>
+    <div class="coin-flip-stage">
+      <div class="coin" id="coin-el">
+        <div class="coin-face coin-front">P1</div>
+        <div class="coin-face coin-back">P2</div>
+      </div>
+    </div>
+    <p id="coinflip-result-text"></p>
+  </div>
+</div>
+
 <!-- ================= CARD HAND BAR ================= -->
 <div id="hand-bar">
   <div class="hand-cards" id="hand-cards"></div>
@@ -667,7 +695,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   const FACE_ICON  = { SICKLE:'🌾', HAMMER:'🔨', GUN:'🔫', PLANE:'✈️', SWORD:'⚔️', UFO:'🛸' };
 
   const FACTIONS = {
-    PARTY_BOSS:       { key:'PARTY_BOSS',       name:'Party Boss',       icon:'🌾', cssClass:'f-PARTY_BOSS' },
+    PARTY_BOSS:       { key:'PARTY_BOSS',       name:'Party Boss',       icon:'🔨', cssClass:'f-PARTY_BOSS' },
     INDUSTRY_CAPTAIN: { key:'INDUSTRY_CAPTAIN', name:'Industry Captain', icon:'✈️', cssClass:'f-INDUSTRY_CAPTAIN' },
     KNIGHT:           { key:'KNIGHT',           name:'Knight',           icon:'⚔️', cssClass:'f-KNIGHT' },
     PREFECT_ZORB:     { key:'PREFECT_ZORB',     name:'Prefect Zorb',     icon:'🛸', cssClass:'f-PREFECT_ZORB' }
@@ -1171,11 +1199,11 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     drawCardForPlayer(player); // deploying any card earns an immediate bonus draw
 
     // Visual flourish: the card physically lands on the table/battlefield,
-    // same toss PropaganDICE used whenever a card gets deployed.
+    // same toss PropaganDICE used whenever a card gets deployed. It stays
+    // there until the next roll clears it (see maybeHideDeployedCards below).
     const cardSceneInstance = currentPhase === 'rite' ? groveInstance : (currentPhase === 'battle' ? peakInstance : null);
     if (cardSceneInstance && cardSceneInstance.playCardToss){
       await cardSceneInstance.playCardToss();
-      if (cardSceneInstance.hideCard) cardSceneInstance.hideCard();
     }
 
     // The human already saw their own card in the confirm view before
@@ -1202,7 +1230,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
   function buildGrove(){
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x1a1712, 9, 30);
     const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 100);
 
     const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
@@ -1220,6 +1247,13 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     fillCool.position.set(-7, 4, 7);
     scene.add(fillCool);
 
+    // The ceremonial platform stays identical across every themed
+    // environment below, so the dice's calibrated positions never change.
+    const daisMatDark = new THREE.MeshPhongMaterial({ color:0x504f58, flatShading:true, shininess:0 });
+    const dais = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.05, 0.3, 8), daisMatDark);
+    dais.position.y = 0.15;
+    scene.add(dais);
+
     function makeBlobTexture(){
       const c = document.createElement('canvas'); c.width = 64; c.height = 64;
       const ctx = c.getContext('2d');
@@ -1229,10 +1263,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       return new THREE.CanvasTexture(c);
     }
     const blobTex = makeBlobTexture();
-    const blobList = [];
-    function addBlob(x,z,scale){ blobList.push({x,z,scale}); }
-    function flushBlobs(){
-      if (!blobList.length) return;
+    function buildBlobsInstancedMesh(blobList){
+      if (!blobList.length) return null;
       const dummy = new THREE.Object3D();
       const geo = new THREE.PlaneGeometry(1,1);
       const mat = new THREE.MeshBasicMaterial({ map: blobTex, transparent:true, depthWrite:false });
@@ -1245,124 +1277,528 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
         inst.setMatrixAt(i, dummy.matrix);
       });
       inst.instanceMatrix.needsUpdate = true;
-      scene.add(inst);
+      return inst;
+    }
+    function instFrom(geo, mat, matrices){
+      if (!matrices.length) return null;
+      const inst = new THREE.InstancedMesh(geo, mat, matrices.length);
+      matrices.forEach((m,i) => inst.setMatrixAt(i,m));
+      inst.instanceMatrix.needsUpdate = true;
+      return inst;
     }
 
-    function terrainHeight(x, z){
-      const d = Math.sqrt(x*x + z*z);
-      const falloff = Math.min(1, Math.max(0, (d - 3.0) / 3.4));
-      return (Math.sin(x*0.18)*0.4 + Math.cos(z*0.21)*0.35 + Math.sin((x+z)*0.1)*0.5) * falloff;
-    }
-    const groundGeo = new THREE.PlaneGeometry(46,46,34,34);
-    const posAttr = groundGeo.attributes.position;
-    const colors = [];
-    const cLow = new THREE.Color(0x232f1a), cMid = new THREE.Color(0x3c4d2c), cHigh = new THREE.Color(0x5c7350);
-    for (let i=0;i<posAttr.count;i++){
-      const x = posAttr.getX(i), y = posAttr.getY(i);
-      const h = terrainHeight(x,y);
-      posAttr.setZ(i,h);
-      const t = Math.max(0, Math.min(1, (h+0.15)/1.1));
-      const col = t < 0.5 ? cLow.clone().lerp(cMid, t/0.5) : cMid.clone().lerp(cHigh, (t-0.5)/0.5);
-      colors.push(col.r, col.g, col.b);
-    }
-    groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    groundGeo.computeVertexNormals();
-    const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 }));
-    ground.rotation.x = -Math.PI/2;
-    scene.add(ground);
+    // ================= SHRINE — the default, always used for round 1 =================
+    function buildShrineEnv(){
+      const group = new THREE.Group();
+      const blobList = [];
+      const torchLights = [];
+      function terrainHeight(x, z){
+        const d = Math.sqrt(x*x + z*z);
+        const falloff = Math.min(1, Math.max(0, (d - 3.0) / 3.4));
+        return (Math.sin(x*0.18)*0.4 + Math.cos(z*0.21)*0.35 + Math.sin((x+z)*0.1)*0.5) * falloff;
+      }
+      const groundGeo = new THREE.PlaneGeometry(46,46,34,34);
+      const posAttr = groundGeo.attributes.position;
+      const colors = [];
+      const cLow = new THREE.Color(0x232f1a), cMid = new THREE.Color(0x3c4d2c), cHigh = new THREE.Color(0x5c7350);
+      for (let i=0;i<posAttr.count;i++){
+        const x = posAttr.getX(i), y = posAttr.getY(i);
+        const h = terrainHeight(x,y);
+        posAttr.setZ(i,h);
+        const t = Math.max(0, Math.min(1, (h+0.15)/1.1));
+        const col = t < 0.5 ? cLow.clone().lerp(cMid, t/0.5) : cMid.clone().lerp(cHigh, (t-0.5)/0.5);
+        colors.push(col.r, col.g, col.b);
+      }
+      groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      groundGeo.computeVertexNormals();
+      const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 }));
+      ground.rotation.x = -Math.PI/2;
+      group.add(ground);
 
-    const stoneMat = new THREE.MeshPhongMaterial({ color:0x6b6a70, flatShading:true, shininess:0 });
-    const stoneMatDark = new THREE.MeshPhongMaterial({ color:0x504f58, flatShading:true, shininess:0 });
-    const stoneGeo = new THREE.BoxGeometry(0.4, 1.7, 0.4);
-    const stoneCount = 7;
-    for (let i=0;i<stoneCount;i++){
-      const ang = (i/stoneCount) * Math.PI*2, r = 2.6;
-      const s = new THREE.Mesh(stoneGeo, i%2===0 ? stoneMat : stoneMatDark);
-      s.position.set(Math.cos(ang)*r, 0.85, Math.sin(ang)*r);
-      s.rotation.y = ang + (Math.random()-0.5)*0.2;
-      s.rotation.z = (Math.random()-0.5)*0.1;
-      scene.add(s);
-      addBlob(Math.cos(ang)*r, Math.sin(ang)*r, 1.1);
-    }
-    const dais = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.05, 0.3, 8), stoneMatDark);
-    dais.position.y = 0.15;
-    scene.add(dais);
+      const stoneMat = new THREE.MeshPhongMaterial({ color:0x6b6a70, flatShading:true, shininess:0 });
+      const stoneMatDark = new THREE.MeshPhongMaterial({ color:0x504f58, flatShading:true, shininess:0 });
+      const stoneGeo = new THREE.BoxGeometry(0.4, 1.7, 0.4);
+      const stoneCount = 7;
+      for (let i=0;i<stoneCount;i++){
+        const ang = (i/stoneCount) * Math.PI*2, r = 2.6;
+        const s = new THREE.Mesh(stoneGeo, i%2===0 ? stoneMat : stoneMatDark);
+        s.position.set(Math.cos(ang)*r, 0.85, Math.sin(ang)*r);
+        s.rotation.y = ang + (Math.random()-0.5)*0.2;
+        s.rotation.z = (Math.random()-0.5)*0.1;
+        group.add(s);
+        blobList.push({ x:Math.cos(ang)*r, z:Math.sin(ang)*r, scale:1.1 });
+      }
 
-    const leafMats = [
-      new THREE.MeshPhongMaterial({ color:0x3f6b34, flatShading:true, shininess:0 }),
-      new THREE.MeshPhongMaterial({ color:0x4f7d3a, flatShading:true, shininess:0 }),
-      new THREE.MeshPhongMaterial({ color:0x2f4f28, flatShading:true, shininess:0 })
-    ];
-    const trunkMat = new THREE.MeshPhongMaterial({ color:0x4a3a26, flatShading:true, shininess:0 });
-    const leafGeo = new THREE.ConeGeometry(1, 2.1, 6);
-    const leafGeo2 = new THREE.ConeGeometry(0.72, 1.6, 6);
-    const trunkGeo = new THREE.CylinderGeometry(0.14, 0.19, 1.05, 6);
-    const treeDummy = new THREE.Object3D();
-    const trunkMatrices = [];
-    const leafMatricesByColor = leafMats.map(()=>[]);
-    const leaf2MatricesByColor = leafMats.map(()=>[]);
-    function placeTree(x, z){
-      const h = terrainHeight(x,z);
-      const scale = 0.8 + Math.random()*0.5;
-      const rotY = Math.random()*Math.PI*2;
-      const colorIdx = Math.floor(Math.random()*leafMats.length);
-      treeDummy.position.set(x, h + 0.52*scale, z);
-      treeDummy.rotation.set(0, rotY, 0);
-      treeDummy.scale.set(scale, scale, scale);
-      treeDummy.updateMatrix();
-      trunkMatrices.push(treeDummy.matrix.clone());
-      treeDummy.position.set(x, h + 1.6*scale, z);
-      treeDummy.updateMatrix();
-      leafMatricesByColor[colorIdx].push(treeDummy.matrix.clone());
-      treeDummy.position.set(x, h + 2.35*scale, z);
-      treeDummy.updateMatrix();
-      leaf2MatricesByColor[colorIdx].push(treeDummy.matrix.clone());
-      addBlob(x, z, 1.4*scale);
+      const leafMats = [
+        new THREE.MeshPhongMaterial({ color:0x3f6b34, flatShading:true, shininess:0 }),
+        new THREE.MeshPhongMaterial({ color:0x4f7d3a, flatShading:true, shininess:0 }),
+        new THREE.MeshPhongMaterial({ color:0x2f4f28, flatShading:true, shininess:0 })
+      ];
+      const trunkMat = new THREE.MeshPhongMaterial({ color:0x4a3a26, flatShading:true, shininess:0 });
+      const leafGeo = new THREE.ConeGeometry(1, 2.1, 6);
+      const leafGeo2 = new THREE.ConeGeometry(0.72, 1.6, 6);
+      const trunkGeo = new THREE.CylinderGeometry(0.14, 0.19, 1.05, 6);
+      const treeDummy = new THREE.Object3D();
+      const trunkMatrices = [];
+      const leafMatricesByColor = leafMats.map(()=>[]);
+      const leaf2MatricesByColor = leafMats.map(()=>[]);
+      function placeTree(x, z){
+        const h = terrainHeight(x,z);
+        const scale = 0.8 + Math.random()*0.5;
+        const rotY = Math.random()*Math.PI*2;
+        const colorIdx = Math.floor(Math.random()*leafMats.length);
+        treeDummy.position.set(x, h + 0.52*scale, z);
+        treeDummy.rotation.set(0, rotY, 0);
+        treeDummy.scale.set(scale, scale, scale);
+        treeDummy.updateMatrix();
+        trunkMatrices.push(treeDummy.matrix.clone());
+        treeDummy.position.set(x, h + 1.6*scale, z);
+        treeDummy.updateMatrix();
+        leafMatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+        treeDummy.position.set(x, h + 2.35*scale, z);
+        treeDummy.updateMatrix();
+        leaf2MatricesByColor[colorIdx].push(treeDummy.matrix.clone());
+        blobList.push({ x, z, scale:1.4*scale });
+      }
+      let placed = 0, attempts = 0;
+      while (placed < 18 && attempts < 200){
+        attempts++;
+        const ang = Math.random()*Math.PI*2;
+        const dist = 5.5 + Math.random()*14;
+        placeTree(Math.cos(ang)*dist, Math.sin(ang)*dist);
+        placed++;
+      }
+      function instTier(geo, mats, matricesByColor){
+        matricesByColor.forEach((list,i) => { const inst = instFrom(geo, mats[i], list); if (inst) group.add(inst); });
+      }
+      const trunkInst = instFrom(trunkGeo, trunkMat, trunkMatrices);
+      if (trunkInst) group.add(trunkInst);
+      instTier(leafGeo, leafMats, leafMatricesByColor);
+      instTier(leafGeo2, leafMats, leaf2MatricesByColor);
+
+      function makeTorch(x, z){
+        const g = new THREE.Group();
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 1.25, 6), trunkMat);
+        pole.position.y = 0.625; g.add(pole);
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.09, 0.16, 6), stoneMatDark);
+        bowl.position.y = 1.27; g.add(bowl);
+        const flameMat = new THREE.MeshBasicMaterial({ color:0xf0be6c });
+        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.34, 6), flameMat);
+        flame.position.y = 1.5; g.add(flame);
+        const light = new THREE.PointLight(0xd99a3e, 1.3, 6, 2);
+        light.position.y = 1.55; g.add(light);
+        g.position.set(x, terrainHeight(x,z), z);
+        group.add(g);
+        torchLights.push({ flame, light });
+      }
+      makeTorch(1.6, 3.3);
+      makeTorch(-1.6, 3.3);
+
+      const blobInst = buildBlobsInstancedMesh(blobList);
+      if (blobInst) group.add(blobInst);
+
+      return {
+        group, torchLights,
+        fog:{ color:0x1a1712, near:9, far:30 },
+        hemi:{ sky:0x8f7fc0, ground:0x1c2414, intensity:0.75 },
+        sun:{ color:0xd9b877, intensity:0.85 },
+        fillCool:{ color:0x6a4f8a, intensity:0.35 }
+      };
     }
-    let placed = 0, attempts = 0;
-    while (placed < 18 && attempts < 200){
-      attempts++;
-      const ang = Math.random()*Math.PI*2;
-      const dist = 5.5 + Math.random()*14;
-      placeTree(Math.cos(ang)*dist, Math.sin(ang)*dist);
-      placed++;
-    }
-    function instTier(geo, mats, matricesByColor){
-      matricesByColor.forEach((list,i) => {
-        if (!list.length) return;
-        const inst = new THREE.InstancedMesh(geo, mats[i], list.length);
-        list.forEach((m,idx) => inst.setMatrixAt(idx, m));
-        inst.instanceMatrix.needsUpdate = true;
-        scene.add(inst);
+
+    // ================= FARM — Party Boss =================
+    function buildFarmEnv(){
+      const group = new THREE.Group();
+      const blobList = [];
+      function terrainHeight(x, z){
+        const d = Math.sqrt(x*x + z*z);
+        const falloff = Math.min(1, Math.max(0, (d - 3.0) / 3.4));
+        return (Math.sin(x*0.1)*0.15 + Math.cos(z*0.12)*0.13) * falloff;
+      }
+      const groundGeo = new THREE.PlaneGeometry(46,46,34,34);
+      const posAttr = groundGeo.attributes.position;
+      const colors = [];
+      const cNear = new THREE.Color(0x3a3a38), cMid = new THREE.Color(0xc4c8ca), cFar = new THREE.Color(0xdfe4e6);
+      for (let i=0;i<posAttr.count;i++){
+        const x = posAttr.getX(i), y = posAttr.getY(i);
+        const h = terrainHeight(x,y);
+        posAttr.setZ(i,h);
+        const d = Math.sqrt(x*x + y*y);
+        const t = Math.max(0, Math.min(1, (d-3.0)/6.0));
+        const t2 = Math.max(0, Math.min(1, (d-12)/16));
+        const col = cNear.clone().lerp(cMid, t).lerp(cFar, t2*0.6);
+        colors.push(col.r, col.g, col.b);
+      }
+      groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      groundGeo.computeVertexNormals();
+      const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 }));
+      ground.rotation.x = -Math.PI/2;
+      group.add(ground);
+
+      // perimeter fence line
+      const postMat = new THREE.MeshPhongMaterial({ color:0x2e2b28, flatShading:true, shininess:0 });
+      const wireMat = new THREE.MeshPhongMaterial({ color:0x18171a, flatShading:true, shininess:20 });
+      const postGeo = new THREE.CylinderGeometry(0.05,0.06,1.5,5);
+      const wireGeo = new THREE.CylinderGeometry(0.012,0.012,1.05,4);
+      const fenceDummy = new THREE.Object3D();
+      const postMatrices = [], wireMatrices = [];
+      const fenceCount = 20;
+      for (let i=0;i<fenceCount;i++){
+        const ang = (i/fenceCount)*Math.PI*2 + Math.random()*0.06;
+        const dist = 16 + Math.random()*4;
+        const px = Math.cos(ang)*dist, pz = Math.sin(ang)*dist;
+        fenceDummy.position.set(px, 0.75, pz); fenceDummy.rotation.set(0,0,0); fenceDummy.scale.set(1,1,1);
+        fenceDummy.updateMatrix();
+        postMatrices.push(fenceDummy.matrix.clone());
+        for (let w=0; w<3; w++){
+          fenceDummy.position.set(px, 0.55+w*0.32, pz);
+          fenceDummy.rotation.set(0, -ang+Math.PI/2, Math.PI/2);
+          fenceDummy.updateMatrix();
+          wireMatrices.push(fenceDummy.matrix.clone());
+        }
+      }
+      [instFrom(postGeo,postMat,postMatrices), instFrom(wireGeo,wireMat,wireMatrices)].forEach(inst => { if (inst) group.add(inst); });
+
+      // one watchtower for flavor
+      const towerMat = new THREE.MeshPhongMaterial({ color:0x38352f, flatShading:true, shininess:0 });
+      const towerRoofMat = new THREE.MeshPhongMaterial({ color:0x201e1a, flatShading:true, shininess:0 });
+      const tg = new THREE.Group();
+      const th = 4.6;
+      [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]].forEach(([lx,lz]) => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.09,th,5), towerMat);
+        leg.position.set(lx, th/2, lz);
+        tg.add(leg);
       });
-    }
-    if (trunkMatrices.length){
-      const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, trunkMatrices.length);
-      trunkMatrices.forEach((m,i) => trunkInst.setMatrixAt(i,m));
-      trunkInst.instanceMatrix.needsUpdate = true;
-      scene.add(trunkInst);
-    }
-    instTier(leafGeo, leafMats, leafMatricesByColor);
-    instTier(leafGeo2, leafMats, leaf2MatricesByColor);
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.3,1.0,1.3), towerMat);
+      cabin.position.y = th+0.5; tg.add(cabin);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(1.05,0.55,4), towerRoofMat);
+      roof.rotation.y = Math.PI/4; roof.position.y = th+1.28; tg.add(roof);
+      tg.position.set(13, 0, 9);
+      group.add(tg);
+      blobList.push({ x:13, z:9, scale:2.4 });
 
-    const torchLights = [];
-    function makeTorch(x, z){
-      const g = new THREE.Group();
-      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 1.25, 6), trunkMat);
-      pole.position.y = 0.625; g.add(pole);
-      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.09, 0.16, 6), stoneMatDark);
-      bowl.position.y = 1.27; g.add(bowl);
-      const flameMat = new THREE.MeshBasicMaterial({ color:0xf0be6c });
-      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.34, 6), flameMat);
-      flame.position.y = 1.5; g.add(flame);
-      const light = new THREE.PointLight(0xd99a3e, 1.3, 6, 2);
-      light.position.y = 1.55; g.add(light);
-      g.position.set(x, terrainHeight(x,z), z);
-      scene.add(g);
-      torchLights.push({ flame, light });
+      // sparse birch/pine taiga
+      const birchTrunkMat = new THREE.MeshPhongMaterial({ color:0xc8c6be, flatShading:true, shininess:0 });
+      const pineMat = new THREE.MeshPhongMaterial({ color:0x2e4234, flatShading:true, shininess:0 });
+      const pineSnowMat = new THREE.MeshPhongMaterial({ color:0xe4e8ea, flatShading:true, shininess:0 });
+      const trunkGeo2 = new THREE.CylinderGeometry(0.06,0.09,2.2,5);
+      const pineGeo = new THREE.ConeGeometry(0.55,1.1,6);
+      const pineSnowGeo = new THREE.ConeGeometry(0.5,0.14,6);
+      const treeDummy2 = new THREE.Object3D();
+      const trunkMatrices2 = [], pineMatrices = [], snowMatrices = [];
+      let placed2 = 0, attempts2 = 0;
+      while (placed2 < 18 && attempts2 < 300){
+        attempts2++;
+        const ang = Math.random()*Math.PI*2, dist = 6.5 + Math.random()*8;
+        const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+        const h = terrainHeight(x,z);
+        const scale = 0.8 + Math.random()*0.5;
+        if (Math.random() > 0.5){
+          treeDummy2.position.set(x, h+1.1*scale, z); treeDummy2.rotation.set(0, Math.random()*Math.PI*2, 0); treeDummy2.scale.set(scale,scale,scale);
+          treeDummy2.updateMatrix();
+          trunkMatrices2.push(treeDummy2.matrix.clone());
+        } else {
+          treeDummy2.position.set(x, h+0.75*scale, z); treeDummy2.rotation.set(0,0,0); treeDummy2.scale.set(scale,scale,scale);
+          treeDummy2.updateMatrix();
+          pineMatrices.push(treeDummy2.matrix.clone());
+          treeDummy2.position.set(x, h+1.02*scale, z); treeDummy2.updateMatrix();
+          snowMatrices.push(treeDummy2.matrix.clone());
+        }
+        blobList.push({ x, z, scale:0.8*scale });
+        placed2++;
+      }
+      [instFrom(trunkGeo2,birchTrunkMat,trunkMatrices2), instFrom(pineGeo,pineMat,pineMatrices), instFrom(pineSnowGeo,pineSnowMat,snowMatrices)]
+        .forEach(inst => { if (inst) group.add(inst); });
+
+      const blobInst = buildBlobsInstancedMesh(blobList);
+      if (blobInst) group.add(blobInst);
+
+      return {
+        group, torchLights:[],
+        fog:{ color:0xaab4bc, near:9, far:24 },
+        hemi:{ sky:0x8a96a0, ground:0x3a3833, intensity:0.75 },
+        sun:{ color:0xd8dce0, intensity:0.6 },
+        fillCool:{ color:0x6a80a0, intensity:0.3 }
+      };
     }
-    makeTorch(1.6, 3.3);
-    makeTorch(-1.6, 3.3);
+
+    // ================= FACTORY — Industry Captain =================
+    function buildFactoryEnv(){
+      const group = new THREE.Group();
+      const blobList = [];
+      function groundJitter(x,z){ return Math.sin(x*1.4)*0.01 + Math.cos(z*1.7)*0.01; }
+      const groundGeo = new THREE.PlaneGeometry(46,46,34,34);
+      const posAttr = groundGeo.attributes.position;
+      const colors = [];
+      const cA = new THREE.Color(0x4c4c50), cB = new THREE.Color(0x37373b);
+      for (let i=0;i<posAttr.count;i++){
+        const x = posAttr.getX(i), y = posAttr.getY(i);
+        posAttr.setZ(i, groundJitter(x,y));
+        const n = Math.abs(Math.sin(x*0.4)*Math.cos(y*0.35));
+        const col = cA.clone().lerp(cB, n);
+        colors.push(col.r, col.g, col.b);
+      }
+      groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      groundGeo.computeVertexNormals();
+      const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 }));
+      ground.rotation.x = -Math.PI/2;
+      group.add(ground);
+
+      // distant warehouse skyline
+      const bldgMatA = new THREE.MeshPhongMaterial({ color:0x35373f, flatShading:true, shininess:0 });
+      const bldgMatB = new THREE.MeshPhongMaterial({ color:0x40424a, flatShading:true, shininess:0 });
+      const bldgGeo = new THREE.BoxGeometry(1,1,1);
+      const bldgDummy = new THREE.Object3D();
+      const bldgMatricesA = [], bldgMatricesB = [];
+      const skylineCount = 16;
+      for (let i=0;i<skylineCount;i++){
+        const ang = (i/skylineCount)*Math.PI*2 + Math.random()*0.2;
+        const dist = 20 + Math.random()*6;
+        const w = 3+Math.random()*3, d = 3+Math.random()*3, h = 5+Math.random()*10;
+        bldgDummy.position.set(Math.cos(ang)*dist, h/2-1.2, Math.sin(ang)*dist);
+        bldgDummy.rotation.set(0, Math.random()*Math.PI, 0);
+        bldgDummy.scale.set(w,h,d);
+        bldgDummy.updateMatrix();
+        (Math.random()>0.5 ? bldgMatricesA : bldgMatricesB).push(bldgDummy.matrix.clone());
+      }
+      [instFrom(bldgGeo,bldgMatA,bldgMatricesA), instFrom(bldgGeo,bldgMatB,bldgMatricesB)].forEach(inst => { if (inst) group.add(inst); });
+
+      // smokestacks
+      const stackMat = new THREE.MeshPhongMaterial({ color:0x5b3f38, flatShading:true, shininess:0 });
+      const capMat = new THREE.MeshPhongMaterial({ color:0x2e2a2c, flatShading:true, shininess:0 });
+      function makeSmokeStack(x,z,h){
+        const g = new THREE.Group();
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.65,1.0,8), stackMat);
+        base.position.y = 0.5; g.add(base);
+        const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.42,h,8), stackMat);
+        stack.position.y = 1.0+h/2; g.add(stack);
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.32,0.3,8), capMat);
+        cap.position.y = 1.0+h+0.15; g.add(cap);
+        g.position.set(x,0,z);
+        group.add(g);
+        blobList.push({ x, z, scale:2.0 });
+      }
+      makeSmokeStack(-4.5, -6.5, 5.5);
+      makeSmokeStack(-7.5, -4.0, 7.5);
+      makeSmokeStack(5.5, -7.0, 6.5);
+
+      // crates & barrels
+      const crateMat = new THREE.MeshPhongMaterial({ color:0x8a6a3e, flatShading:true, shininess:0 });
+      const crateMat2 = new THREE.MeshPhongMaterial({ color:0x6e5330, flatShading:true, shininess:0 });
+      const barrelMat = new THREE.MeshPhongMaterial({ color:0x8a3a28, flatShading:true, shininess:0 });
+      const barrelMat2 = new THREE.MeshPhongMaterial({ color:0x5c6a6e, flatShading:true, shininess:0 });
+      const crateGeo = new THREE.BoxGeometry(1,1,1);
+      const barrelGeo = new THREE.CylinderGeometry(1,1,1,10);
+      const propDummy = new THREE.Object3D();
+      const crateMatricesA=[], crateMatricesB=[], barrelMatricesA=[], barrelMatricesB=[];
+      let placed3 = 0, attempts3 = 0;
+      while (placed3 < 14 && attempts3 < 300){
+        attempts3++;
+        const ang = Math.random()*Math.PI*2, dist = 4 + Math.random()*14;
+        const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+        if (Math.random() > 0.5){
+          const s = 0.55 + Math.random()*0.35;
+          propDummy.position.set(x, s/2, z); propDummy.rotation.set(0, Math.random()*Math.PI*2, 0); propDummy.scale.set(s,s,s);
+          propDummy.updateMatrix();
+          (Math.random()>0.5?crateMatricesA:crateMatricesB).push(propDummy.matrix.clone());
+          blobList.push({ x, z, scale:s*1.8 });
+        } else {
+          const r = 0.28 + Math.random()*0.1, h = 0.6 + Math.random()*0.2;
+          propDummy.position.set(x, h/2, z); propDummy.rotation.set(0, Math.random()*Math.PI*2, 0); propDummy.scale.set(r,h,r);
+          propDummy.updateMatrix();
+          (Math.random()>0.5?barrelMatricesA:barrelMatricesB).push(propDummy.matrix.clone());
+          blobList.push({ x, z, scale:r*3.2 });
+        }
+        placed3++;
+      }
+      [instFrom(crateGeo,crateMat,crateMatricesA), instFrom(crateGeo,crateMat2,crateMatricesB),
+       instFrom(barrelGeo,barrelMat,barrelMatricesA), instFrom(barrelGeo,barrelMat2,barrelMatricesB)]
+        .forEach(inst => { if (inst) group.add(inst); });
+
+      // lamp posts
+      const steelMat = new THREE.MeshPhongMaterial({ color:0x3a3d42, flatShading:true, shininess:0 });
+      const steelMatDark = new THREE.MeshPhongMaterial({ color:0x2a2c30, flatShading:true, shininess:0 });
+      function makeLamp(x,z){
+        const g = new THREE.Group();
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,1.5,6), steelMatDark);
+        pole.position.y = 0.75; g.add(pole);
+        const head = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.14,0.24), steelMat);
+        head.position.y = 1.53; g.add(head);
+        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,8), new THREE.MeshBasicMaterial({ color:0xffcf6b }));
+        bulb.position.y = 1.42; g.add(bulb);
+        const light = new THREE.PointLight(0xffb84d, 1.2, 6, 2);
+        light.position.y = 1.42; g.add(light);
+        g.position.set(x,0,z);
+        group.add(g);
+        blobList.push({ x, z, scale:1.0 });
+      }
+      makeLamp(1.9, 2.0);
+      makeLamp(-1.9, 2.0);
+
+      const blobInst = buildBlobsInstancedMesh(blobList);
+      if (blobInst) group.add(blobInst);
+
+      return {
+        group, torchLights:[],
+        fog:{ color:0x8f8a80, near:9, far:28 },
+        hemi:{ sky:0x6a6f7a, ground:0x1c1a18, intensity:0.75 },
+        sun:{ color:0xcfd0c8, intensity:0.55 },
+        fillCool:{ color:0xffb84d, intensity:0.25 }
+      };
+    }
+
+    // ================= ALIEN — Prefect Zorb (rare) =================
+    function buildAlienEnv(){
+      const group = new THREE.Group();
+      const blobList = [];
+      const craters = [];
+      for (let i=0;i<9;i++){
+        const ang = Math.random()*Math.PI*2, dist = 5 + Math.random()*14;
+        craters.push({ x:Math.cos(ang)*dist, z:Math.sin(ang)*dist, r:1.0+Math.random()*1.8, depth:0.35+Math.random()*0.35 });
+      }
+      function terrainHeight(x, z){
+        const d = Math.sqrt(x*x + z*z);
+        const falloff = Math.min(1, Math.max(0, (d - 3.4) / 3.0));
+        let h = (Math.sin(x*0.13)*0.4 + Math.cos(z*0.17)*0.35 + Math.sin((x+z)*0.07)*0.5) * falloff;
+        craters.forEach(c => {
+          const cd = Math.sqrt((x-c.x)*(x-c.x) + (z-c.z)*(z-c.z));
+          if (cd < c.r){
+            const rim = Math.exp(-Math.pow((cd-c.r*0.82)/(c.r*0.22),2)) * c.depth*0.6;
+            const bowl = -c.depth * (1 - Math.pow(cd/c.r, 2));
+            h += bowl + rim;
+          }
+        });
+        return h;
+      }
+      const groundGeo = new THREE.PlaneGeometry(46,46,34,34);
+      const posAttr = groundGeo.attributes.position;
+      const colors = [];
+      const cLow = new THREE.Color(0x352a44), cMid = new THREE.Color(0x564a68), cHigh = new THREE.Color(0x8577a0);
+      for (let i=0;i<posAttr.count;i++){
+        const x = posAttr.getX(i), y = posAttr.getY(i);
+        const h = terrainHeight(x,y);
+        posAttr.setZ(i,h);
+        const t = Math.max(0, Math.min(1, (h+0.5)/1.2));
+        const col = t<0.5 ? cLow.clone().lerp(cMid, t/0.5) : cMid.clone().lerp(cHigh, (t-0.5)/0.5);
+        colors.push(col.r, col.g, col.b);
+      }
+      groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      groundGeo.computeVertexNormals();
+      const ground = new THREE.Mesh(groundGeo, new THREE.MeshPhongMaterial({ vertexColors:true, flatShading:true, shininess:0 }));
+      ground.rotation.x = -Math.PI/2;
+      group.add(ground);
+
+      // distant crystal spires
+      const crystalMat = new THREE.MeshPhongMaterial({ color:0x6a4fa0, emissive:0x2a1a55, flatShading:true, shininess:10 });
+      const crystalMat2 = new THREE.MeshPhongMaterial({ color:0x3fa0a0, emissive:0x0f4a4a, flatShading:true, shininess:10 });
+      const spireGeo = new THREE.ConeGeometry(1, 1, 5);
+      const spireDummy = new THREE.Object3D();
+      const spireMatricesA = [], spireMatricesB = [];
+      const spireCount = 16;
+      for (let i=0;i<spireCount;i++){
+        const ang = (i/spireCount)*Math.PI*2 + Math.random()*0.15;
+        const dist = 19 + Math.random()*6;
+        const h = 5 + Math.random()*10, r = 1.2 + Math.random()*1.6;
+        spireDummy.position.set(Math.cos(ang)*dist, h/2-1.5, Math.sin(ang)*dist);
+        spireDummy.rotation.set(0, Math.random()*Math.PI, 0);
+        spireDummy.scale.set(r,h,r);
+        spireDummy.updateMatrix();
+        (Math.random()>0.5 ? spireMatricesA : spireMatricesB).push(spireDummy.matrix.clone());
+      }
+      [instFrom(spireGeo,crystalMat,spireMatricesA), instFrom(spireGeo,crystalMat2,spireMatricesB)].forEach(inst => { if (inst) group.add(inst); });
+
+      // glowing crystal clusters standing in for trees
+      const clusterMats = [
+        new THREE.MeshPhongMaterial({ color:0x5fd4d4, emissive:0x1a6a6a, flatShading:true, shininess:20 }),
+        new THREE.MeshPhongMaterial({ color:0xc767e0, emissive:0x5a1a6a, flatShading:true, shininess:20 }),
+        new THREE.MeshPhongMaterial({ color:0x7a8fe0, emissive:0x24296a, flatShading:true, shininess:20 })
+      ];
+      const stalkMat = new THREE.MeshPhongMaterial({ color:0x2a2136, flatShading:true, shininess:0 });
+      const crystalGeo = new THREE.IcosahedronGeometry(0.5, 0);
+      const crystalGeoSmall = new THREE.IcosahedronGeometry(0.3, 0);
+      const stalkGeo = new THREE.CylinderGeometry(0.06,0.09,0.7,5);
+      const clusterDummy = new THREE.Object3D();
+      const stalkMatrices = [];
+      const crystalMatricesByColor = clusterMats.map(()=>[]);
+      const crystal2MatricesByColor = clusterMats.map(()=>[]);
+      function placeCluster(x,z,withLight){
+        const h = terrainHeight(x,z);
+        const scale = 0.7 + Math.random()*0.6;
+        const colorIdx = Math.floor(Math.random()*clusterMats.length);
+        clusterDummy.position.set(x, h + 0.35*scale, z);
+        clusterDummy.rotation.set(0,0,0); clusterDummy.scale.set(scale,scale,scale);
+        clusterDummy.updateMatrix();
+        stalkMatrices.push(clusterDummy.matrix.clone());
+        clusterDummy.position.set(x, h + 0.85*scale, z);
+        clusterDummy.rotation.set(0, Math.random()*Math.PI, 0);
+        clusterDummy.updateMatrix();
+        crystalMatricesByColor[colorIdx].push(clusterDummy.matrix.clone());
+        clusterDummy.position.set(x + 0.25*scale, h + 0.55*scale, z + 0.1*scale);
+        clusterDummy.rotation.set(0, Math.random()*Math.PI, 0);
+        clusterDummy.updateMatrix();
+        crystal2MatricesByColor[colorIdx].push(clusterDummy.matrix.clone());
+        blobList.push({ x, z, scale:1.3*scale });
+        if (withLight){
+          const light = new THREE.PointLight(clusterMats[colorIdx].color.getHex(), 0.5, 2.2, 2);
+          light.position.set(x, h+0.85*scale, z);
+          group.add(light);
+        }
+      }
+      let placed4 = 0, attempts4 = 0;
+      while (placed4 < 20 && attempts4 < 300){
+        attempts4++;
+        const ang = Math.random()*Math.PI*2, dist = 6 + Math.random()*13;
+        placeCluster(Math.cos(ang)*dist, Math.sin(ang)*dist, placed4 % 4 === 0);
+        placed4++;
+      }
+      [instFrom(stalkGeo,stalkMat,stalkMatrices)].forEach(inst => { if (inst) group.add(inst); });
+      clusterMats.forEach((mat,i) => {
+        [instFrom(crystalGeo,mat,crystalMatricesByColor[i]), instFrom(crystalGeoSmall,mat,crystal2MatricesByColor[i])]
+          .forEach(inst => { if (inst) group.add(inst); });
+      });
+
+      const blobInst = buildBlobsInstancedMesh(blobList);
+      if (blobInst) group.add(blobInst);
+
+      return {
+        group, torchLights:[],
+        fog:{ color:0x4a3f66, near:10, far:30 },
+        hemi:{ sky:0x6a5a9c, ground:0x1a1522, intensity:0.7 },
+        sun:{ color:0xb8c8ff, intensity:0.75 },
+        fillCool:{ color:0xc767e0, intensity:0.3 }
+      };
+    }
+
+    const environments = {
+      shrine: buildShrineEnv(),
+      farm: buildFarmEnv(),
+      factory: buildFactoryEnv(),
+      alien: buildAlienEnv()
+    };
+    let currentEnv = environments.shrine;
+    scene.add(currentEnv.group);
+    scene.fog = new THREE.Fog(currentEnv.fog.color, currentEnv.fog.near, currentEnv.fog.far);
+    hemi.color.setHex(currentEnv.hemi.sky); hemi.groundColor.setHex(currentEnv.hemi.ground); hemi.intensity = currentEnv.hemi.intensity;
+    moon.color.setHex(currentEnv.sun.color); moon.intensity = currentEnv.sun.intensity;
+    fillCool.color.setHex(currentEnv.fillCool.color); fillCool.intensity = currentEnv.fillCool.intensity;
+
+    function setEnvironment(key){
+      const env = environments[key];
+      if (!env || env === currentEnv) return;
+      scene.remove(currentEnv.group);
+      scene.add(env.group);
+      scene.fog.color.setHex(env.fog.color);
+      scene.fog.near = env.fog.near;
+      scene.fog.far = env.fog.far;
+      hemi.color.setHex(env.hemi.sky);
+      hemi.groundColor.setHex(env.hemi.ground);
+      hemi.intensity = env.hemi.intensity;
+      moon.color.setHex(env.sun.color);
+      moon.intensity = env.sun.intensity;
+      fillCool.color.setHex(env.fillCool.color);
+      fillCool.intensity = env.fillCool.intensity;
+      currentEnv = env;
+    }
 
     // ---------- the dice: 3 faction cubes + PropaganDICE's original power octahedron ----------
     function makeNumberTexture(num, bg, fg){
@@ -1869,34 +2305,28 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     const cardEdgeMat = new THREE.MeshPhongMaterial({ color: 0x2a2018, flatShading: true, shininess: 0 });
     const cardFaceMat = new THREE.MeshPhongMaterial({ map: cardBackTexture, flatShading: true, shininess: 0 });
     const cardMesh = new THREE.Mesh(cardGeo, [cardEdgeMat, cardEdgeMat, cardFaceMat, cardFaceMat, cardEdgeMat, cardEdgeMat]);
-    const cardRestPos = new THREE.Vector3(0, daisTopY + cardT * 3, 0.85);
+    const cardRestPos = new THREE.Vector3(0, daisTopY + cardT * 3, 1.2); // front edge of the dais, clear of the dice
     cardMesh.position.copy(cardRestPos);
     cardMesh.visible = false;
     scene.add(cardMesh);
 
+    // A card this heavy (100+ lbs, in spirit) doesn't toss or tumble — it
+    // just drops straight down, dead flat, and lands with a real thud.
     const cardState = {
       active: false, settled: true,
       startPos: new THREE.Vector3(), targetPos: cardRestPos.clone(),
-      spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
-      targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1500,
-      clearance: 0.6
+      startTime: 0, duration: 480
     };
 
     function playCardToss(){
       return new Promise(resolve => {
         cardMesh.visible = true;
-        const ang = Math.random() * Math.PI * 2;
-        const dist = 0.3 + Math.random() * 0.25;
-        cardState.startPos.set(cardRestPos.x + Math.cos(ang) * dist, cardRestPos.y + 2.1 + Math.random() * 0.3, cardRestPos.z + Math.sin(ang) * dist);
+        cardMesh.quaternion.set(0, 0, 0, 1);
+        cardState.startPos.set(cardRestPos.x, cardRestPos.y + 2.4, cardRestPos.z);
         cardMesh.position.copy(cardState.startPos);
         cardState.targetPos.copy(cardRestPos);
-        const align = new THREE.Quaternion();
-        const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
-        cardState.targetQuat.copy(spin).multiply(align);
-        cardState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-        cardState.spinSpeed = 8 + Math.random() * 4;
         cardState.startTime = performance.now();
-        cardState.duration = 1500 + Math.random() * 250;
+        cardState.duration = 460 + Math.random() * 60;
         cardState.active = true;
         cardState.settled = false;
         const poll = setInterval(() => {
@@ -1911,34 +2341,21 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       const now = performance.now();
       const t = Math.min(1, (now - state.startTime) / state.duration);
       if (t < 0) return;
-      const easedT = 1 - Math.pow(1 - t, 3);
-      cardMesh.position.x = THREE.MathUtils.lerp(state.startPos.x, state.targetPos.x, easedT);
-      cardMesh.position.z = THREE.MathUtils.lerp(state.startPos.z, state.targetPos.z, easedT);
-      const amp = (state.startPos.y - state.targetPos.y) * Math.exp(-9 * t);
-      const settleT = Math.max(0, Math.min(1, (t - 0.88) / 0.12));
-      const floorY = state.targetPos.y + state.clearance * (1 - settleT);
-      cardMesh.position.y = floorY + amp;
-      if (t < 0.88){
-        cardMesh.rotateOnAxis(state.spinAxis, state.spinSpeed * (1 - t / 0.88) * dt);
-      } else {
-        cardMesh.quaternion.slerp(state.targetQuat, 0.3);
-      }
+      const fallT = t * t; // accelerating like real gravity, not floating down
+      cardMesh.position.y = THREE.MathUtils.lerp(state.startPos.y, state.targetPos.y, fallT);
       if (t >= 1){
         state.active = false; state.settled = true;
         cardMesh.position.copy(state.targetPos);
-        cardMesh.quaternion.copy(state.targetQuat);
-        triggerTableShake();
+        triggerTableShake(0.34); // a real slam, harder than a rolled die
       }
     }
-
-    flushBlobs();
 
     const target = new THREE.Vector3(0, 0.55, 0);
     let theta = Math.PI*0.22;
     let phi = Math.PI*0.22;
     const radius = 3.5;
     let tableShakeIntensity = 0;
-    function triggerTableShake(){ tableShakeIntensity = 0.16; }
+    function triggerTableShake(intensity){ tableShakeIntensity = intensity || 0.16; }
     const baseFovDeg = 48;
     const minHorizontalFovDeg = 58;
     function fitFovToAspect(){
@@ -1983,7 +2400,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
         if (tableShakeIntensity <= 0.0008) tableShakeIntensity = 0;
       }
       updateCamera();
-      torchLights.forEach((t,i) => {
+      currentEnv.torchLights.forEach((t,i) => {
         const flicker = Math.sin(performance.now()*0.01 + i*3)*0.25 + Math.random()*0.15;
         t.light.intensity = 1.2 + flicker;
         t.flame.scale.y = 1 + flicker*0.3;
@@ -2012,7 +2429,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       runCpuRiteRoll,
       playCardToss,
       hideCard,
-      setOnTap(fn){ onTapCallback = fn; }
+      setOnTap(fn){ onTapCallback = fn; },
+      setEnvironment
     };
   }
 
@@ -2192,29 +2610,23 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     cardMesh.renderOrder = 999;
     scene.add(cardMesh);
 
+    // A card this heavy (100+ lbs, in spirit) doesn't toss or tumble — it
+    // just drops straight down, dead flat, and lands with a real thud.
     const cardState = {
       active: false, settled: true,
       startPos: new THREE.Vector3(), targetPos: cardRestPos.clone(),
-      spinAxis: new THREE.Vector3(1, 0, 0), spinSpeed: 0,
-      targetQuat: new THREE.Quaternion(), startTime: 0, duration: 1500,
-      clearance: 0.6
+      startTime: 0, duration: 480
     };
 
     function playCardToss(){
       return new Promise(resolve => {
         cardMesh.visible = true;
-        const ang = Math.random() * Math.PI * 2;
-        const dist = 0.3 + Math.random() * 0.25;
-        cardState.startPos.set(cardRestPos.x + Math.cos(ang) * dist, cardRestPos.y + 2.1 + Math.random() * 0.3, cardRestPos.z + Math.sin(ang) * dist);
+        cardMesh.quaternion.set(0, 0, 0, 1);
+        cardState.startPos.set(cardRestPos.x, cardRestPos.y + 2.4, cardRestPos.z);
         cardMesh.position.copy(cardState.startPos);
         cardState.targetPos.copy(cardRestPos);
-        const align = new THREE.Quaternion();
-        const spin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2);
-        cardState.targetQuat.copy(spin).multiply(align);
-        cardState.spinAxis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-        cardState.spinSpeed = 8 + Math.random() * 4;
         cardState.startTime = performance.now();
-        cardState.duration = 1500 + Math.random() * 250;
+        cardState.duration = 460 + Math.random() * 60;
         cardState.active = true;
         cardState.settled = false;
         const poll = setInterval(() => {
@@ -2229,23 +2641,12 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       const now = performance.now();
       const t = Math.min(1, (now - state.startTime) / state.duration);
       if (t < 0) return;
-      const easedT = 1 - Math.pow(1 - t, 3);
-      cardMesh.position.x = THREE.MathUtils.lerp(state.startPos.x, state.targetPos.x, easedT);
-      cardMesh.position.z = THREE.MathUtils.lerp(state.startPos.z, state.targetPos.z, easedT);
-      const amp = (state.startPos.y - state.targetPos.y) * Math.exp(-9 * t);
-      const settleT = Math.max(0, Math.min(1, (t - 0.88) / 0.12));
-      const floorY = state.targetPos.y + state.clearance * (1 - settleT);
-      cardMesh.position.y = floorY + amp;
-      if (t < 0.88){
-        cardMesh.rotateOnAxis(state.spinAxis, state.spinSpeed * (1 - t / 0.88) * dt);
-      } else {
-        cardMesh.quaternion.slerp(state.targetQuat, 0.3);
-      }
+      const fallT = t * t; // accelerating like real gravity, not floating down
+      cardMesh.position.y = THREE.MathUtils.lerp(state.startPos.y, state.targetPos.y, fallT);
       if (t >= 1){
         state.active = false; state.settled = true;
         cardMesh.position.copy(state.targetPos);
-        cardMesh.quaternion.copy(state.targetQuat);
-        triggerTableShake();
+        triggerTableShake(0.34); // a real slam, harder than a rolled die
       }
     }
 
@@ -2268,15 +2669,37 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       drawCenteredGlyph(ctx, '🔆', 128, 128, 150, '150px sans-serif');
       return new THREE.CanvasTexture(c);
     }
-    const attackDieSize = 0.42;
-    const { geo: attackTetGeo, tris: attackTetTris } = buildTetrahedronGeometry(attackDieSize);
-    const ATTACK_TET_NORMALS = attackTetTris.map(([a,b,c]) => {
-      const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
-      const n = new THREE.Vector3().subVectors(b,a).cross(new THREE.Vector3().subVectors(c,a)).normalize();
-      if (n.dot(centroid) < 0) n.negate();
-      return n;
-    });
-    const ATTACK_TET_UPRIGHT_HINTS = attackTetTris.map(([a]) => a.clone().normalize());
+    // Builds a "long die" shape like a real physical d4 crystal: an elongated
+    // square prism (4 flat readable side faces) capped with a 4-sided pyramid
+    // point at each end. Returns a Group so it can be rotated/positioned as
+    // one object, same as the other single-mesh dice.
+    function buildLongDieGroup(faceMats, capMat, bodyWidth, bodyHeight, capHeight){
+      const group = new THREE.Group();
+      const bodyGeo = new THREE.BoxGeometry(bodyWidth, bodyHeight, bodyWidth);
+      // BoxGeometry material order is [+X,-X,+Y,-Y,+Z,-Z]; the 4 readable
+      // faces are +X/-X/+Z/-Z, the top/bottom (+Y/-Y) are hidden under the caps.
+      const body = new THREE.Mesh(bodyGeo, [faceMats[0], faceMats[1], capMat, capMat, faceMats[2], faceMats[3]]);
+      group.add(body);
+      const capRadius = (bodyWidth * Math.sqrt(2)) / 2;
+      const topCap = new THREE.Mesh(new THREE.ConeGeometry(capRadius, capHeight, 4), capMat);
+      topCap.position.y = bodyHeight/2 + capHeight/2;
+      topCap.rotation.y = Math.PI/4;
+      group.add(topCap);
+      const botCap = new THREE.Mesh(new THREE.ConeGeometry(capRadius, capHeight, 4), capMat);
+      botCap.position.y = -(bodyHeight/2 + capHeight/2);
+      botCap.rotation.x = Math.PI;
+      botCap.rotation.y = Math.PI/4;
+      group.add(botCap);
+      return group;
+    }
+    // The 4 readable faces map straight to battleFaces order: +X, -X, +Z, -Z.
+    // All 4 share the same "up" hint (local +Y, the die's long axis) since
+    // that's how a box's side-face texture is oriented by default.
+    const LONG_DIE_NORMALS = [
+      new THREE.Vector3(1,0,0), new THREE.Vector3(-1,0,0),
+      new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,-1)
+    ];
+    const LONG_DIE_UPRIGHT_HINT = new THREE.Vector3(0,1,0);
 
     function computeUprightQuat(normal, upHint){
       const n = normal.clone().normalize();
@@ -2297,16 +2720,18 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       return new THREE.Quaternion().setFromRotationMatrix(rotMatrix);
     }
 
+    const attackCapMat = new THREE.MeshPhongMaterial({ color:0x2a2018, flatShading:true, shininess:0 });
     const attackPowerMats = battleFaces.map(v => new THREE.MeshPhongMaterial({
       map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#f0be6c'),
-      flatShading:true, shininess:0, side:THREE.DoubleSide
+      flatShading:true, shininess:0
     }));
-    const attackDieMesh = new THREE.Mesh(attackTetGeo, attackPowerMats);
+    const attackBodyWidth = 0.3, attackBodyHeight = 0.4, attackCapHeight = 0.18;
+    const attackDieMesh = buildLongDieGroup(attackPowerMats, attackCapMat, attackBodyWidth, attackBodyHeight, attackCapHeight);
     const attackDieRestPos = new THREE.Vector3(-0.32, -0.72, -2.1); // camera-local — stays anchored on screen as the camera orbits
     attackDieMesh.position.copy(attackDieRestPos);
     attackDieMesh.visible = false;
     camera.add(attackDieMesh);
-    const attackDieClearance = attackDieSize * (1 - 1/Math.sqrt(3));
+    const attackDieClearance = attackBodyWidth/2;
 
     const attackDieState = {
       active:false, settled:true,
@@ -2349,8 +2774,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
         attackDieState.startPos.set(attackDieRestPos.x + Math.cos(ang)*dist, attackDieRestPos.y + 1.4 + Math.random()*0.3, attackDieRestPos.z + Math.sin(ang)*dist);
         attackDieMesh.position.copy(attackDieState.startPos);
         attackDieState.targetPos.copy(attackDieRestPos);
-        const normal = ATTACK_TET_NORMALS[useIndex].clone().normalize();
-        attackDieState.targetQuat.copy(computeUprightQuat(normal, ATTACK_TET_UPRIGHT_HINTS[useIndex]));
+        const normal = LONG_DIE_NORMALS[useIndex].clone().normalize();
+        attackDieState.targetQuat.copy(computeUprightQuat(normal, LONG_DIE_UPRIGHT_HINT));
         attackDieState.spinAxis.set(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
         attackDieState.spinSpeed = 14 + Math.random()*8;
         attackDieState.startTime = performance.now();
@@ -2366,51 +2791,21 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       });
     }
 
-    // ---------- experimental defense die: a 4-sided tetrahedron (burst,1,2,3),
-    // parented to the camera next to the attack die, rolled only when defending ----------
-    function buildTetrahedronGeometry(size){
-      const s = size / Math.sqrt(3);
-      const v = [
-        new THREE.Vector3(1,1,1).multiplyScalar(s),
-        new THREE.Vector3(1,-1,-1).multiplyScalar(s),
-        new THREE.Vector3(-1,1,-1).multiplyScalar(s),
-        new THREE.Vector3(-1,-1,1).multiplyScalar(s)
-      ];
-      const faceIdx = [ [0,1,2], [0,3,1], [0,2,3], [1,3,2] ];
-      const positions = [], uvs = [], tris = [];
-      faceIdx.forEach(([i,j,k]) => {
-        const a=v[i], b=v[j], c=v[k];
-        tris.push([a,b,c]);
-        positions.push(a.x,a.y,a.z, b.x,b.y,b.z, c.x,c.y,c.z);
-        uvs.push(0.5,1, 0,0, 1,0);
-      });
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
-      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs,2));
-      geo.computeVertexNormals();
-      for (let i=0;i<4;i++) geo.addGroup(i*3, 3, i);
-      return { geo, tris };
-    }
-    const defenseDieSize = 0.42;
-    const { geo: defenseTetGeo, tris: defenseTetTris } = buildTetrahedronGeometry(defenseDieSize);
-    const DEFENSE_TET_NORMALS = defenseTetTris.map(([a,b,c]) => {
-      const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
-      const n = new THREE.Vector3().subVectors(b,a).cross(new THREE.Vector3().subVectors(c,a)).normalize();
-      if (n.dot(centroid) < 0) n.negate();
-      return n;
-    });
-    const DEFENSE_TET_UPRIGHT_HINTS = defenseTetTris.map(([a]) => a.clone().normalize());
-
+    // ---------- the defense die: same long-die shape as the attack die
+    // (burst,1,2,3), parented to the camera next to it, blue-tinted so the
+    // two roles stay visually distinct, rolled only when defending ----------
+    const defenseCapMat = new THREE.MeshPhongMaterial({ color:0x1c2a30, flatShading:true, shininess:0 });
     const defensePowerMats = battleFaces.map(v => new THREE.MeshPhongMaterial({
       map: v === 'burst' ? makeBurstTexture('#1a140e') : makeNumberTexture(v, '#1a140e', '#7ab3d9'),
-      flatShading:true, shininess:0, side:THREE.DoubleSide
+      flatShading:true, shininess:0
     }));
-    const defenseDieMesh = new THREE.Mesh(defenseTetGeo, defensePowerMats);
+    const defenseBodyWidth = 0.3, defenseBodyHeight = 0.4, defenseCapHeight = 0.18;
+    const defenseDieMesh = buildLongDieGroup(defensePowerMats, defenseCapMat, defenseBodyWidth, defenseBodyHeight, defenseCapHeight);
     const defenseDieRestPos = new THREE.Vector3(0.32, -0.72, -2.1); // camera-local, mirrored beside the attack die
     defenseDieMesh.position.copy(defenseDieRestPos);
     defenseDieMesh.visible = false;
     camera.add(defenseDieMesh);
-    const defenseDieClearance = defenseDieSize * (1 - 1/Math.sqrt(3));
+    const defenseDieClearance = defenseBodyWidth/2;
 
     const defenseDieState = {
       active:false, settled:true,
@@ -2453,8 +2848,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
         defenseDieState.startPos.set(defenseDieRestPos.x + Math.cos(ang)*dist, defenseDieRestPos.y + 1.4 + Math.random()*0.3, defenseDieRestPos.z + Math.sin(ang)*dist);
         defenseDieMesh.position.copy(defenseDieState.startPos);
         defenseDieState.targetPos.copy(defenseDieRestPos);
-        const normal = DEFENSE_TET_NORMALS[useIndex].clone().normalize();
-        defenseDieState.targetQuat.copy(computeUprightQuat(normal, DEFENSE_TET_UPRIGHT_HINTS[useIndex]));
+        const normal = LONG_DIE_NORMALS[useIndex].clone().normalize();
+        defenseDieState.targetQuat.copy(computeUprightQuat(normal, LONG_DIE_UPRIGHT_HINT));
         defenseDieState.spinAxis.set(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
         defenseDieState.spinSpeed = 14 + Math.random()*8;
         defenseDieState.startTime = performance.now();
@@ -2475,7 +2870,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     let phi = 1.0876;
     const radius = 4.518;
     let tableShakeIntensity = 0;
-    function triggerTableShake(){ tableShakeIntensity = 0.16; }
+    function triggerTableShake(intensity){ tableShakeIntensity = intensity || 0.16; }
     const baseFovDeg = 50;
     const minHorizontalFovDeg = 62;
     function fitFovToAspect(){
@@ -2880,10 +3275,38 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   let currentRound = 1;
   let roundStarter = 1;
 
-  function startNewMatch(){
+  const coinflipOverlay = document.getElementById('coinflip-overlay');
+  const coinEl = document.getElementById('coin-el');
+  const coinflipResultText = document.getElementById('coinflip-result-text');
+
+  function runCoinFlip(){
+    return new Promise(resolve => {
+      const winner = 1 + rand(2);
+      coinflipResultText.textContent = 'Flipping...';
+      coinEl.style.transition = 'none';
+      coinEl.style.transform = 'rotateY(0deg)';
+      void coinEl.offsetWidth; // force reflow so the next transition actually animates
+      const spins = 4;
+      const finalDeg = spins * 360 + (winner === 1 ? 0 : 180);
+      openOverlay(coinflipOverlay);
+      requestAnimationFrame(() => {
+        coinEl.style.transition = 'transform 1.6s cubic-bezier(.2,.8,.2,1)';
+        coinEl.style.transform = `rotateY(${finalDeg}deg)`;
+      });
+      setTimeout(() => {
+        coinflipResultText.textContent = `Player ${winner} goes first!`;
+        showToast(`🪙 Coin flip — Player ${winner} starts the recruitment!`);
+        setTimeout(() => {
+          closeOverlay(coinflipOverlay);
+          resolve(winner);
+        }, 900);
+      }, 1650);
+    });
+  }
+
+  async function startNewMatch(){
     roundsWon = { 1:0, 2:0 };
     currentRound = 1;
-    roundStarter = 1;
     isFirstRitePhaseOfMatch = true;
 
     sharedDeck = buildDeck();
@@ -2899,6 +3322,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     drawCardForPlayer(1); drawCardForPlayer(1);
     drawCardForPlayer(2); drawCardForPlayer(2);
 
+    roundStarter = await runCoinFlip();
     startRitePhase();
   }
 
@@ -2947,6 +3371,16 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     p2HpNum.textContent = `${hp[2]} / ${GDP_MAX}`;
   }
 
+  // Shrine always opens a new match; after that it's a random pick between
+  // Party Boss's farm and Industry Captain's factory, with the alien/UFO
+  // scene as a rare wildcard.
+  function pickRecruitmentTheme(){
+    if (currentRound === 1) return 'shrine';
+    const r = Math.random();
+    if (r < 0.15) return 'alien';
+    return r < 0.575 ? 'farm' : 'factory';
+  }
+
   async function startRitePhase(){
     roster = { 1:[], 2:[] };
     hasNewRecruitThisPhase = { 1:false, 2:false };
@@ -2958,6 +3392,9 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
     if (!isFirstRitePhaseOfMatch) drawCardsForBothPlayers();
     isFirstRitePhaseOfMatch = false;
+
+    if (!groveInstance) groveInstance = buildGrove();
+    groveInstance.setEnvironment(pickRecruitmentTheme());
 
     roundLabelEl.textContent = `Round ${currentRound}`;
     document.getElementById('battle-round-label').textContent = `Round ${currentRound}`;
@@ -3115,11 +3552,19 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       setTimeout(runCpuRiteTurn, 750);
     }
   }
+  // A deployed card stays visible on the table until the next roll clears
+  // it — safe to call on both scenes regardless of which one it landed in.
+  function maybeHideDeployedCards(){
+    if (groveInstance && groveInstance.hideCard) groveInstance.hideCard();
+    if (peakInstance && peakInstance.hideCard) peakInstance.hideCard();
+  }
+
   async function runCpuRiteTurn(){
     if (!groveInstance || riteRollBusy || currentPhase !== 'rite' || ritePlayer !== CPU_PLAYER) return;
     riteRollBusy = true;
     await maybeCpuPlayCard('rite');
     if (currentPhase !== 'rite' || ritePlayer !== CPU_PLAYER || battleOver) return; // a card may have ended the round or the turn
+    maybeHideDeployedCards();
     claimBannerEl.textContent = 'Casting...';
     claimBannerEl.className = 'claim-banner no-claim';
     const maxRolls = lockRollArmed[CPU_PLAYER] ? 4 : 3;
@@ -3141,6 +3586,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     if (!groveInstance || riteRollBusy || currentPhase !== 'rite' || ritePlayer !== HUMAN_PLAYER) return;
     riteRollBusy = true;
     lockRollBtn.disabled = false;
+    maybeHideDeployedCards();
 
     const maxRolls = lockRollArmed[ritePlayer] ? 4 : 3;
 
@@ -3269,6 +3715,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
     attackInProgress = true;
     renderUnitRows();
+    maybeHideDeployedCards();
 
     const defenderSide = side === 1 ? 2 : 1;
     const f = FACTIONS[unit.factionKey];
@@ -3455,10 +3902,10 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     }
   }
 
-  document.getElementById('roundend-continue-btn').addEventListener('click', () => {
+  document.getElementById('roundend-continue-btn').addEventListener('click', async () => {
     closeOverlay(roundendOverlay);
     currentRound += 1;
-    roundStarter = roundStarter === 1 ? 2 : 1;
+    roundStarter = await runCoinFlip();
     startRitePhase();
   });
   document.getElementById('matchend-newgame-btn').addEventListener('click', () => {
