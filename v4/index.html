@@ -164,10 +164,11 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
    caption, both always anchored directly under the HP row, styled like
    PropaganDICE's original tutorial-caption card for readability against the scene */
 .caption-card{
-  width:min(92vw,380px); margin:0.6rem auto 0;
+  width:min(92vw,380px); height:5.2rem; margin:0.6rem auto 0;
   background:radial-gradient(ellipse at 50% 0%, rgba(217,154,62,0.12), transparent 60%), linear-gradient(180deg,#16130d,#0c0a07);
   border:2px solid var(--amber); border-radius:14px; padding:0.75rem 1rem;
   box-shadow:0 14px 34px rgba(0,0,0,0.6); text-align:center;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
 }
 
 /* ---------- guided tour ---------- */
@@ -215,7 +216,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
 
 .claim-banner{
-  min-height:1.4rem; font-size:0.95rem; font-weight:700; color:#ffffff;
+  font-size:0.95rem; font-weight:700; color:#ffffff; line-height:1.3;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 .claim-banner.claim{ color:#ffffff; }
 .claim-banner.no-claim{ color:#ffffff; font-style:normal; font-weight:700; }
@@ -365,6 +367,36 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   z-index:50;
 }
 .hand-card:disabled{ cursor:default; }
+
+/* card-draw flourish: a big card punches in center-screen with a light
+   burst behind it, then flies down and shrinks into the hand */
+#draw-card-flash{
+  position:fixed; inset:0; z-index:15; pointer-events:none; opacity:0;
+  background:radial-gradient(circle at 50% 46%, rgba(240,190,108,0.55), transparent 60%);
+}
+#draw-card-flash.flashing{ animation:drawCardFlash 1000ms ease-out forwards; }
+@keyframes drawCardFlash{
+  0%   { opacity:0; }
+  18%  { opacity:1; }
+  100% { opacity:0; }
+}
+#draw-card-anim{
+  position:fixed; left:50%; top:46%;
+  width:190px; height:264px; border-radius:16px;
+  background:radial-gradient(ellipse at 50% 0%, rgba(217,154,62,0.3), transparent 60%), linear-gradient(165deg,#211a12,#0c0a07);
+  border:3px solid var(--amber-bright);
+  box-shadow:0 0 70px 14px rgba(240,190,108,0.65), 0 24px 60px rgba(0,0,0,0.7);
+  z-index:16; pointer-events:none; opacity:0;
+  transform:translate(-50%,-50%) scale(0.2) rotate(-24deg);
+}
+#draw-card-anim.flying{ animation:drawCardFlyBig 1000ms cubic-bezier(.22,.85,.25,1) forwards; }
+@keyframes drawCardFlyBig{
+  0%   { opacity:0; transform:translate(-50%,-50%) scale(0.15) rotate(-28deg); }
+  28%  { opacity:1; transform:translate(-50%,-50%) scale(1.3)  rotate(8deg); }
+  48%  { opacity:1; transform:translate(-50%,-50%) scale(1.12) rotate(-4deg); }
+  72%  { opacity:1; transform:translate(-50%,-50%) scale(1.12) rotate(0deg); }
+  100% { opacity:0; transform:translate(-50%, 46vh) scale(0.4) rotate(0deg); }
+}
 .hand-card .hc-icon{ font-size:2.1rem; }
 .hand-card .hc-name{ font-size:0.6rem; text-align:center; color:var(--bone); text-transform:uppercase; line-height:1.2; }
 
@@ -486,7 +518,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     <p><b>Knight</b> units get an extra attack roll whenever they strike. Any <b>Prefect Zorb</b> unit on the defending roster grants that whole side an extra defense roll on every incoming attack, no matter which unit is actually under attack.</p>
     <p>Reduce your opponent to 0 to win the round. First to two round wins takes the match.</p>
     <h3>◆ Cards</h3>
-    <p>You draw from a shared 40-card deck (2 to start, more at every phase change), capped at 3 in hand, and may play one per turn. Tap a card in the hand bar at the bottom for its full effect — damage, healing, binding an opponent's recruitment turns, stealing or destroying units, extra attack/defense rolls, drawing, revealing the next deck card alongside one of your opponent's to take one or the other, Fortune's Grasp (bumps every recruitment roll you take up to 4 rolls instead of the usual 3, lasting until the next battle phase begins), or The Flood, a battle-only card that wipes every unit from both rosters at once. Some cards are recruitment-only or battle-only; the bar shows whichever player's turn it currently is.</p>
+    <p>You draw from a shared 40-card deck (2 to start, then one fresh card every time you play one — capped at 3 in hand, so playing while full still refills you back up to 3), and may play one per turn. If the deck ever runs dry, the discard pile reshuffles back in. Tap a card in the hand bar at the bottom for its full effect — damage, healing, binding an opponent's recruitment turns, stealing or destroying units, extra attack/defense rolls, drawing, revealing the next deck card alongside one of your opponent's to take one or the other, Fortune's Grasp (bumps every recruitment roll you take up to 4 rolls instead of the usual 3, lasting until the next battle phase begins), or The Flood, a battle-only card that wipes every unit from both rosters at once. Some cards are recruitment-only or battle-only; the bar shows whichever player's turn it currently is.</p>
     <button class="btn" id="howto-back-btn">Back</button>
   </div>
 </div>
@@ -552,12 +584,9 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
         <div class="hp-num" id="p2-hp-num">20 / 20</div>
       </div>
     </div>
-    <div class="round-indicator" id="battle-turn-label">Player 1 attacks first</div>
   </div>
 
-  <div class="battle-bottom">
-    <p class="hint">tap a unit on the active player's side to attack with it</p>
-  </div>
+  <div class="battle-bottom"></div>
 
   <div class="side-panel ally panel" id="p1-battle-panel">
     <div class="battle-side-label">You</div>
@@ -613,6 +642,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 <div id="hand-bar">
   <div class="hand-cards" id="hand-cards"></div>
 </div>
+<div id="draw-card-flash"></div>
+<div id="draw-card-anim"></div>
 
 <!-- ================= CARD DETAIL / CONFIRM ================= -->
 <div class="overlay" id="card-detail-overlay">
@@ -812,6 +843,16 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
   function activeHandPlayer(){ return currentPhase === 'rite' ? ritePlayer : currentAttacker; }
 
+  const drawCardAnimEl = document.getElementById('draw-card-anim');
+  const drawCardFlashEl = document.getElementById('draw-card-flash');
+  function playDrawCardAnimation(){
+    drawCardAnimEl.classList.remove('flying');
+    drawCardFlashEl.classList.remove('flashing');
+    void drawCardAnimEl.offsetWidth; // restart the animation even if it's still mid-flight
+    drawCardAnimEl.classList.add('flying');
+    drawCardFlashEl.classList.add('flashing');
+  }
+
   function drawCardForPlayer(player){
     const hand = player === 1 ? p1Hand : p2Hand;
     if (sharedDeck.length === 0){
@@ -822,10 +863,10 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     }
     const cardId = sharedDeck.pop();
     hand.push(cardId);
+    if (player === HUMAN_PLAYER) playDrawCardAnimation();
     renderHand();
     if (hand.length > MAX_HAND) requestDiscard(player);
   }
-  function drawCardsForBothPlayers(){ drawCardForPlayer(1); drawCardForPlayer(2); }
 
   function renderHand(){
     const player = activeHandPlayer();
@@ -1203,7 +1244,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     // there until the next roll clears it (see maybeHideDeployedCards below).
     const cardSceneInstance = currentPhase === 'rite' ? groveInstance : (currentPhase === 'battle' ? peakInstance : null);
     if (cardSceneInstance && cardSceneInstance.playCardToss){
-      await cardSceneInstance.playCardToss();
+      await cardSceneInstance.playCardToss(player);
     }
 
     // The human already saw their own card in the confirm view before
@@ -2305,8 +2346,12 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     const cardEdgeMat = new THREE.MeshPhongMaterial({ color: 0x2a2018, flatShading: true, shininess: 0 });
     const cardFaceMat = new THREE.MeshPhongMaterial({ map: cardBackTexture, flatShading: true, shininess: 0 });
     const cardMesh = new THREE.Mesh(cardGeo, [cardEdgeMat, cardEdgeMat, cardFaceMat, cardFaceMat, cardEdgeMat, cardEdgeMat]);
-    const cardRestPos = new THREE.Vector3(0, daisTopY + cardT * 3, 1.2); // front edge of the dais, clear of the dice
-    cardMesh.position.copy(cardRestPos);
+    // Each player's card lands on their own side of the dais, near their
+    // own side panel — Player 1 left, Player 2 right — instead of one
+    // shared spot in the middle.
+    const cardRestPosP1 = new THREE.Vector3(-1.3, daisTopY + cardT * 3, 0.5);
+    const cardRestPosP2 = new THREE.Vector3(1.3, daisTopY + cardT * 3, 0.5);
+    cardMesh.position.copy(cardRestPosP1);
     cardMesh.visible = false;
     scene.add(cardMesh);
 
@@ -2314,17 +2359,18 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     // just drops straight down, dead flat, and lands with a real thud.
     const cardState = {
       active: false, settled: true,
-      startPos: new THREE.Vector3(), targetPos: cardRestPos.clone(),
+      startPos: new THREE.Vector3(), targetPos: cardRestPosP1.clone(),
       startTime: 0, duration: 480
     };
 
-    function playCardToss(){
+    function playCardToss(player){
       return new Promise(resolve => {
+        const restPos = player === 2 ? cardRestPosP2 : cardRestPosP1;
         cardMesh.visible = true;
         cardMesh.quaternion.set(0, 0, 0, 1);
-        cardState.startPos.set(cardRestPos.x, cardRestPos.y + 2.4, cardRestPos.z);
+        cardState.startPos.set(restPos.x, restPos.y + 2.4, restPos.z);
         cardMesh.position.copy(cardState.startPos);
-        cardState.targetPos.copy(cardRestPos);
+        cardState.targetPos.copy(restPos);
         cardState.startTime = performance.now();
         cardState.duration = 460 + Math.random() * 60;
         cardState.active = true;
@@ -2604,8 +2650,11 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     const cardEdgeMat = new THREE.MeshPhongMaterial({ color: 0x2a2018, flatShading: true, shininess: 0, depthTest: false });
     const cardFaceMat = new THREE.MeshPhongMaterial({ map: cardBackTexture, flatShading: true, shininess: 0, depthTest: false });
     const cardMesh = new THREE.Mesh(cardGeo, [cardEdgeMat, cardEdgeMat, cardFaceMat, cardFaceMat, cardEdgeMat, cardEdgeMat]);
-    const cardRestPos = new THREE.Vector3(0, 0.55, 0.7);
-    cardMesh.position.copy(cardRestPos);
+    // Each player's card lands on their own side of the battlefield, near
+    // their own side panel — Player 1 left, Player 2 right.
+    const cardRestPosP1 = new THREE.Vector3(-1.1, 0.55, 0.7);
+    const cardRestPosP2 = new THREE.Vector3(1.1, 0.55, 0.7);
+    cardMesh.position.copy(cardRestPosP1);
     cardMesh.visible = false;
     cardMesh.renderOrder = 999;
     scene.add(cardMesh);
@@ -2614,17 +2663,18 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     // just drops straight down, dead flat, and lands with a real thud.
     const cardState = {
       active: false, settled: true,
-      startPos: new THREE.Vector3(), targetPos: cardRestPos.clone(),
+      startPos: new THREE.Vector3(), targetPos: cardRestPosP1.clone(),
       startTime: 0, duration: 480
     };
 
-    function playCardToss(){
+    function playCardToss(player){
       return new Promise(resolve => {
+        const restPos = player === 2 ? cardRestPosP2 : cardRestPosP1;
         cardMesh.visible = true;
         cardMesh.quaternion.set(0, 0, 0, 1);
-        cardState.startPos.set(cardRestPos.x, cardRestPos.y + 2.4, cardRestPos.z);
+        cardState.startPos.set(restPos.x, restPos.y + 2.4, restPos.z);
         cardMesh.position.copy(cardState.startPos);
-        cardState.targetPos.copy(cardRestPos);
+        cardState.targetPos.copy(restPos);
         cardState.startTime = performance.now();
         cardState.duration = 460 + Math.random() * 60;
         cardState.active = true;
@@ -2983,12 +3033,27 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   function closeOverlay(el){ el.classList.remove('open'); }
 
   const veilEl = document.getElementById('scene-transition-veil');
+  // Keeps the recruitment side panels pinned just below the caption card,
+  // whatever height it happens to be (its text can wrap to more lines).
+  function alignSidePanelsBelowCaption(){
+    const captionCard = document.querySelector('#rite-ui .caption-card');
+    const p1Panel = document.getElementById('p1-roster');
+    const p2Panel = document.getElementById('p2-roster');
+    if (!captionCard || !p1Panel || !p2Panel) return;
+    const rect = captionCard.getBoundingClientRect();
+    if (rect.height === 0) return; // rite-ui isn't visible yet — leave the CSS fallback in place
+    const top = Math.round(rect.bottom + 14);
+    p1Panel.style.top = `${top}px`;
+    p2Panel.style.top = `${top}px`;
+  }
+  window.addEventListener('resize', alignSidePanelsBelowCaption);
+
   function transitionTo(which, delayMs = 1600){
     return new Promise(resolve => {
       veilEl.classList.add('active');
       setTimeout(() => {
         if (which === 'title'){ showUiLayer('title-ui'); hideGrove(); hidePeak(); sceneWrap.classList.remove('visible'); handBarEl.classList.add('hidden'); }
-        else if (which === 'rite'){ showUiLayer('rite-ui'); showGrove(); currentPhase = 'rite'; renderHand(); groveInstance.setOnTap(rollRiteDice); }
+        else if (which === 'rite'){ showUiLayer('rite-ui'); showGrove(); currentPhase = 'rite'; renderHand(); groveInstance.setOnTap(rollRiteDice); requestAnimationFrame(alignSidePanelsBelowCaption); }
         else if (which === 'battle'){ showUiLayer('battle-ui'); showPeak(); currentPhase = 'battle'; renderHand(); }
         setTimeout(() => { veilEl.classList.remove('active'); resolve(); }, 250);
       }, delayMs);
@@ -3307,7 +3372,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   async function startNewMatch(){
     roundsWon = { 1:0, 2:0 };
     currentRound = 1;
-    isFirstRitePhaseOfMatch = true;
 
     sharedDeck = buildDeck();
     discardPile = [];
@@ -3339,12 +3403,13 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   let pendingDeclarer = null;
   let battleOver = false;
   let attackInProgress = false;
-  let isFirstRitePhaseOfMatch = true;
   let riteRollBusy = false;
 
   const roundLabelEl = document.getElementById('round-label');
   const roundsTallyEl = document.getElementById('rounds-tally');
   const claimBannerEl = document.getElementById('claim-banner');
+  new MutationObserver(() => alignSidePanelsBelowCaption())
+    .observe(claimBannerEl, { childList:true, characterData:true, subtree:true });
   const p1SlotsEl = document.getElementById('p1-slots');
   const p2SlotsEl = document.getElementById('p2-slots');
   const declareP1Btn = document.getElementById('declare-p1-btn');
@@ -3390,8 +3455,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     hp = { 1:GDP_MAX, 2:GDP_MAX }; // fresh HP at the start of every round
     cardPlayedThisTurn = { 1:false, 2:false };
 
-    if (!isFirstRitePhaseOfMatch) drawCardsForBothPlayers();
-    isFirstRitePhaseOfMatch = false;
 
     if (!groveInstance) groveInstance = buildGrove();
     groveInstance.setEnvironment(pickRecruitmentTheme());
@@ -3471,7 +3534,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       updateDeclareButtons();
       return true;
     } else {
-      claimBannerEl.textContent = 'No claim this time.';
+      claimBannerEl.textContent = 'No recruits this time.';
       claimBannerEl.className = 'claim-banner no-claim';
       return false;
     }
@@ -3565,7 +3628,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     await maybeCpuPlayCard('rite');
     if (currentPhase !== 'rite' || ritePlayer !== CPU_PLAYER || battleOver) return; // a card may have ended the round or the turn
     maybeHideDeployedCards();
-    claimBannerEl.textContent = 'Casting...';
+    claimBannerEl.textContent = 'Recruiting...';
     claimBannerEl.className = 'claim-banner no-claim';
     const maxRolls = lockRollArmed[CPU_PLAYER] ? 4 : 3;
     const result = await groveInstance.runCpuRiteRoll(maxRolls);
@@ -3603,7 +3666,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
     endTurnBtn.style.display = 'none';
     lockRollBtn.disabled = true;
-    claimBannerEl.textContent = 'Casting...';
+    claimBannerEl.textContent = 'Recruiting...';
     await finishRiteRoll(result);
   }
 
@@ -3632,7 +3695,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   const p2HpFill = document.getElementById('p2-hp-fill');
   const p1HpNum = document.getElementById('p1-hp-num');
   const p2HpNum = document.getElementById('p2-hp-num');
-  const battleTurnLabelEl = document.getElementById('battle-turn-label');
   const p1UnitRow = document.getElementById('p1-unit-row');
   const p2UnitRow = document.getElementById('p2-unit-row');
 
@@ -3652,7 +3714,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   }
 
   function updateBattleTurnLabel(){
-    battleTurnLabelEl.textContent = battleOver ? '' : `Player ${currentAttacker}'s attack`;
     document.getElementById('p1-battle-panel').classList.toggle('active-turn', !battleOver && currentAttacker === 1);
     document.getElementById('p2-battle-panel').classList.toggle('active-turn', !battleOver && currentAttacker === 2);
   }
@@ -3859,7 +3920,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     roster[2].forEach(u => u.spent = false);
     ritePlayer = currentAttacker;
     cardPlayedThisTurn = { 1:false, 2:false };
-    drawCardsForBothPlayers();
     updateRiteTurnBanner();
     renderRosterSlots();
     updateDeclareButtons();
