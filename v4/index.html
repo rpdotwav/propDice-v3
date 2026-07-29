@@ -90,7 +90,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
 /* ---------- title: 1950s cold-war propaganda poster ---------- */
 #title-ui{
-  align-items:center; justify-content:center; text-align:center; gap:1.6rem; padding:1rem;
+  align-items:center; justify-content:center; text-align:center; gap:1.1rem; padding:1rem;
   overflow:hidden;
   background:
     radial-gradient(ellipse 65% 45% at 50% 38%, rgba(200,16,30,0.32) 0%, transparent 60%),
@@ -103,14 +103,19 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 }
 #title-ui::after{
   content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
-  background: repeating-conic-gradient(from 0deg at 50% 40%, rgba(240,230,210,0.05) 0deg 3deg, transparent 3deg 18deg);
-  mask-image: radial-gradient(circle at 50% 40%, black 0%, transparent 62%);
+  background: repeating-conic-gradient(from 0deg at 50% 22%, rgba(240,230,210,0.05) 0deg 3deg, transparent 3deg 18deg);
+  mask-image: radial-gradient(circle at 50% 22%, black 0%, transparent 62%);
 }
 .title-star-shape{
-  position:absolute; top:4%; left:50%; transform:translateX(-50%); z-index:0; pointer-events:none;
-  width:min(58vw,300px); height:min(58vw,300px);
-  background:#c8102e; opacity:0.22;
+  position:absolute; top:22%; left:50%; transform:translate(-50%,-50%); z-index:0; pointer-events:none;
+  width:min(70vw,340px); height:min(70vw,340px);
+  background:#c8102e; opacity:0.16;
   clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+.title-symbol-row{
+  width:min(78vw,320px); height:min(14vw,58px);
+  background-size:contain; background-repeat:no-repeat; background-position:center;
+  opacity:0.55; pointer-events:none;
 }
 #title-ui h1{
   font-family:'Bebas Neue', 'MedievalSharp', serif;
@@ -122,11 +127,11 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   margin:0; position:relative; z-index:1; line-height:0.95;
 }
 .subtitle{ color:var(--bone-dim); font-style:italic; font-size:1rem; max-width:32rem; }
-.title-buttons{ display:flex; flex-direction:column; gap:0.7rem; width:min(90vw,320px); position:relative; z-index:1; }
+.title-buttons{ display:flex; flex-direction:column; gap:0.5rem; width:min(90vw,320px); position:relative; z-index:1; }
 .title-buttons .btn{
   font-family:'Oswald', 'EB Garamond', sans-serif;
   text-transform:uppercase; letter-spacing:0.1em; font-weight:700;
-  border-radius:2px;
+  border-radius:2px; padding:0.6rem 1.2rem; font-size:0.92rem;
 }
 .title-buttons .btn.ghost{ border:2px solid #c8102e; color:#f2e8d5; }
 
@@ -358,15 +363,16 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   position:relative;
 }
 .hand-card:first-child{ margin-left:0; }
-.hand-card:not(:disabled){
+.hand-card.playable{
   box-shadow:0 0 0 2px rgba(94,234,212,0.7), 0 0 16px 3px rgba(94,234,212,0.55), 0 8px 22px rgba(0,0,0,0.6);
 }
-.hand-card:not(:disabled):hover{
+.hand-card:hover{
   transform:rotate(var(--fan-rot,0deg)) translateY(calc(var(--fan-lift,0px) - 18px)) scale(1.08);
-  box-shadow:0 0 0 2px rgba(94,234,212,0.9), 0 0 22px 5px rgba(94,234,212,0.75), 0 16px 34px rgba(0,0,0,0.7);
   z-index:50;
 }
-.hand-card:disabled{ cursor:default; }
+.hand-card.playable:hover{
+  box-shadow:0 0 0 2px rgba(94,234,212,0.9), 0 0 22px 5px rgba(94,234,212,0.75), 0 16px 34px rgba(0,0,0,0.7);
+}
 
 /* card-draw flourish: a big card punches in center-screen with a light
    burst behind it, then flies down and shrinks into the hand */
@@ -388,15 +394,30 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   box-shadow:0 0 70px 14px rgba(240,190,108,0.65), 0 24px 60px rgba(0,0,0,0.7);
   z-index:16; pointer-events:none; opacity:0;
   transform:translate(-50%,-50%) scale(0.2) rotate(-24deg);
+  overflow:hidden;
 }
-#draw-card-anim.flying{ animation:drawCardFlyBig 1000ms cubic-bezier(.22,.85,.25,1) forwards; }
-@keyframes drawCardFlyBig{
+#draw-card-anim.punching{ animation:drawCardPunchIn 500ms cubic-bezier(.22,.85,.25,1) forwards; }
+@keyframes drawCardPunchIn{
   0%   { opacity:0; transform:translate(-50%,-50%) scale(0.15) rotate(-28deg); }
-  28%  { opacity:1; transform:translate(-50%,-50%) scale(1.3)  rotate(8deg); }
-  48%  { opacity:1; transform:translate(-50%,-50%) scale(1.12) rotate(-4deg); }
-  72%  { opacity:1; transform:translate(-50%,-50%) scale(1.12) rotate(0deg); }
+  55%  { opacity:1; transform:translate(-50%,-50%) scale(1.3)  rotate(8deg); }
+  100% { opacity:1; transform:translate(-50%,-50%) scale(1.1)  rotate(-2deg); }
+}
+#draw-card-anim.flying{ animation:drawCardFlyAway 550ms cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes drawCardFlyAway{
+  0%   { opacity:1; transform:translate(-50%,-50%) scale(1.1) rotate(-2deg); }
   100% { opacity:0; transform:translate(-50%, 46vh) scale(0.4) rotate(0deg); }
 }
+#draw-card-tap-catcher{
+  position:fixed; inset:0; z-index:15; display:none; pointer-events:auto; cursor:pointer; background:transparent;
+}
+#draw-card-hint{
+  position:fixed; left:50%; top:calc(46% + 150px); transform:translateX(-50%);
+  font-family:'MedievalSharp',serif; font-size:0.85rem; font-weight:700; color:#ffffff;
+  text-shadow:0 0 10px rgba(6,10,7,0.95); z-index:16; pointer-events:none;
+  opacity:0; transition:opacity 250ms ease;
+}
+#draw-card-hint.visible{ opacity:1; animation:drawCardHintPulse 1.1s ease-in-out infinite; }
+@keyframes drawCardHintPulse{ 0%,100% { opacity:1; } 50% { opacity:0.5; } }
 .hand-card .hc-icon{ font-size:2.1rem; }
 .hand-card .hc-name{ font-size:0.6rem; text-align:center; color:var(--bone); text-transform:uppercase; line-height:1.2; }
 
@@ -454,6 +475,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   flex:1; text-align:center;
 }
 .modal-continue:active{ transform:translateY(1px); }
+.modal-continue:disabled{ opacity:0.35; cursor:not-allowed; box-shadow:none; }
 .card-detail-cancel{ background:none; border:1.5px solid rgba(232,223,196,0.35); color:var(--bone-dim); box-shadow:none; }
 
 @media (max-width:420px){ .unit-box{ width:60px; } }
@@ -468,6 +490,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 <div class="ui-layer active" id="title-ui">
   <div class="title-star-shape"></div>
   <h1>PropaganDICE</h1>
+  <div class="title-symbol-row" id="title-symbol-row"></div>
   <div class="title-buttons">
     <button class="btn" id="begin-btn">Begin Recruitment</button>
     <button class="btn ghost" id="howto-btn">How to Play</button>
@@ -545,12 +568,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     <div class="caption-card">
       <div class="claim-banner" id="claim-banner">Tap the standing stones to begin.</div>
       <button class="btn small" id="end-turn-btn" style="display:none; margin-top:0.6rem;">Keep This Roll ✓</button>
-    </div>
-  </div>
-
-  <div class="rite-bottom">
-    <div style="text-align:center;">
-      <button class="btn ghost small" id="rite-howto-btn">Rules</button>
     </div>
   </div>
 
@@ -643,7 +660,9 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   <div class="hand-cards" id="hand-cards"></div>
 </div>
 <div id="draw-card-flash"></div>
+<div id="draw-card-tap-catcher"></div>
 <div id="draw-card-anim"></div>
+<p id="draw-card-hint">tap to add to hand</p>
 
 <!-- ================= CARD DETAIL / CONFIRM ================= -->
 <div class="overlay" id="card-detail-overlay">
@@ -845,15 +864,183 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
   const drawCardAnimEl = document.getElementById('draw-card-anim');
   const drawCardFlashEl = document.getElementById('draw-card-flash');
+
+  // Same gold vector icons as the 3D card backs, drawn to a plain 2D
+  // canvas since this element is a DOM overlay, not a Three.js texture.
+  // Real emoji would render in full color (browsers ignore fillStyle for
+  // them) — these hand-drawn shapes always come out gold instead.
+  (function buildDrawCardAnimBackground(){
+    const INK = '#b8860b', INK_SOFT = '#8a6a2e', BODY = '#f5f0e6';
+    function drawHammer(ctx){
+      ctx.fillStyle = INK;
+      const headW=0.56, headH=0.40, handleW=0.16;
+      ctx.beginPath();
+      ctx.moveTo(-headW,-0.72); ctx.lineTo(headW,-0.72); ctx.lineTo(headW, -0.72+headH);
+      ctx.lineTo(handleW, -0.72+headH); ctx.lineTo(handleW, 0.78); ctx.lineTo(-handleW, 0.78);
+      ctx.lineTo(-handleW, -0.72+headH); ctx.lineTo(-headW, -0.72+headH);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = INK_SOFT; ctx.lineWidth = 0.03;
+      ctx.beginPath(); ctx.moveTo(-headW,-0.72+headH*0.5); ctx.lineTo(headW,-0.72+headH*0.5); ctx.stroke();
+    }
+    function drawAircraft(ctx){
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.moveTo(0,-0.88); ctx.lineTo(0.18,-0.16); ctx.lineTo(0.86, 0.54); ctx.lineTo(0.16, 0.24);
+      ctx.lineTo(0.24, 0.86); ctx.lineTo(0, 0.56); ctx.lineTo(-0.24, 0.86); ctx.lineTo(-0.16, 0.24);
+      ctx.lineTo(-0.86, 0.54); ctx.lineTo(-0.18,-0.16);
+      ctx.closePath(); ctx.fill();
+    }
+    function drawSaucer(ctx){
+      ctx.fillStyle = INK;
+      ctx.beginPath(); ctx.ellipse(0,-0.34, 0.34, 0.24, 0, Math.PI, 0, false); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0,-0.06, 0.80, 0.25, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = INK_SOFT;
+      ctx.beginPath(); ctx.ellipse(0,-0.34, 0.21, 0.13, 0, Math.PI, 0, false); ctx.fill();
+      ctx.fillStyle = BODY;
+      [-0.42,-0.14,0.14,0.42].forEach(x=>{
+        ctx.beginPath(); ctx.ellipse(x,-0.02, 0.055, 0.05, 0, 0, Math.PI*2); ctx.fill();
+      });
+    }
+    function drawBlade(ctx){
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.moveTo(0,-0.92); ctx.lineTo(0.10,-0.18); ctx.lineTo(0.10, 0.06); ctx.lineTo(0.44, 0.06);
+      ctx.lineTo(0.44, 0.18); ctx.lineTo(0.10, 0.18); ctx.lineTo(0.10, 0.72); ctx.lineTo(0.17, 0.72);
+      ctx.lineTo(0.17, 0.88); ctx.lineTo(-0.17, 0.88); ctx.lineTo(-0.17, 0.72); ctx.lineTo(-0.10, 0.72);
+      ctx.lineTo(-0.10, 0.18); ctx.lineTo(-0.44, 0.18); ctx.lineTo(-0.44, 0.06); ctx.lineTo(-0.10, 0.06);
+      ctx.lineTo(-0.10,-0.18);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = INK_SOFT; ctx.lineWidth = 0.025;
+      ctx.beginPath(); ctx.moveTo(0,-0.85); ctx.lineTo(0,0.06); ctx.stroke();
+    }
+    const c = document.createElement('canvas'); c.width = 320; c.height = 448;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createRadialGradient(160, 200, 20, 160, 224, 260);
+    grad.addColorStop(0, '#2c2013');
+    grad.addColorStop(1, '#120d08');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 320, 448);
+    ctx.beginPath();
+    ctx.moveTo(160, 124); ctx.lineTo(160, 324);
+    ctx.moveTo(60, 224); ctx.lineTo(260, 224);
+    ctx.strokeStyle = 'rgba(240,190,108,0.32)'; ctx.lineWidth = 2;
+    ctx.stroke();
+    [
+      { fn: drawHammer,   x: 110, y: 174 },
+      { fn: drawAircraft, x: 210, y: 174 },
+      { fn: drawBlade,    x: 110, y: 274 },
+      { fn: drawSaucer,   x: 210, y: 274 }
+    ].forEach(q => {
+      ctx.save();
+      ctx.translate(q.x, q.y);
+      ctx.scale(30, 30);
+      q.fn(ctx);
+      ctx.restore();
+    });
+    drawCardAnimEl.style.backgroundImage = `url(${c.toDataURL()})`;
+    drawCardAnimEl.style.backgroundSize = 'cover';
+  })();
+
+  // Title screen version: just the four symbols floating on their own,
+  // in red to match the poster theme — no card frame, border, or background.
+  (function buildTitleCardArt(){
+    const rowEl = document.getElementById('title-symbol-row');
+    if (!rowEl) return;
+    const RED = '#c8102e', RED_SOFT = '#8a0d1f';
+    function drawHammer(ctx){
+      ctx.fillStyle = RED;
+      const headW=0.56, headH=0.40, handleW=0.16;
+      ctx.beginPath();
+      ctx.moveTo(-headW,-0.72); ctx.lineTo(headW,-0.72); ctx.lineTo(headW, -0.72+headH);
+      ctx.lineTo(handleW, -0.72+headH); ctx.lineTo(handleW, 0.78); ctx.lineTo(-handleW, 0.78);
+      ctx.lineTo(-handleW, -0.72+headH); ctx.lineTo(-headW, -0.72+headH);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = RED_SOFT; ctx.lineWidth = 0.03;
+      ctx.beginPath(); ctx.moveTo(-headW,-0.72+headH*0.5); ctx.lineTo(headW,-0.72+headH*0.5); ctx.stroke();
+    }
+    function drawAircraft(ctx){
+      ctx.fillStyle = RED;
+      ctx.beginPath();
+      ctx.moveTo(0,-0.88); ctx.lineTo(0.18,-0.16); ctx.lineTo(0.86, 0.54); ctx.lineTo(0.16, 0.24);
+      ctx.lineTo(0.24, 0.86); ctx.lineTo(0, 0.56); ctx.lineTo(-0.24, 0.86); ctx.lineTo(-0.16, 0.24);
+      ctx.lineTo(-0.86, 0.54); ctx.lineTo(-0.18,-0.16);
+      ctx.closePath(); ctx.fill();
+    }
+    function drawSaucer(ctx){
+      ctx.fillStyle = RED;
+      ctx.beginPath(); ctx.ellipse(0,-0.34, 0.34, 0.24, 0, Math.PI, 0, false); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0,-0.06, 0.80, 0.25, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = RED_SOFT;
+      ctx.beginPath(); ctx.ellipse(0,-0.34, 0.21, 0.13, 0, Math.PI, 0, false); ctx.fill();
+    }
+    function drawBlade(ctx){
+      ctx.fillStyle = RED;
+      ctx.beginPath();
+      ctx.moveTo(0,-0.92); ctx.lineTo(0.10,-0.18); ctx.lineTo(0.10, 0.06); ctx.lineTo(0.44, 0.06);
+      ctx.lineTo(0.44, 0.18); ctx.lineTo(0.10, 0.18); ctx.lineTo(0.10, 0.72); ctx.lineTo(0.17, 0.72);
+      ctx.lineTo(0.17, 0.88); ctx.lineTo(-0.17, 0.88); ctx.lineTo(-0.17, 0.72); ctx.lineTo(-0.10, 0.72);
+      ctx.lineTo(-0.10, 0.18); ctx.lineTo(-0.44, 0.18); ctx.lineTo(-0.44, 0.06); ctx.lineTo(-0.10, 0.06);
+      ctx.lineTo(-0.10,-0.18);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = RED_SOFT; ctx.lineWidth = 0.025;
+      ctx.beginPath(); ctx.moveTo(0,-0.85); ctx.lineTo(0,0.06); ctx.stroke();
+    }
+    // Straight (no rotation), one small centered row of all four symbols
+    // together, sitting just above the buttons.
+    const c = document.createElement('canvas'); c.width = 640; c.height = 170;
+    const ctx = c.getContext('2d'); // transparent — no background, no border
+    [
+      { fn: drawHammer,   x: 100 },
+      { fn: drawAircraft, x: 260 },
+      { fn: drawBlade,    x: 400 },
+      { fn: drawSaucer,   x: 560 }
+    ].forEach(q => {
+      ctx.save();
+      ctx.translate(q.x, 85);
+      ctx.scale(38, 38);
+      q.fn(ctx);
+      ctx.restore();
+    });
+    rowEl.style.backgroundImage = `url(${c.toDataURL()})`;
+    rowEl.style.backgroundSize = 'contain';
+    rowEl.style.backgroundRepeat = 'no-repeat';
+    rowEl.style.backgroundPosition = 'center';
+  })();
+
+  const drawCardTapCatcherEl = document.getElementById('draw-card-tap-catcher');
+  const drawCardHintEl = document.getElementById('draw-card-hint');
+
   function playDrawCardAnimation(){
-    drawCardAnimEl.classList.remove('flying');
-    drawCardFlashEl.classList.remove('flashing');
-    void drawCardAnimEl.offsetWidth; // restart the animation even if it's still mid-flight
-    drawCardAnimEl.classList.add('flying');
-    drawCardFlashEl.classList.add('flashing');
+    return new Promise(resolve => {
+      setTimeout(() => {
+        drawCardAnimEl.classList.remove('flying', 'punching');
+        drawCardFlashEl.classList.remove('flashing');
+        drawCardHintEl.classList.remove('visible');
+        void drawCardAnimEl.offsetWidth; // restart the animation even if it's still mid-flight
+        drawCardAnimEl.classList.add('punching');
+        drawCardFlashEl.classList.add('flashing');
+        drawCardTapCatcherEl.style.display = 'block';
+
+        const hintTimer = setTimeout(() => drawCardHintEl.classList.add('visible'), 500);
+
+        function onTap(){
+          clearTimeout(hintTimer);
+          drawCardTapCatcherEl.style.display = 'none';
+          drawCardTapCatcherEl.removeEventListener('click', onTap);
+          drawCardHintEl.classList.remove('visible');
+          drawCardAnimEl.classList.remove('punching');
+          drawCardAnimEl.classList.add('flying');
+          setTimeout(() => {
+            drawCardAnimEl.classList.remove('flying');
+            resolve();
+          }, 550);
+        }
+        drawCardTapCatcherEl.addEventListener('click', onTap);
+      }, 500); // a beat of stillness after the played card lands, before the draw appears
+    });
   }
 
-  function drawCardForPlayer(player){
+  async function drawCardForPlayer(player){
     const hand = player === 1 ? p1Hand : p2Hand;
     if (sharedDeck.length === 0){
       if (discardPile.length === 0) return;
@@ -862,15 +1049,14 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       showToast('🔀 The deck ran dry — the discard pile was reshuffled back in!');
     }
     const cardId = sharedDeck.pop();
+    if (player === HUMAN_PLAYER) await playDrawCardAnimation();
     hand.push(cardId);
-    if (player === HUMAN_PLAYER) playDrawCardAnimation();
     renderHand();
     if (hand.length > MAX_HAND) requestDiscard(player);
   }
 
   function renderHand(){
-    const player = activeHandPlayer();
-    if (player === CPU_PLAYER){ handBarEl.classList.add('hidden'); return; }
+    const player = HUMAN_PLAYER; // always show your own hand, even during the CPU's turn — canPlayCard already disables cards when it's not your turn
     const hand = player === 1 ? p1Hand : p2Hand;
     handCardsEl.innerHTML = '';
     const mid = (hand.length - 1) / 2;
@@ -884,7 +1070,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       const offset = i - mid;
       btn.style.setProperty('--fan-rot', (offset * 9) + 'deg');
       btn.style.setProperty('--fan-lift', (Math.abs(offset) * 12) + 'px');
-      btn.disabled = !canPlayCard(player, id);
+      btn.classList.toggle('playable', canPlayCard(player, id));
       btn.innerHTML = `<span class="hc-icon">${def.icon}</span><span class="hc-name">${def.name}</span>`;
       btn.addEventListener('click', () => openCardDetail(player, id));
       handCardsEl.appendChild(btn);
@@ -929,7 +1115,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   let cdPlayer = null, cdCardId = null;
 
   function openCardDetail(player, cardId){
-    if (!canPlayCard(player, cardId)) return;
     cdPlayer = player; cdCardId = cardId;
     const def = cardDef(cardId);
     const style = CARD_STYLE[def.type] || CARD_STYLE.damage;
@@ -940,10 +1125,12 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     cdNameEl.textContent = def.name;
     cdTypeEl.textContent = style.type;
     cdDescEl.textContent = def.desc;
+    cdDeployBtn.disabled = !canPlayCard(player, cardId);
     openOverlay(cardDetailOverlay);
   }
   cdCancelBtn.addEventListener('click', () => { closeOverlay(cardDetailOverlay); cdPlayer = null; cdCardId = null; });
   cdDeployBtn.addEventListener('click', () => {
+    if (cdDeployBtn.disabled) return;
     const p = cdPlayer, id = cdCardId;
     closeOverlay(cardDetailOverlay);
     cdPlayer = null; cdCardId = null;
@@ -1204,7 +1391,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       showToast(`${def.icon} Player ${player} casts ${def.name} — their next defense gets an extra roll per attack!`);
 
     } else if (def.type === 'draw'){
-      drawCardForPlayer(player);
+      await drawCardForPlayer(player);
       showToast(`${def.icon} Player ${player} casts ${def.name} — drew an extra card!`);
 
     } else if (def.type === 'peekhand'){
@@ -1237,7 +1424,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
     cardPlayedThisTurn[player] = true;
     renderHand();
-    drawCardForPlayer(player); // deploying any card earns an immediate bonus draw
 
     // Visual flourish: the card physically lands on the table/battlefield,
     // same toss PropaganDICE used whenever a card gets deployed. It stays
@@ -1246,6 +1432,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     if (cardSceneInstance && cardSceneInstance.playCardToss){
       await cardSceneInstance.playCardToss(player);
     }
+
+    await drawCardForPlayer(player); // deploying any card earns an immediate bonus draw, once the played card has landed
 
     // The human already saw their own card in the confirm view before
     // deploying it — but the CPU's plays are otherwise invisible, so show
@@ -2329,15 +2517,26 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       ctx.strokeStyle = 'rgba(240,190,108,0.32)';
       ctx.lineWidth = 2;
       ctx.strokeRect(26, 26, 268, 396);
-      ctx.strokeStyle = '#f0be6c';
-      ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.arc(160, 210, 95, 0, Math.PI * 2);
+      ctx.moveTo(160, 124); ctx.lineTo(160, 324);
+      ctx.moveTo(60, 224); ctx.lineTo(260, 224);
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(160, 210 - 72); ctx.lineTo(160 + 62, 210 + 50); ctx.lineTo(160 - 62, 210 + 50);
-      ctx.closePath();
-      ctx.stroke();
+      // one hand-drawn gold symbol per faction, one per quadrant: Party
+      // Boss (hammer), Industry Captain (aircraft), Knight (blade), Prefect
+      // Zorb (saucer) — same vector icons as the faction dice, not emoji,
+      // so the color is always gold regardless of the browser's font.
+      [
+        { fn: drawHammer,   x: 110, y: 174 },
+        { fn: drawAircraft, x: 210, y: 174 },
+        { fn: drawBlade,    x: 110, y: 274 },
+        { fn: drawSaucer,   x: 210, y: 274 }
+      ].forEach(q => {
+        ctx.save();
+        ctx.translate(q.x, q.y);
+        ctx.scale(30, 30);
+        q.fn(ctx);
+        ctx.restore();
+      });
       return new THREE.CanvasTexture(c);
     }
     const cardW = 0.68, cardH = 0.94, cardT = 0.02;
@@ -2619,6 +2818,49 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     }
     // ---------- card toss: a physical card lands near the battlefield's
     // center whenever either player deploys a card ----------
+    const CARD_BACK_INK = '#b8860b', CARD_BACK_INK_SOFT = '#8a6a2e', CARD_BACK_BODY = '#f5f0e6';
+    function cbDrawHammer(ctx){
+      ctx.fillStyle = CARD_BACK_INK;
+      const headW=0.56, headH=0.40, handleW=0.16;
+      ctx.beginPath();
+      ctx.moveTo(-headW,-0.72); ctx.lineTo(headW,-0.72); ctx.lineTo(headW, -0.72+headH);
+      ctx.lineTo(handleW, -0.72+headH); ctx.lineTo(handleW, 0.78); ctx.lineTo(-handleW, 0.78);
+      ctx.lineTo(-handleW, -0.72+headH); ctx.lineTo(-headW, -0.72+headH);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = CARD_BACK_INK_SOFT; ctx.lineWidth = 0.03;
+      ctx.beginPath(); ctx.moveTo(-headW,-0.72+headH*0.5); ctx.lineTo(headW,-0.72+headH*0.5); ctx.stroke();
+    }
+    function cbDrawAircraft(ctx){
+      ctx.fillStyle = CARD_BACK_INK;
+      ctx.beginPath();
+      ctx.moveTo(0,-0.88); ctx.lineTo(0.18,-0.16); ctx.lineTo(0.86, 0.54); ctx.lineTo(0.16, 0.24);
+      ctx.lineTo(0.24, 0.86); ctx.lineTo(0, 0.56); ctx.lineTo(-0.24, 0.86); ctx.lineTo(-0.16, 0.24);
+      ctx.lineTo(-0.86, 0.54); ctx.lineTo(-0.18,-0.16);
+      ctx.closePath(); ctx.fill();
+    }
+    function cbDrawSaucer(ctx){
+      ctx.fillStyle = CARD_BACK_INK;
+      ctx.beginPath(); ctx.ellipse(0,-0.34, 0.34, 0.24, 0, Math.PI, 0, false); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0,-0.06, 0.80, 0.25, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = CARD_BACK_INK_SOFT;
+      ctx.beginPath(); ctx.ellipse(0,-0.34, 0.21, 0.13, 0, Math.PI, 0, false); ctx.fill();
+      ctx.fillStyle = CARD_BACK_BODY;
+      [-0.42,-0.14,0.14,0.42].forEach(x=>{
+        ctx.beginPath(); ctx.ellipse(x,-0.02, 0.055, 0.05, 0, 0, Math.PI*2); ctx.fill();
+      });
+    }
+    function cbDrawBlade(ctx){
+      ctx.fillStyle = CARD_BACK_INK;
+      ctx.beginPath();
+      ctx.moveTo(0,-0.92); ctx.lineTo(0.10,-0.18); ctx.lineTo(0.10, 0.06); ctx.lineTo(0.44, 0.06);
+      ctx.lineTo(0.44, 0.18); ctx.lineTo(0.10, 0.18); ctx.lineTo(0.10, 0.72); ctx.lineTo(0.17, 0.72);
+      ctx.lineTo(0.17, 0.88); ctx.lineTo(-0.17, 0.88); ctx.lineTo(-0.17, 0.72); ctx.lineTo(-0.10, 0.72);
+      ctx.lineTo(-0.10, 0.18); ctx.lineTo(-0.44, 0.18); ctx.lineTo(-0.44, 0.06); ctx.lineTo(-0.10, 0.06);
+      ctx.lineTo(-0.10,-0.18);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = CARD_BACK_INK_SOFT; ctx.lineWidth = 0.025;
+      ctx.beginPath(); ctx.moveTo(0,-0.85); ctx.lineTo(0,0.06); ctx.stroke();
+    }
     function makeGenericCardBackTexture(){
       const c = document.createElement('canvas'); c.width = 320; c.height = 448;
       const ctx = c.getContext('2d');
@@ -2633,15 +2875,25 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       ctx.strokeStyle = 'rgba(240,190,108,0.32)';
       ctx.lineWidth = 2;
       ctx.strokeRect(26, 26, 268, 396);
-      ctx.strokeStyle = '#f0be6c';
-      ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.arc(160, 210, 95, 0, Math.PI * 2);
+      ctx.moveTo(160, 124); ctx.lineTo(160, 324);
+      ctx.moveTo(60, 224); ctx.lineTo(260, 224);
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(160, 210 - 72); ctx.lineTo(160 + 62, 210 + 50); ctx.lineTo(160 - 62, 210 + 50);
-      ctx.closePath();
-      ctx.stroke();
+      // one hand-drawn gold symbol per faction, one per quadrant — same
+      // vector icons as the faction dice, not emoji, so the color is
+      // always gold regardless of the browser's font.
+      [
+        { fn: cbDrawHammer,   x: 110, y: 174 },
+        { fn: cbDrawAircraft, x: 210, y: 174 },
+        { fn: cbDrawBlade,    x: 110, y: 274 },
+        { fn: cbDrawSaucer,   x: 210, y: 274 }
+      ].forEach(q => {
+        ctx.save();
+        ctx.translate(q.x, q.y);
+        ctx.scale(30, 30);
+        q.fn(ctx);
+        ctx.restore();
+      });
       return new THREE.CanvasTexture(c);
     }
     const cardW = 0.68, cardH = 0.94, cardT = 0.02;
@@ -3074,7 +3326,6 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   // ============================================================
   document.getElementById('begin-btn').addEventListener('click', startNewMatch);
   document.getElementById('howto-btn').addEventListener('click', () => openOverlay(document.getElementById('howto-overlay')));
-  document.getElementById('rite-howto-btn').addEventListener('click', () => openOverlay(document.getElementById('howto-overlay')));
   document.getElementById('howto-back-btn').addEventListener('click', () => closeOverlay(document.getElementById('howto-overlay')));
 
   // ---------- card gallery ----------
@@ -3242,7 +3493,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   }
 
   const TUTORIAL_STEPS = [
-    { screen:'rite', highlight:null, dim:'none',
+    { screen:'rite', highlight:null,
       text:"Welcome to PropaganDICE! Every round starts in the Recruitment phase, rolling dice on the stones to build your faction roster. Let's take a look around." },
     { screen:'rite', highlight:'#round-status-bar',
       text:"This tracks the round number and how many rounds each side has won. Best of three rounds takes the match." },
@@ -3262,7 +3513,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       action: tutorialSimulateRecruit },
     { screen:'rite', highlight:'#p1-roster', captionTop:true,
       text:"There it is — that faction just joined your roster, ready for battle." },
-    { screen:'battle', highlight:null, dim:'none',
+    { screen:'battle', highlight:null,
       text:"Once you declare, you move to the battlefield. Let's set up a quick example fight.",
       action: tutorialSimulateBattleSetup },
     { screen:'battle', highlight:'#battle-ui .hp-row',
@@ -3272,7 +3523,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     { screen:'battle', highlight:null, dim:'none',
       text:"Here's an attack playing out — a 4-sided die for the attack, then the defender rolls one back.",
       action: tutorialSimulateAttack },
-    { screen:'battle', highlight:null, dim:'none',
+    { screen:'battle', highlight:null,
       text:"That's the whole loop: recruit, declare, battle, repeat until someone's knocked out. Best of three rounds wins the match. You're ready — good luck out there!" }
   ];
 
@@ -3369,6 +3620,8 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     });
   }
 
+  let startingHandPending = false;
+
   async function startNewMatch(){
     roundsWon = { 1:0, 2:0 };
     currentRound = 1;
@@ -3383,11 +3636,17 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     lockRollArmed = { 1:false, 2:false };
     cardPlayedThisTurn = { 1:false, 2:false };
 
-    drawCardForPlayer(1); drawCardForPlayer(1);
-    drawCardForPlayer(2); drawCardForPlayer(2);
+    startingHandPending = true; // dealt on the first roll, once the recruitment scene is actually visible
 
     roundStarter = await runCoinFlip();
     startRitePhase();
+  }
+
+  async function dealStartingHandIfPending(){
+    if (!startingHandPending) return;
+    startingHandPending = false;
+    await drawCardForPlayer(1); await drawCardForPlayer(1);
+    await drawCardForPlayer(2); await drawCardForPlayer(2);
   }
 
   // ============================================================
@@ -3466,7 +3725,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     renderRosterSlots();
     updateDeclareButtons();
     updateRiteTurnBanner();
-    claimBannerEl.textContent = 'Tap the stones to begin.';
+    claimBannerEl.textContent = 'Tap the dice to begin.';
     claimBannerEl.className = 'claim-banner';
     riteRollBusy = false;
 
@@ -3611,7 +3870,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
   function maybeRunCpuRiteTurn(){
     if (tutorialActive) return;
-    if (currentPhase === 'rite' && ritePlayer === CPU_PLAYER && !riteRollBusy){
+    if (currentPhase === 'rite' && ritePlayer === CPU_PLAYER && !riteRollBusy && !startingHandPending){
       setTimeout(runCpuRiteTurn, 750);
     }
   }
@@ -3625,6 +3884,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   async function runCpuRiteTurn(){
     if (!groveInstance || riteRollBusy || currentPhase !== 'rite' || ritePlayer !== CPU_PLAYER) return;
     riteRollBusy = true;
+    await dealStartingHandIfPending();
     await maybeCpuPlayCard('rite');
     if (currentPhase !== 'rite' || ritePlayer !== CPU_PLAYER || battleOver) return; // a card may have ended the round or the turn
     maybeHideDeployedCards();
@@ -3646,8 +3906,20 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   lockRollBtn.addEventListener('click', () => { if (groveInstance) groveInstance.endLockRollNow(); });
 
   async function rollRiteDice(){
-    if (!groveInstance || riteRollBusy || currentPhase !== 'rite' || ritePlayer !== HUMAN_PLAYER) return;
+    if (!groveInstance || riteRollBusy || currentPhase !== 'rite') return;
+
+    if (ritePlayer === CPU_PLAYER){
+      if (!startingHandPending) return; // the CPU's later turns run on their own — no tap needed
+      riteRollBusy = true;
+      await dealStartingHandIfPending();
+      riteRollBusy = false;
+      maybeRunCpuRiteTurn();
+      return;
+    }
+    if (ritePlayer !== HUMAN_PLAYER) return;
+
     riteRollBusy = true;
+    await dealStartingHandIfPending();
     lockRollBtn.disabled = false;
     maybeHideDeployedCards();
 
