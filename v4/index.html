@@ -2779,17 +2779,47 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     ground.rotation.x = -Math.PI/2;
     scene.add(ground);
 
-    const mountainMat = new THREE.MeshBasicMaterial({ color:0x3a2e4a, fog:true });
-    const mountainMat2 = new THREE.MeshBasicMaterial({ color:0x2e2438, fog:true });
-    const mountainGeo = new THREE.ConeGeometry(1,1,5);
-    for (let i=0;i<16;i++){
-      const ang = (i/16)*Math.PI*2 + Math.random()*0.15;
-      const dist = 24 + Math.random()*10, h = 8 + Math.random()*10, r = 5 + Math.random()*5;
-      const m = new THREE.Mesh(mountainGeo, Math.random()>0.5 ? mountainMat : mountainMat2);
-      m.position.set(Math.cos(ang)*dist, h/2 - 1, Math.sin(ang)*dist);
-      m.rotation.y = Math.random()*Math.PI;
-      m.scale.set(r,h,r);
-      scene.add(m);
+    const cloudCapMat = new THREE.MeshBasicMaterial({ color:0x4a4038, fog:true });
+    const cloudCapMat2 = new THREE.MeshBasicMaterial({ color:0x362e28, fog:true });
+    const cloudStemMat = new THREE.MeshBasicMaterial({ color:0x4a3226, fog:true });
+    const cloudGlowMat = new THREE.MeshBasicMaterial({ color:0xff6a2e, fog:true });
+    const cloudEmberMat = new THREE.MeshBasicMaterial({ color:0xe8622e, fog:true });
+    const capGeo = new THREE.SphereGeometry(1, 8, 6);
+    const capGeo2 = new THREE.SphereGeometry(0.7, 8, 6);
+    const stemGeo = new THREE.CylinderGeometry(0.35, 0.6, 1, 8);
+    const glowGeo = new THREE.SphereGeometry(0.5, 8, 6);
+    const emberGeo = new THREE.SphereGeometry(0.4, 8, 6);
+    for (let i=0;i<8;i++){
+      const ang = (i/8)*Math.PI*2 + Math.random()*0.2;
+      const dist = 24 + Math.random()*10;
+      const capR = 3 + Math.random()*2.5;
+      const stemH = (10 + Math.random()*8) * 0.62;
+      const x = Math.cos(ang)*dist, z = Math.sin(ang)*dist;
+
+      const glow = new THREE.Mesh(glowGeo, cloudGlowMat); // the fireball glowing at ground level, bigger and brighter
+      glow.position.set(x, capR*0.4, z);
+      glow.scale.set(capR*0.8, capR*0.6, capR*0.8);
+      scene.add(glow);
+
+      const stem = new THREE.Mesh(stemGeo, cloudStemMat); // the rising column, warmed with a hint of orange
+      stem.position.set(x, stemH/2, z);
+      stem.scale.set(capR*0.35, stemH, capR*0.35);
+      scene.add(stem);
+
+      const ember = new THREE.Mesh(emberGeo, cloudEmberMat); // a glowing ember bleeding partway up the stem
+      ember.position.set(x, stemH*0.45, z);
+      ember.scale.set(capR*0.4, capR*0.3, capR*0.4);
+      scene.add(ember);
+
+      const cap = new THREE.Mesh(capGeo, Math.random()>0.5 ? cloudCapMat : cloudCapMat2); // the bulbous main cap
+      cap.position.set(x, stemH + capR*0.5, z);
+      cap.scale.set(capR, capR*0.85, capR);
+      scene.add(cap);
+
+      const cap2 = new THREE.Mesh(capGeo2, Math.random()>0.5 ? cloudCapMat : cloudCapMat2); // an offset lobe so the cap silhouette isn't a perfect sphere
+      cap2.position.set(x + capR*0.4, stemH + capR*0.9, z + capR*0.2);
+      cap2.scale.set(capR*0.6, capR*0.5, capR*0.6);
+      scene.add(cap2);
     }
 
     const deadMat = new THREE.MeshPhongMaterial({ color:0x2a2220, flatShading:true, shininess:0 });
@@ -3662,6 +3692,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   let pendingDeclarer = null;
   let battleOver = false;
   let attackInProgress = false;
+  let mercyTriggered = false; // true once a wiped-out roster has already granted its one final enemy attack
   let riteRollBusy = false;
 
   const roundLabelEl = document.getElementById('round-label');
@@ -3805,9 +3836,15 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     resolveClaim(claim, equipMult);
 
     if (pendingDeclarer !== null && pendingDeclarer !== ritePlayer && hasNewRecruitThisPhase[ritePlayer] && roster[ritePlayer].length > 0){
-      await sleep(500);
-      commenceBattle(pendingDeclarer);
-      return;
+      if (roster[pendingDeclarer].length > 0){
+        await sleep(500);
+        commenceBattle(pendingDeclarer);
+        return;
+      }
+      // The declarer's roster got wiped out (e.g. by a steal card) while
+      // waiting on the opponent — the standing declare no longer applies.
+      pendingDeclarer = null;
+      updateDeclareButtons();
     }
 
     if (ritePlayer === CPU_PLAYER && canDeclare(CPU_PLAYER)){
@@ -3971,10 +4008,29 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   const p2UnitRow = document.getElementById('p2-unit-row');
 
   async function commenceBattle(declarer){
-    currentAttacker = firstStrikeOverride !== null ? firstStrikeOverride : declarer;
-    if (firstStrikeOverride !== null) showToast(`🗡️ First Strike — Player ${firstStrikeOverride} attacks first!`);
+    let firstAttacker = firstStrikeOverride !== null ? firstStrikeOverride : declarer;
+    if (roster[firstAttacker].length === 0){
+      // Whoever was about to go first has no units (e.g. they were stolen
+      // out from under them right before this) — hand the opening move to
+      // the other side instead of starting a battle nobody can act in.
+      const other = firstAttacker === 1 ? 2 : 1;
+      if (roster[other].length > 0){
+        firstAttacker = other;
+      } else {
+        // Neither side actually has units — there's nothing to fight with.
+        pendingDeclarer = null;
+        firstStrikeOverride = null;
+        currentAttacker = declarer;
+        showToast('⚠️ Neither side has any units to fight with — back to recruiting.');
+        await returnToRiteForNextExchange();
+        return;
+      }
+    }
+    currentAttacker = firstAttacker;
+    if (firstStrikeOverride !== null && firstStrikeOverride === currentAttacker) showToast(`🗡️ First Strike — Player ${firstStrikeOverride} attacks first!`);
     firstStrikeOverride = null;
     battleOver = false;
+    mercyTriggered = false;
     pendingDeclarer = null;
     cardPlayedThisTurn = { 1:false, 2:false };
     lockRollArmed = { 1:false, 2:false }; // Fortune's Grasp lasts only until battle begins
@@ -4148,6 +4204,32 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       endRound();
       return;
     }
+
+    // Mercy rule: once a side's roster is completely wiped out, the other
+    // side gets exactly one more attack, then this exchange ends outright —
+    // no unloading every remaining unit on an empty roster.
+    if (roster[side].length === 0 && !mercyTriggered){
+      mercyTriggered = true;
+      if (sideHasUnspentUnit(defenderSide)){
+        showToast(`⚠️ Player ${side}'s roster is wiped out — Player ${defenderSide} gets one final attack!`);
+        currentAttacker = defenderSide;
+        cardPlayedThisTurn[currentAttacker] = false;
+        updateBattleTurnLabel();
+        renderUnitRows();
+        renderHand();
+        maybeRunCpuBattleTurn();
+        return;
+      }
+      mercyTriggered = false;
+      await returnToRiteForNextExchange();
+      return;
+    }
+    if (mercyTriggered){
+      mercyTriggered = false;
+      await returnToRiteForNextExchange();
+      return;
+    }
+
     advanceAttacker();
   }
 
@@ -4164,7 +4246,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     await maybeCpuPlayCard('battle');
     if (currentPhase !== 'battle' || currentAttacker !== CPU_PLAYER || battleOver || attackInProgress) return; // a card may have changed things
     const available = roster[CPU_PLAYER].filter(u => !u.spent);
-    if (available.length === 0) return;
+    if (available.length === 0){ advanceAttacker(); return; } // shouldn't happen, but never get stuck if it does
     const unit = available.reduce((a, b) => (b.power > a.power ? b : a));
     handleAttack(CPU_PLAYER, unit.id);
   }
