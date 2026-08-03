@@ -270,14 +270,21 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
    faction-match-box on the summoning circle */
 .roster-slots{ display:flex; flex-direction:column; gap:0.4rem; }
 .faction-slot{
-  width:min(15vw,58px); height:min(15vw,58px);
+  width:min(20vw,74px); height:min(15vw,58px);
   border:1.5px solid var(--f-dim,var(--line)); border-radius:10px;
   background:rgba(217,154,62,0.1);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.05rem;
+  display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:0.15rem;
+  padding:0 0.3rem;
   transition:filter 300ms ease, border-color 300ms ease, background 300ms ease, box-shadow 300ms ease;
 }
-.faction-slot .slot-icon{ font-size:min(6vw,1.35rem); line-height:1; }
-.faction-slot .slot-count{ font-family:'MedievalSharp',serif; font-size:0.68rem; color:var(--f-color,var(--amber-bright)); line-height:1; }
+.faction-slot .slot-icon{ font-size:min(5vw,1.15rem); line-height:1; }
+.faction-slot .roll-lights{ display:flex; flex-direction:column; gap:2px; }
+.faction-slot .roll-light{
+  width:4px; height:4px; border-radius:50%;
+  background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.18);
+}
+.faction-slot .roll-lights.atk .roll-light.lit{ background:#e85a4f; box-shadow:0 0 3px #e85a4f; border-color:#e85a4f; }
+.faction-slot .roll-lights.def .roll-light.lit{ background:#5aa9e8; box-shadow:0 0 3px #5aa9e8; border-color:#5aa9e8; }
 .faction-slot.empty{ filter:grayscale(1) opacity(0.4); }
 
 /* round sword button — advances to battle, styled after PropaganDICE's declare-round-btn */
@@ -535,10 +542,10 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     </ul>
     <p>Land a claim and that faction joins your roster immediately, with its power set straight off the equip die: I = 1, II = 2, III = 3, O = 0. Roll an X alongside a claim and the recruit never arrives — the recruitment passes quietly to your opponent either way if no claim forms.</p>
     <p>Once you've recruited someone this phase, you may Declare Battle. Whoever declares first attacks first — though nothing happens until your opponent has recruited someone too.</p>
+    <p>Rolling a faction you've already recruited this phase doesn't add a second unit — instead it reinforces the one you have. Roll it with 2 of its own attack-type dice (Plane/Hammer) and it gains an extra attack roll; 2 defense-type dice (Gun/Sickle) grants an extra defense roll; and an exact spread of 1 attack, 1 defense, and 1 mercenary die (Sword/UFO) grants both at once — or, if you have no single matching faction, reinforces every faction on your roster with both. Each faction can bank up to 3 attack rolls and 3 defense rolls this way — watch the little lights on each faction tile in your roster.</p>
     <h3>◆ The Battle</h3>
-    <p>Tap one of your units to attack with it. A 4-sided die (🔆, 1, 2, 3 — one face each) rolls for your attack: its value plus your unit's power always lands as damage.</p>
-    <p>If the defender has any units summoned, their side rolls the same 4-sided die right back. A burst reflects a counter-hit onto you — half your damage, rounded up, or 1 if you dealt none. Roll a plain number that matches or beats the attacking unit's power, and the attack still lands in full, but the attacking unit is destroyed outright. Anything else and the defense does nothing to stop the blow.</p>
-    <p><b>Knight</b> units get an extra attack roll whenever they strike. Any <b>Prefect Zorb</b> unit on the defending roster grants that whole side an extra defense roll on every incoming attack, no matter which unit is actually under attack.</p>
+    <p>Tap one of your units to attack with it. A 4-sided die (🔆, 1, 2, 3 — one face each) rolls for your attack: its value plus your unit's power always lands as damage. If that faction has reinforced attack rolls, it rolls that many times per turn.</p>
+    <p>If the defender has any units summoned, their side rolls the same 4-sided die right back — once per attack, or more if any faction on that roster has reinforced defense rolls (the best defensive faction sets the pace for the whole side). A burst reflects a counter-hit onto you — half your damage, rounded up, or 1 if you dealt none. Roll a plain number that matches or beats the attacking unit's power, and the attack still lands in full, but the attacking unit is destroyed outright. Anything else and the defense does nothing to stop the blow.</p>
     <p>Reduce your opponent to 0 to win the round. First to two round wins takes the match.</p>
     <h3>◆ Cards</h3>
     <p>You draw from a shared 40-card deck (2 to start, then one fresh card every time you play one — capped at 3 in hand, so playing while full still refills you back up to 3), and may play one per turn. If the deck ever runs dry, the discard pile reshuffles back in. Tap a card in the hand bar at the bottom for its full effect — damage, healing, binding an opponent's recruitment turns, stealing or destroying units, extra attack/defense rolls, drawing, revealing the next deck card alongside one of your opponent's to take one or the other, Fortune's Grasp (bumps every recruitment roll you take up to 4 rolls instead of the usual 3, lasting until the next battle phase begins), or The Flood, a battle-only card that wipes every unit from both rosters at once. Some cards are recruitment-only or battle-only; the bar shows whichever player's turn it currently is.</p>
@@ -772,6 +779,13 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     if ((sickles + hammers) === 2 && wildcards >= 1) return 'PARTY_BOSS';
     return null;
   }
+
+  // Every face is also classified as an attack, defense, or mercenary die —
+  // Gun/Sickle are defense, Plane/Hammer are attack, Sword/UFO (Knight's and
+  // Zorb's, also the wildcards) are mercenary. This drives which bonus
+  // battle rolls a repeat claim grants.
+  const DIE_TYPE = { GUN:'defense', SICKLE:'defense', PLANE:'attack', HAMMER:'attack', SWORD:'mercenary', UFO:'mercenary' };
+  const MAX_FACTION_ROLLS = 3;
 
   // ============================================================
   // CARDS — PropaganDICE's original 20-card system, ported as-is: one shared
@@ -1355,11 +1369,21 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     } else if (def.type === 'addcreature'){
       const factionKey = FACTION_KEYS[rand(FACTION_KEYS.length)];
       const power = rand(4); // 0-3
-      unitIdCounter += 1;
-      roster[player].push({ id:'u'+unitIdCounter, factionKey, power });
-      hasNewRecruitThisPhase[player] = true;
       const rf = FACTIONS[factionKey];
-      showToast(`${def.icon} Player ${player} casts ${def.name} — conjured ${rf.icon} ${rf.name} (power ${power})!`);
+      const existingAdd = roster[player].find(u => u.factionKey === factionKey);
+      if (!existingAdd){
+        unitIdCounter += 1;
+        roster[player].push({ id:'u'+unitIdCounter, factionKey, power, attackRolls:1, defenseRolls:0 });
+        showToast(`${def.icon} Player ${player} casts ${def.name} — conjured ${rf.icon} ${rf.name} (power ${power})!`);
+      } else {
+        existingAdd.power = Math.max(existingAdd.power, power);
+        const before = existingAdd.attackRolls;
+        existingAdd.attackRolls = Math.min(MAX_FACTION_ROLLS, existingAdd.attackRolls + 1);
+        showToast(existingAdd.attackRolls > before
+          ? `${def.icon} Player ${player} casts ${def.name} — ${rf.icon} ${rf.name} reinforced (+1 attack roll, power ${existingAdd.power})!`
+          : `${def.icon} Player ${player} casts ${def.name} — ${rf.icon} ${rf.name} is already maxed out!`);
+      }
+      hasNewRecruitThisPhase[player] = true;
       needsRosterRefresh = true;
 
     } else if (def.type === 'firststrike'){
@@ -3458,14 +3482,14 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     if (!groveInstance) return;
     const result = await groveInstance.rollDiceForced(['SWORD','SWORD','SWORD'], 'III');
     const claim = getClaim(result.labels);
-    resolveClaim(claim, EQUIP_VALUE[result.equip]);
+    resolveClaim(claim, EQUIP_VALUE[result.equip], result.labels);
   }
 
   function tutorialSimulateBattleSetup(){
     unitIdCounter += 1; const u1id = 'tut' + unitIdCounter;
     unitIdCounter += 1; const u2id = 'tut' + unitIdCounter;
-    roster[1] = [{ id:u1id, factionKey:'KNIGHT', power:3 }];
-    roster[2] = [{ id:u2id, factionKey:'PARTY_BOSS', power:1 }];
+    roster[1] = [{ id:u1id, factionKey:'KNIGHT', power:3, attackRolls:1, defenseRolls:0 }];
+    roster[2] = [{ id:u2id, factionKey:'PARTY_BOSS', power:1, attackRolls:1, defenseRolls:0 }];
     hp = { 1:GDP_MAX, 2:GDP_MAX };
     battleOver = false;
     currentAttacker = 1;
@@ -3775,11 +3799,14 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
       container.innerHTML = '';
       FACTION_KEYS.forEach(key => {
         const f = FACTIONS[key];
-        const units = roster[p].filter(u => u.factionKey === key);
+        const unit = roster[p].find(u => u.factionKey === key);
         const slot = document.createElement('div');
-        slot.className = 'faction-slot ' + f.cssClass + (units.length === 0 ? ' empty' : '');
+        slot.className = 'faction-slot ' + f.cssClass + (!unit ? ' empty' : '');
         slot.title = f.name;
-        slot.innerHTML = `<span class="slot-icon">${f.icon}</span><span class="slot-count">${units.length}</span>`;
+        const atk = unit ? unit.attackRolls : 0;
+        const def = unit ? unit.defenseRolls : 0;
+        const lights = (lit) => [1,2,3].map(i => `<span class="roll-light${i<=lit?' lit':''}"></span>`).join('');
+        slot.innerHTML = `<span class="roll-lights atk">${lights(atk)}</span><span class="slot-icon">${f.icon}</span><span class="roll-lights def">${lights(def)}</span>`;
         container.appendChild(slot);
       });
     });
@@ -3805,7 +3832,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     renderHand();
   }
 
-  function resolveClaim(claim, equipMult){
+  function resolveClaim(claim, equipMult, labels){
     if (claim && equipMult === null){
       const f = FACTIONS[claim];
       claimBannerEl.textContent = `${f.icon} ${f.name} answers — but X voids the recruit.`;
@@ -3814,16 +3841,57 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
     } else if (claim){
       const f = FACTIONS[claim];
       const power = equipMult;
-      unitIdCounter += 1;
-      roster[ritePlayer].push({ id:'u'+unitIdCounter, factionKey:claim, power });
+      const existing = roster[ritePlayer].find(u => u.factionKey === claim);
+      if (!existing){
+        unitIdCounter += 1;
+        roster[ritePlayer].push({ id:'u'+unitIdCounter, factionKey:claim, power, attackRolls:1, defenseRolls:0 });
+        claimBannerEl.textContent = `${f.icon} ${f.name} recruited! (power ${power})`;
+        showToast(`Player ${ritePlayer} recruits ${f.name}`);
+      } else {
+        existing.power = Math.max(existing.power, power); // the equip die always sets the highest points seen for this faction
+        const counts = { attack:0, defense:0, mercenary:0 };
+        (labels || []).forEach(l => { counts[DIE_TYPE[l]]++; });
+        let grantAttack = 0, grantDefense = 0;
+        if (counts.attack >= 2) grantAttack = 1;
+        else if (counts.defense >= 2) grantDefense = 1;
+        else if (counts.attack === 1 && counts.defense === 1 && counts.mercenary === 1){ grantAttack = 1; grantDefense = 1; }
+        else if (claim === 'PREFECT_ZORB') grantDefense = 1; // pure-mercenary repeats keep each faction's own flavor
+        else grantAttack = 1; // Knight repeats (and any other odd combo) default to attack
+        const beforeA = existing.attackRolls, beforeD = existing.defenseRolls;
+        existing.attackRolls = Math.min(MAX_FACTION_ROLLS, existing.attackRolls + grantAttack);
+        existing.defenseRolls = Math.min(MAX_FACTION_ROLLS, existing.defenseRolls + grantDefense);
+        const gainedA = existing.attackRolls - beforeA, gainedD = existing.defenseRolls - beforeD;
+        const parts = [];
+        if (gainedA) parts.push('+1 attack roll');
+        if (gainedD) parts.push('+1 defense roll');
+        claimBannerEl.textContent = parts.length
+          ? `${f.icon} ${f.name} reinforced! (power ${existing.power}) — ${parts.join(', ')}`
+          : `${f.icon} ${f.name} rolled again, but its rolls are already maxed at ${MAX_FACTION_ROLLS}.`;
+        showToast(`Player ${ritePlayer} reinforces ${f.name}`);
+      }
       hasNewRecruitThisPhase[ritePlayer] = true;
-      claimBannerEl.textContent = `${f.icon} ${f.name} recruited! (power ${power})`;
       claimBannerEl.className = 'claim-banner claim ' + f.cssClass;
-      showToast(`Player ${ritePlayer} recruits ${f.name}`);
       renderRosterSlots();
       updateDeclareButtons();
       return true;
     } else {
+      // No specific faction matched — but an exact 1 attack + 1 defense + 1
+      // mercenary spread is a "balanced" roll that reinforces every faction
+      // you've already recruited this phase, one attack and one defense
+      // roll each, instead of doing nothing.
+      const counts = { attack:0, defense:0, mercenary:0 };
+      (labels || []).forEach(l => { counts[DIE_TYPE[l]]++; });
+      if (counts.attack === 1 && counts.defense === 1 && counts.mercenary === 1 && roster[ritePlayer].length > 0){
+        roster[ritePlayer].forEach(u => {
+          u.attackRolls = Math.min(MAX_FACTION_ROLLS, u.attackRolls + 1);
+          u.defenseRolls = Math.min(MAX_FACTION_ROLLS, u.defenseRolls + 1);
+        });
+        claimBannerEl.textContent = `⚖️ A balanced roll reinforces your whole roster — +1 attack & defense roll everywhere!`;
+        claimBannerEl.className = 'claim-banner claim';
+        showToast(`Player ${ritePlayer}'s roster is reinforced across the board!`);
+        renderRosterSlots();
+        return true;
+      }
       claimBannerEl.textContent = 'No recruits this time.';
       claimBannerEl.className = 'claim-banner no-claim';
       return false;
@@ -3833,7 +3901,7 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
   async function finishRiteRoll(result){
     const claim = getClaim(result.labels);
     const equipMult = EQUIP_VALUE[result.equip];
-    resolveClaim(claim, equipMult);
+    resolveClaim(claim, equipMult, result.labels);
 
     if (pendingDeclarer !== null && pendingDeclarer !== ritePlayer && hasNewRecruitThisPhase[ritePlayer] && roster[ritePlayer].length > 0){
       if (roster[pendingDeclarer].length > 0){
@@ -4108,16 +4176,15 @@ button{ font-family:'EB Garamond',serif; cursor:pointer; border:none; border-rad
 
     const defenderSide = side === 1 ? 2 : 1;
     const f = FACTIONS[unit.factionKey];
-    const isKnightAttacker = unit.factionKey === 'KNIGHT';
-    const defenderHasZorb = roster[defenderSide].some(u => u.factionKey === 'PREFECT_ZORB');
 
-    const numAttackRolls = (isKnightAttacker ? 2 : 1) + (bonusAttackRolls[side] || 0);
-    const numDefenseRollsEach = (defenderHasZorb ? 2 : 1) + (bonusDefenseRolls[defenderSide] || 0);
+    const numAttackRolls = (unit.attackRolls || 1) + (bonusAttackRolls[side] || 0);
+    const bestDefenseRolls = roster[defenderSide].reduce((best, u) => Math.max(best, u.defenseRolls || 0), 0);
+    const numDefenseRollsEach = Math.max(1, bestDefenseRolls) + (bonusDefenseRolls[defenderSide] || 0);
     bonusAttackRolls[side] = 0;
     bonusDefenseRolls[defenderSide] = 0;
 
-    if (isKnightAttacker) showToast(`⚔️ Knight's discipline — an extra attack roll!`);
-    if (defenderHasZorb) showToast(`🛸 Prefect Zorb's shielding — an extra defense roll!`);
+    if (unit.attackRolls > 1) showToast(`${f.icon} ${f.name}'s reinforced ranks — ${unit.attackRolls} attack rolls!`);
+    if (bestDefenseRolls > 1) showToast(`🛡️ Player ${defenderSide}'s defense is reinforced — ${bestDefenseRolls} defense rolls!`);
 
     let damage = 0, counterDamage = 0, unitDestroyed = false;
     const resultLines = [];
