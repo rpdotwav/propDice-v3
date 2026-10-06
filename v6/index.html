@@ -46,7 +46,7 @@ body{
   position:relative; z-index:1;
   pointer-events:none;
   display:flex; flex-direction:column;
-  margin:0.4rem 0.5rem 0.3rem; padding:0.3rem 0.45rem 0.25rem;
+  margin:calc(0.4rem + env(safe-area-inset-top, 0px)) 0.5rem 0.3rem; padding:0.3rem 0.45rem 0.25rem;
   background:rgba(6,10,7,0.72);
   border:1px solid var(--line); border-radius:8px;
 }
